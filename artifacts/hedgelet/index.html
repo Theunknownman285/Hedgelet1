@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hedgelet</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #A66E4E; display: flex; color: black; overflow-x: hidden; }
+        .sidebar { width: 180px; background-color: #8B5A3E; padding: 20px; height: 100vh; position: fixed; top: 0; left: 0; border-right: 2px solid rgba(0,0,0,0.1); overflow-y: auto; }
+        .sidebar h1 { font-size: 40px; margin-bottom: 30px; }
+        .nav-item { font-size: 24px; font-weight: bold; margin-bottom: 15px; cursor: pointer; color: black; }
+        .nav-item:hover { color: #fff; }
+        .main-content { flex-grow: 1; padding: 40px; margin-left: 220px; position: relative; }
+        .page { display: none; }
+        .active { display: block; }
+        .profile-header h2 { font-size: 36px; margin: 0; text-transform: lowercase; display: inline-block; }
+        .daily-btn { font-size: 14px; margin-left: 15px; padding: 5px 10px; cursor: pointer; background: #8B5A3E; color: white; border: none; border-radius: 5px; vertical-align: middle; font-weight: bold; }
+        .stats-bar { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0,0,0,0.2); display: flex; justify-content: space-around; padding: 20px; margin: 40px 0; }
+        .stat-item span { display: block; font-weight: bold; font-size: 20px; }
+        .market-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 30px; }
+        .pack-card { background: #8B5A3E; width: 180px; padding: 20px; border-radius: 15px; text-align: center; cursor: pointer; color: black; transition: 0.2s; border: 4px solid transparent; }
+        .pack-card:hover { transform: scale(1.05); border-color: rgba(255,255,255,0.3); }
+        .hedges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; margin-top: 30px; }
+        .blook-card { background: white; aspect-ratio: 1/1.1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 0 rgba(0,0,0,0.1); position: relative; box-sizing: border-box; }
+        .count-badge { position: absolute; bottom: 5px; right: 8px; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 10px; font-size: 12px; font-weight: bold; color: white; }
+        .blook-card.locked { background: #333; color: white; border: none !important; }
+        .lock-icon { font-size: 30px; opacity: 0.6; }
+        #daily-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 500px; border: 5px solid #8B5A3E; color: black; position: relative; }
+        .wheel-container { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 20px 0; }
+        #wheelCanvas { border-radius: 50%; border: 3px solid #333; background: white; }
+        .wheel-wrapper { position: relative; }
+        .wheel-pointer { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 24px; line-height: 1; }
+        #spin-btn { padding: 15px 25px; font-weight: bold; cursor: pointer; border-radius: 10px; border: none; font-size: 18px; min-width: 140px; background: #8B5A3E; color: white; }
+        #spin-btn.claim-mode { background: #4caf50; }
+        #reveal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; color: white; }
+        .drop-hedge { font-size: 80px; animation: slideDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes slideDown { from { transform: translateY(-150px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="home-screen" style="
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(#D6A77A, #A66E4E);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:10000; color:white;
+">
+    <div style="font-size:120px; margin-bottom:20px;">🦔</div>
+    <div style="position: relative; width: 250px; height: 90px; margin-bottom: 20px;">
+        <div id="phone" style="font-size: 48px; position: absolute; left: 100px; top: 20px; opacity: 0; transition: opacity 1s;">📱</div>
+        <div id="hedgehog2" style="font-size: 80px; position: absolute; left: 400px; top: 0; opacity: 0; transition: left 2s ease, opacity 2s ease;">🦔</div>
+    </div>
+    <h1 style="font-size:48px; margin:0;">Hedgelet</h1>
+    <p style="margin:10px 0 30px 0; font-size:16px;">A Blooket Knockoff About Hedgehogs</p>
+    <button onclick="enterSignup()" style="
+        padding: 15px 30px; font-size:18px; border:none; border-radius:10px;
+        background:#8B5A3E; color:white; font-weight:bold; cursor:pointer;
+    ">Start</button>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background:#A66E4E; display:none; align-items:center; justify-content:center; z-index:9999;
+">
+    <div style="background:#8B5A3E; padding:40px; border-radius:20px; width:350px; text-align:center; color:white;">
+        <h1>Hedgelet Login</h1>
+        <input id="email" type="email" placeholder="Email" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;box-sizing:border-box;">
+        <input id="username" type="text" placeholder="Username" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;box-sizing:border-box;">
+        <input id="discord" type="text" placeholder="Discord Username" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;box-sizing:border-box;">
+        <input id="password" type="password" placeholder="Password" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;box-sizing:border-box;">
+        <input id="confirm-password" type="password" placeholder="Confirm Password" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;box-sizing:border-box;">
+        <button onclick="signupUser()" style="width:100%;padding:12px;margin-top:10px;background:#4CAF50;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;">Sign Up</button>
+        <button onclick="loginUser()" style="width:100%;padding:12px;margin-top:10px;background:#2196F3;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;">Login</button>
+        <p id="login-status" style="margin-top:10px;"></p>
+    </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h1>H</h1>
+    <div class="nav-item" onclick="showPage('stats-page')">Stats</div>
+    <div class="nav-item" onclick="showPage('market-page')">Market</div>
+    <div class="nav-item" onclick="showPage('hedges-page')">Hedges</div>
+    <div class="nav-item" onclick="showPage('news-page')">News</div>
+    <div class="nav-item" onclick="logoutUser()" style="margin-top:30px; font-size:16px; color:#ddd;">Logout</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <!-- STATS PAGE -->
+    <div id="stats-page" class="page active">
+        <div class="profile-header">
+            <h2 id="profile-username">hedgehog</h2>
+            <button class="daily-btn" onclick="openDailyModal()">daily reward</button>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">Unlocked: <span id="stat-unlocked">0/14</span></div>
+            <div class="stat-item">Opened: <span id="stat-opened">0</span></div>
+            <div class="stat-item">Tokens: <span id="stat-tokens">500</span></div>
+        </div>
+    </div>
+
+    <!-- MARKET PAGE -->
+    <div id="market-page" class="page">
+        <h2>Market</h2>
+        <div class="market-grid">
+            <div class="pack-card" onclick="startOpening()">
+                <div style="font-size:60px;">🦔</div>
+                <b>Hedgehog Pack</b><br>25 Tokens
+            </div>
+            <div class="pack-card" onclick="openFastFoodPack()" style="background: #D35400; color: white;">
+                <div style="font-size:60px;">🍔</div>
+                <b>Fast Food Pack</b><br>20 Tokens
+            </div>
+        </div>
+    </div>
+
+    <!-- HEDGES PAGE -->
+    <div id="hedges-page" class="page">
+        <h2>My Hedges</h2>
+        <div class="hedges-grid" id="hedges-display"></div>
+    </div>
+
+    <!-- NEWS PAGE -->
+    <div id="news-page" class="page">
+        <h2>News</h2>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom:12px;">
+            <b>Rarity Update!</b> - Check out the new rarity borders in your collection.
+        </div>
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+            <b>Fast Food Pack is here!</b> - Open packs to collect Ketchup, Mustard, French Fries, and Milkshake hedgehogs.
+        </div>
+    </div>
+</div>
+
+<!-- DAILY MODAL -->
+<div id="daily-modal">
+    <div class="modal-box">
+        <span style="position:absolute;top:10px;right:20px;cursor:pointer;font-weight:bold;" onclick="closeDailyModal()">✕</span>
+        <h2>Daily Reward</h2>
+        <div class="wheel-container">
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer">▼</div>
+                <canvas id="wheelCanvas" width="250" height="250"></canvas>
+            </div>
+            <button id="spin-btn" onclick="handleSpinClick()">Spin It!</button>
+        </div>
+        <div id="result-text" style="font-weight:bold; font-size: 20px; height: 30px;"></div>
+    </div>
+</div>
+
+<!-- REVEAL OVERLAY -->
+<div id="reveal-overlay">
+    <div id="egg-stage" style="text-align:center;">
+        <div style="font-size:100px; cursor:pointer;" onclick="hatchEgg()">🥚</div>
+        <h3>Click to open</h3>
+    </div>
+    <div id="reveal-stage" style="background:white; padding:40px; border-radius:20px; display:none; flex-direction:column; align-items:center;">
+        <div id="reveal-icon" class="drop-hedge">🦔</div>
+        <h1 id="reveal-name" style="color:black; text-transform: lowercase;"></h1>
+        <div id="reveal-rarity" style="font-size:14px; margin-bottom:12px; font-weight:bold;"></div>
+        <button onclick="closeReveal()" style="padding:10px 25px; cursor:pointer; font-weight:bold; background: #8B5A3E; color: white; border: none; border-radius: 5px;">Cool!</button>
+    </div>
+</div>
+
+<!-- FIREBASE CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+    // ─── FIREBASE SETUP ───────────────────────────────────────────────────────
+    const firebaseConfig = {
+        apiKey: "AIzaSyDf8iHtjx4pJS2TWUL-zFAlTgpR_oXwqAE",
+        authDomain: "hedgelet-292a4.firebaseapp.com",
+        databaseURL: "https://hedgelet-292a4-default-rtdb.firebaseio.com",
+        projectId: "hedgelet-292a4",
+        storageBucket: "hedgelet-292a4.firebasestorage.app",
+        messagingSenderId: "16627633621",
+        appId: "1:16627633621:web:60a678bdf682b374fb415c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ─── GAME STATE ───────────────────────────────────────────────────────────
+    let currentUid = null;
+    let tokens = 500, opened = 0, collection = {}, pendingBlook = 0;
+    let pendingReward = 0, isSpinning = false, canClaim = false;
+
+    const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+
+    const blookData = {
+        1:  { name: "hedgehog 1",   emoji: "🦔", pack: "hedgehog" },
+        2:  { name: "hedgehog 2",   emoji: "🦔", pack: "hedgehog" },
+        3:  { name: "hedgehog 3",   emoji: "🦔", pack: "hedgehog" },
+        4:  { name: "hedgehog 4",   emoji: "🦔", pack: "hedgehog" },
+        5:  { name: "hedgehog 5",   emoji: "🦔", pack: "hedgehog" },
+        6:  { name: "hedgehog 6",   emoji: "🦔", pack: "hedgehog" },
+        7:  { name: "hedgehog 7",   emoji: "🦔", pack: "hedgehog" },
+        8:  { name: "hedgehog 8",   emoji: "🦔", pack: "hedgehog" },
+        9:  { name: "hedgehog 9",   emoji: "🦔", pack: "hedgehog" },
+        10: { name: "hedgehog 10",  emoji: "🦔", pack: "hedgehog" },
+        11: { name: "Ketchup",      emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "uncommon", pack: "fastfood" },
+        12: { name: "Mustard",      emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "uncommon", pack: "fastfood" },
+        13: { name: "French Fries", emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "rare", pack: "fastfood" },
+        14: { name: "Milkshake",    emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" }
+    };
+
+    for (let i = 1; i <= 14; i++) collection[i] = 0;
+
+    // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
+    window.onload = () => {
+        const phone = document.getElementById('phone');
+        const h2 = document.getElementById('hedgehog2');
+        setTimeout(() => { phone.style.opacity = '1'; }, 1000);
+        setTimeout(() => { h2.style.opacity = '1'; h2.style.left = '150px'; }, 3000);
+    };
+
+    function enterSignup() {
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    function signupUser() {
+        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
+        const discord = document.getElementById('discord').value;
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirm-password').value;
+        if (password !== confirm) { document.getElementById('login-status').innerText = 'Passwords do not match!'; return; }
+        auth.createUserWithEmailAndPassword(email, password)
+            .then(cred => {
+                const uid = cred.user.uid;
+                const initCollection = {};
+                for (let i = 1; i <= 14; i++) initCollection[i] = 0;
+                return db.collection('users').doc(uid).set({ email, username, discord, tokens: 500, opened: 0, collection: initCollection });
+            })
+            .then(() => { document.getElementById('login-status').innerText = 'Account created! Logging in...'; })
+            .catch(e => { document.getElementById('login-status').innerText = e.message; });
+    }
+
+    function loginUser() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        auth.signInWithEmailAndPassword(email, password)
+            .catch(e => { document.getElementById('login-status').innerText = e.message; });
+    }
+
+    function logoutUser() {
+        auth.signOut();
+    }
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUid = user.uid;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'none';
+            loadPlayerData(user.uid);
+        } else {
+            currentUid = null;
+        }
+    });
+
+    function loadPlayerData(uid) {
+        db.collection('users').doc(uid).get().then(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                tokens = data.tokens || 500;
+                opened = data.opened || 0;
+                collection = data.collection || {};
+                for (let i = 1; i <= 14; i++) if (!collection[i]) collection[i] = 0;
+                if (data.username) document.getElementById('profile-username').innerText = data.username;
+                updateStats();
+            }
+        });
+    }
+
+    function savePlayerData() {
+        if (!currentUid) return;
+        db.collection('users').doc(currentUid).update({ tokens, opened, collection });
+    }
+
+    // ─── NAVIGATION ───────────────────────────────────────────────────────────
+    function showPage(pId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pId).classList.add('active');
+        if (pId === 'hedges-page') updateHedges();
+    }
+
+    // ─── STATS ────────────────────────────────────────────────────────────────
+    function updateStats() {
+        document.getElementById('stat-tokens').innerText = tokens;
+        document.getElementById('stat-opened').innerText = opened;
+        document.getElementById('stat-unlocked').innerText = Object.values(collection).filter(x => x > 0).length + '/14';
+    }
+
+    // ─── PACK OPENING ─────────────────────────────────────────────────────────
+    function startOpening() {
+        if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
+        tokens -= 25; opened++;
+        updateStats(); savePlayerData();
+        pendingBlook = Math.floor(Math.random() * 10) + 1;
+        showReveal();
+    }
+
+    function openFastFoodPack() {
+        if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
+        tokens -= 20; opened++;
+        updateStats(); savePlayerData();
+        const rand = Math.random();
+        if (rand < 0.40)      pendingBlook = 11; // Ketchup   40%
+        else if (rand < 0.80) pendingBlook = 12; // Mustard   40%
+        else if (rand < 0.95) pendingBlook = 13; // Fries     15%
+        else                  pendingBlook = 14; // Milkshake  5%
+        showReveal();
+    }
+
+    function showReveal() {
+        const overlay = document.getElementById('reveal-overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('egg-stage').style.display = 'block';
+        document.getElementById('reveal-stage').style.display = 'none';
+    }
+
+    function hatchEgg() {
+        document.getElementById('egg-stage').style.display = 'none';
+        const stage = document.getElementById('reveal-stage');
+        stage.style.display = 'flex';
+
+        const data = blookData[pendingBlook];
+        const revIcon = document.getElementById('reveal-icon');
+        const icon = data.emoji;
+
+        if (icon.startsWith('http')) {
+            revIcon.innerHTML = `<img src="${icon}" style="width:100px;height:100px;object-fit:contain;">`;
+        } else {
+            revIcon.style.fontSize = '80px';
+            revIcon.innerText = icon;
+        }
+
+        document.getElementById('reveal-name').innerText = data.name;
+
+        const rarityEl = document.getElementById('reveal-rarity');
+        const rarityColors = { uncommon: '#4CAF50', rare: '#2196F3', legendary: '#FF9800' };
+        if (data.rarity) {
+            rarityEl.innerText = data.rarity.toUpperCase();
+            rarityEl.style.color = rarityColors[data.rarity];
+        } else {
+            rarityEl.innerText = 'COMMON';
+            rarityEl.style.color = '#888';
+        }
+
+        collection[pendingBlook] = (collection[pendingBlook] || 0) + 1;
+        savePlayerData();
+        updateStats();
+    }
+
+    function closeReveal() {
+        document.getElementById('reveal-overlay').style.display = 'none';
+    }
+
+    // ─── HEDGES COLLECTION ────────────────────────────────────────────────────
+    function updateHedges() {
+        const grid = document.getElementById('hedges-display');
+        grid.innerHTML = '';
+        const packs = [
+            { name: 'Hedgehog Pack', ids: [1,2,3,4,5,6,7,8,9,10] },
+            { name: 'Fast Food Pack', ids: [11,12,13,14] }
+        ];
+        packs.forEach(pack => {
+            const header = document.createElement('h3');
+            header.style.cssText = 'grid-column:1/-1;color:white;margin-top:20px;';
+            header.innerText = pack.name;
+            grid.appendChild(header);
+
+            pack.ids.forEach(i => {
+                const card = document.createElement('div');
+                const count = collection[i] || 0;
+                const locked = count === 0;
+                const data = blookData[i];
+                card.className = `blook-card${locked ? ' locked' : ''}`;
+
+                if (!locked && data.rarity) {
+                    const borders = { uncommon: '#4CAF50', rare: '#2196F3', legendary: '#FF9800' };
+                    card.style.border = `4px solid ${borders[data.rarity]}`;
+                }
+
+                if (locked) {
+                    card.innerHTML = `<div class="lock-icon">🔒</div><div style="font-size:10px">???</div>`;
+                } else {
+                    const icon = data.emoji;
+                    let display = icon.startsWith('http')
+                        ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;">`
+                        : `<div style="font-size:40px">${icon}</div>`;
+                    const badgeColor = data.rarity ? { uncommon:'#4CAF50', rare:'#2196F3', legendary:'#FF9800' }[data.rarity] : 'white';
+                    card.innerHTML = `${display}<div style="font-size:10px;text-align:center;padding:0 4px;">${data.name}</div><div class="count-badge" style="color:${badgeColor}">x${count}</div>`;
+                }
+                grid.appendChild(card);
+            });
+        });
+    }
+
+    // ─── SPIN WHEEL ───────────────────────────────────────────────────────────
+    let wheelDeg = 0;
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function drawWheel(rotationDeg) {
+        const arc = (Math.PI * 2) / prizes.length;
+        ctx.clearRect(0, 0, 250, 250);
+        ctx.save();
+        ctx.translate(125, 125);
+        ctx.rotate((rotationDeg || 0) * Math.PI / 180);
+        ctx.translate(-125, -125);
+        prizes.forEach((p, i) => {
+            ctx.fillStyle = i % 2 === 0 ? '#8B5A3E' : '#A66E4E';
+            ctx.beginPath();
+            ctx.moveTo(125, 125);
+            ctx.arc(125, 125, 120, i * arc, (i + 1) * arc);
+            ctx.fill();
+            ctx.save();
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 13px Segoe UI';
+            ctx.translate(125 + Math.cos(i * arc + arc / 2) * 85, 125 + Math.sin(i * arc + arc / 2) * 85);
+            ctx.rotate(i * arc + arc / 2 + Math.PI / 2);
+            ctx.fillText(p, -15, 0);
+            ctx.restore();
+        });
+        ctx.restore();
+    }
+
+    function openDailyModal() {
+        document.getElementById('daily-modal').style.display = 'flex';
+        wheelDeg = 0;
+        drawWheel(0);
+        updateTimer();
+    }
+
+    function closeDailyModal() {
+        if (!isSpinning) document.getElementById('daily-modal').style.display = 'none';
+    }
+
+    function handleSpinClick() {
+        if (canClaim) claimReward();
+        else spinWheel();
+    }
+
+    function spinWheel() {
+        if (isSpinning) return;
+        const cd = localStorage.getItem('hedge_cooldown');
+        if (cd && Date.now() < Number(cd)) return;
+
+        isSpinning = true;
+        const btn = document.getElementById('spin-btn');
+        btn.disabled = true;
+        btn.innerText = 'Spinning...';
+
+        const extraSpins = 3600;
+        const finalOffset = Math.floor(Math.random() * 360);
+        const totalDeg = extraSpins + finalOffset;
+        const targetDeg = wheelDeg + totalDeg;
+
+        const duration = 4000;
+        const start = performance.now();
+        const startDeg = wheelDeg;
+
+        function animate(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 4);
+            const current = startDeg + totalDeg * ease;
+            drawWheel(current);
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                wheelDeg = targetDeg % 360;
+                // Pointer is at top (270° from right = top)
+                // Slot index = which slice is under the top pointer
+                const normalised = (360 - (wheelDeg % 360) + 270) % 360;
+                const prizeIdx = Math.floor(normalised / (360 / prizes.length)) % prizes.length;
+                pendingReward = prizes[prizeIdx];
+                document.getElementById('result-text').innerText = '🎉 You won: ' + pendingReward + ' tokens!';
+                btn.innerText = 'CLAIM';
+                btn.classList.add('claim-mode');
+                btn.disabled = false;
+                canClaim = true;
+                isSpinning = false;
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function claimReward() {
+        tokens += pendingReward;
+        updateStats();
+        savePlayerData();
+        localStorage.setItem('hedge_cooldown', Date.now() + 24 * 60 * 60 * 1000);
+        canClaim = false;
+        const btn = document.getElementById('spin-btn');
+        btn.classList.remove('claim-mode');
+        document.getElementById('result-text').innerText = '';
+        closeDailyModal();
+    }
+
+    function updateTimer() {
+        const btn = document.getElementById('spin-btn');
+        const cd = localStorage.getItem('hedge_cooldown');
+        if (cd && Date.now() < Number(cd) && !canClaim) {
+            const tl = Number(cd) - Date.now();
+            const h = Math.floor(tl / 3600000);
+            const m = Math.floor((tl % 3600000) / 60000);
+            const s = Math.floor((tl % 60000) / 1000);
+            btn.innerText = `${h}h ${m}m ${s}s`;
+            btn.disabled = true;
+            setTimeout(updateTimer, 1000);
+        } else if (!canClaim) {
+            btn.innerText = 'Spin It!';
+            btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
