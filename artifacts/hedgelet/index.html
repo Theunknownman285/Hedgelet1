@@ -198,6 +198,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <script>
     // ─── FIREBASE SETUP ───────────────────────────────────────────────────────
@@ -213,6 +214,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const rtdb = firebase.database();
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
@@ -558,46 +560,44 @@
 
     // ─── CHAT ─────────────────────────────────────────────────────────────────
     let chatUsername = 'hedgehog';
-    let chatUnsub = null;
+    let chatListening = false;
     let lastDateLabel = null;
 
     function initChat() {
-        if (chatUnsub) return; // already listening
+        if (chatListening) return;
+        chatListening = true;
+
         const messagesDiv = document.getElementById('chat-messages');
+        const chatRef = rtdb.ref('globalChat').orderByChild('timestamp').limitToLast(100);
 
-        chatUnsub = db.collection('globalChat')
-            .orderBy('timestamp', 'asc')
-            .limitToLast(100)
-            .onSnapshot(snapshot => {
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'added') {
-                        const msg = change.doc.data();
-                        const ts = msg.timestamp ? msg.timestamp.toDate() : new Date();
+        // Load existing messages first, then listen for new ones
+        chatRef.on('child_added', snap => {
+            const msg = snap.val();
+            if (!msg) return;
 
-                        // Date separator
-                        const dateStr = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
-                        if (dateStr !== lastDateLabel) {
-                            lastDateLabel = dateStr;
-                            const sep = document.createElement('div');
-                            sep.className = 'chat-date';
-                            sep.innerText = dateStr;
-                            messagesDiv.appendChild(sep);
-                        }
+            const ts = new Date(msg.timestamp || Date.now());
 
-                        const isMe = msg.uid === currentUid;
-                        const bubble = document.createElement('div');
-                        bubble.className = `chat-msg ${isMe ? 'mine' : 'theirs'}`;
+            // Date separator
+            const dateStr = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            if (dateStr !== lastDateLabel) {
+                lastDateLabel = dateStr;
+                const sep = document.createElement('div');
+                sep.className = 'chat-date';
+                sep.innerText = dateStr;
+                messagesDiv.appendChild(sep);
+            }
 
-                        const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        bubble.innerHTML = `
-                            <div class="chat-name">${escapeHtml(msg.username)} · ${timeStr}</div>
-                            <div>${escapeHtml(msg.text)}</div>
-                        `;
-                        messagesDiv.appendChild(bubble);
-                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                    }
-                });
-            });
+            const isMe = msg.uid === currentUid;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-msg ${isMe ? 'mine' : 'theirs'}`;
+            const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            bubble.innerHTML = `
+                <div class="chat-name">${escapeHtml(msg.username)} · ${timeStr}</div>
+                <div>${escapeHtml(msg.text)}</div>
+            `;
+            messagesDiv.appendChild(bubble);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
     }
 
     function sendMessage() {
@@ -606,11 +606,11 @@
         if (!text || !currentUid) return;
         input.value = '';
 
-        db.collection('globalChat').add({
+        rtdb.ref('globalChat').push({
             uid: currentUid,
             username: chatUsername,
             text: text,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: Date.now()
         }).catch(err => console.error('Chat send error:', err));
     }
 
