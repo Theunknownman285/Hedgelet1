@@ -188,6 +188,8 @@
     <!-- CHAT PAGE -->
     <div id="chat-page" class="page">
         <h2 style="margin-top:0;">Global Chat 🦔</h2>
+        <div id="chat-error" style="display:none; background:#c0392b; color:white; padding:10px 16px; border-radius:8px; margin-bottom:10px; font-size:14px;"></div>
+        <div id="chat-connecting" style="color:rgba(0,0,0,0.5); font-style:italic; padding:10px 0;">Connecting to chat...</div>
         <div id="chat-messages"></div>
         <div id="chat-input-row">
             <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
@@ -601,16 +603,22 @@
         chatListening = true;
 
         const messagesDiv = document.getElementById('chat-messages');
-        const chatRef = rtdb.ref('globalChat').orderByChild('timestamp').limitToLast(100);
+        const connectingEl = document.getElementById('chat-connecting');
+        const chatRef = rtdb.ref('globalChat').limitToLast(100);
 
-        // Load existing messages first, then listen for new ones
+        // Hide "Connecting..." once we get a response (even if empty)
+        rtdb.ref('globalChat').limitToLast(1).once('value', () => {
+            if (connectingEl) connectingEl.style.display = 'none';
+        }, err => {
+            if (connectingEl) connectingEl.style.display = 'none';
+            showChatError('Could not connect: ' + err.message);
+        });
+
         chatRef.on('child_added', snap => {
             const msg = snap.val();
             if (!msg) return;
 
             const ts = new Date(msg.timestamp || Date.now());
-
-            // Date separator
             const dateStr = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
             if (dateStr !== lastDateLabel) {
                 lastDateLabel = dateStr;
@@ -630,13 +638,16 @@
             `;
             messagesDiv.appendChild(bubble);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }, err => {
+            showChatError('Could not load messages: ' + err.message);
         });
     }
 
     function sendMessage() {
         const input = document.getElementById('chat-input');
         const text = input.value.trim();
-        if (!text || !currentUid) return;
+        if (!text) return;
+        if (!currentUid) { showChatError('You must be logged in to chat.'); return; }
         input.value = '';
 
         rtdb.ref('globalChat').push({
@@ -644,7 +655,17 @@
             username: chatUsername,
             text: text,
             timestamp: Date.now()
-        }).catch(err => console.error('Chat send error:', err));
+        }).catch(err => {
+            showChatError('Send failed: ' + err.message);
+            input.value = text; // restore text so user can retry
+        });
+    }
+
+    function showChatError(msg) {
+        const el = document.getElementById('chat-error');
+        el.innerText = '⚠️ ' + msg;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 6000);
     }
 
     function escapeHtml(str) {
