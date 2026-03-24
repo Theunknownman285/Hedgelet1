@@ -36,6 +36,22 @@
         #reveal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; color: white; }
         .drop-hedge { font-size: 80px; animation: slideDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes slideDown { from { transform: translateY(-150px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* ── CHAT ── */
+        #chat-page { display: none; flex-direction: column; height: calc(100vh - 80px); }
+        #chat-page.active { display: flex; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { max-width: 70%; padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.4; word-break: break-word; animation: msgIn 0.2s ease; }
+        @keyframes msgIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+        .chat-msg.mine { background: #8B5A3E; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-msg.theirs { background: rgba(255,255,255,0.15); color: black; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-msg .chat-name { font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 3px; }
+        .chat-msg.mine .chat-name { text-align: right; }
+        #chat-input-row { display: flex; gap: 10px; margin-top: 12px; }
+        #chat-input { flex: 1; padding: 12px 16px; border-radius: 24px; border: none; font-size: 15px; outline: none; background: rgba(255,255,255,0.85); }
+        #chat-send { padding: 12px 22px; border: none; border-radius: 24px; background: #8B5A3E; color: white; font-weight: bold; font-size: 15px; cursor: pointer; }
+        #chat-send:hover { background: #7a4f37; }
+        .chat-date { text-align: center; font-size: 11px; color: rgba(0,0,0,0.4); margin: 4px 0; }
     </style>
 </head>
 <body>
@@ -85,6 +101,7 @@
     <div class="nav-item" onclick="showPage('market-page')">Market</div>
     <div class="nav-item" onclick="showPage('hedges-page')">Hedges</div>
     <div class="nav-item" onclick="showPage('news-page')">News</div>
+    <div class="nav-item" onclick="showPage('chat-page')">Chat</div>
     <div class="nav-item" onclick="logoutUser()" style="margin-top:30px; font-size:16px; color:#ddd;">Logout</div>
 </div>
 
@@ -132,6 +149,17 @@
         </div>
         <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
             <b>Fast Food Pack is here!</b> - Open packs to collect Ketchup, Mustard, French Fries, and Milkshake hedgehogs.
+        </div>
+    </div>
+
+    <!-- CHAT PAGE -->
+    <div id="chat-page" class="page">
+        <h2 style="margin-top:0;">Global Chat 🦔</h2>
+        <div id="chat-messages"></div>
+        <div id="chat-input-row">
+            <input id="chat-input" type="text" placeholder="Say something..." maxlength="300"
+                onkeydown="if(event.key==='Enter') sendMessage()">
+            <button id="chat-send" onclick="sendMessage()">Send</button>
         </div>
     </div>
 </div>
@@ -275,6 +303,7 @@
                 for (let i = 1; i <= 14; i++) if (!collection[i]) collection[i] = 0;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
                 updateStats();
+                onPlayerReady(data.username);
             }
         });
     }
@@ -289,6 +318,10 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pId).classList.add('active');
         if (pId === 'hedges-page') updateHedges();
+        if (pId === 'chat-page') {
+            const m = document.getElementById('chat-messages');
+            setTimeout(() => { m.scrollTop = m.scrollHeight; }, 50);
+        }
     }
 
     // ─── STATS ────────────────────────────────────────────────────────────────
@@ -521,6 +554,78 @@
             btn.innerText = 'Spin It!';
             btn.disabled = false;
         }
+    }
+
+    // ─── CHAT ─────────────────────────────────────────────────────────────────
+    let chatUsername = 'hedgehog';
+    let chatUnsub = null;
+    let lastDateLabel = null;
+
+    function initChat() {
+        if (chatUnsub) return; // already listening
+        const messagesDiv = document.getElementById('chat-messages');
+
+        chatUnsub = db.collection('globalChat')
+            .orderBy('timestamp', 'asc')
+            .limitToLast(100)
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'added') {
+                        const msg = change.doc.data();
+                        const ts = msg.timestamp ? msg.timestamp.toDate() : new Date();
+
+                        // Date separator
+                        const dateStr = ts.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                        if (dateStr !== lastDateLabel) {
+                            lastDateLabel = dateStr;
+                            const sep = document.createElement('div');
+                            sep.className = 'chat-date';
+                            sep.innerText = dateStr;
+                            messagesDiv.appendChild(sep);
+                        }
+
+                        const isMe = msg.uid === currentUid;
+                        const bubble = document.createElement('div');
+                        bubble.className = `chat-msg ${isMe ? 'mine' : 'theirs'}`;
+
+                        const timeStr = ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        bubble.innerHTML = `
+                            <div class="chat-name">${escapeHtml(msg.username)} · ${timeStr}</div>
+                            <div>${escapeHtml(msg.text)}</div>
+                        `;
+                        messagesDiv.appendChild(bubble);
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    }
+                });
+            });
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text || !currentUid) return;
+        input.value = '';
+
+        db.collection('globalChat').add({
+            uid: currentUid,
+            username: chatUsername,
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(err => console.error('Chat send error:', err));
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Start chat listener once the user is logged in (called after loadPlayerData)
+    function onPlayerReady(username) {
+        chatUsername = username || 'hedgehog';
+        initChat();
     }
 </script>
 </body>
