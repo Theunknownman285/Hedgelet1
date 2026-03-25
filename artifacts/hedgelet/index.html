@@ -694,22 +694,30 @@
         if (password.length < 6) { status.innerText = 'Password must be at least 6 characters.'; return; }
         if (username.length < 3) { status.innerText = 'Username must be at least 3 characters.'; return; }
 
-        status.innerText = 'Checking username…';
-
-        // Check for existing username
-        const existing = await db.collection('users').where('username', '==', username).limit(1).get();
-        if (!existing.empty) { status.innerText = 'That username is already taken.'; return; }
-
-        // Check for existing pending application with same username
-        const existingApp = await db.collection('applications').where('username', '==', username).where('status', '==', 'pending').limit(1).get();
-        if (!existingApp.empty) { status.innerText = 'An application for that username is already pending.'; return; }
-
         status.innerText = 'Creating account…';
 
+        let cred = null;
         try {
-            // Create the Firebase Auth account
-            const cred = await auth.createUserWithEmailAndPassword(email, password);
-            const uid  = cred.user.uid;
+            // Create Firebase Auth account first — this authenticates the user
+            // so Firestore rules allow us to run the checks below
+            cred = await auth.createUserWithEmailAndPassword(email, password);
+            const uid = cred.user.uid;
+
+            status.innerText = 'Checking username…';
+
+            // Check for existing username in users collection
+            const existing = await db.collection('users').where('username', '==', username).limit(1).get();
+            if (!existing.empty) {
+                await cred.user.delete();
+                status.innerText = 'That username is already taken.'; return;
+            }
+
+            // Check for existing pending application with same username
+            const existingApp = await db.collection('applications').where('username', '==', username).where('status', 'in', ['pending', 'approved']).limit(1).get();
+            if (!existingApp.empty) {
+                await cred.user.delete();
+                status.innerText = 'An application for that username is already pending or approved.'; return;
+            }
 
             // Store application in Firestore
             await db.collection('applications').doc(uid).set({
@@ -717,12 +725,18 @@
                 reason, status: 'pending', submittedAt: Date.now()
             });
 
-            // Sign them out immediately — they can't access game until approved
+            // Sign them out — they can't enter the game until approved
             await auth.signOut();
-
+            // Restore login screen (onAuthStateChanged hid it when account was created)
+            document.getElementById('login-screen').style.display = 'flex';
             status.innerText = '';
             setAuthMode('pending');
+
         } catch (e) {
+            // Clean up the auth account if something went wrong mid-flow
+            if (cred) { try { await cred.user.delete(); } catch(_) {} try { await auth.signOut(); } catch(_) {} }
+            // Restore login screen if hidden
+            document.getElementById('login-screen').style.display = 'flex';
             status.innerText = e.message;
         }
     }
