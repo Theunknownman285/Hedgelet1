@@ -12,6 +12,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MessageFlags,
 } from "discord.js";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
@@ -221,7 +222,7 @@ async function modReply(
 ) {
   await interaction.reply({
     embeds: [new EmbedBuilder().setColor(color).setTitle(title).setDescription(description)],
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -383,12 +384,12 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.reply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
         .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use Hedgelet mod commands.")],
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const user = await findUserByUsername(username);
   if (!user) {
@@ -510,7 +511,7 @@ client.on("interactionCreate", async (interaction) => {
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply({ embeds: [errEmbed] });
       } else {
-        await interaction.reply({ embeds: [errEmbed], ephemeral: true });
+        await interaction.reply({ embeds: [errEmbed], flags: MessageFlags.Ephemeral });
       }
     } catch (_) {}
   }
@@ -605,12 +606,12 @@ client.on("interactionCreate", async (interaction) => {
   const appRef = firestore.collection("applications").doc(uid);
   const appSnap = await appRef.get();
   if (!appSnap.exists) {
-    await interaction.reply({ content: "⚠️ Application not found — it may have already been processed.", ephemeral: true });
+    await interaction.reply({ content: "⚠️ Application not found — it may have already been processed.", flags: MessageFlags.Ephemeral });
     return;
   }
   const app = appSnap.data()!;
   if (app.status !== "pending") {
-    await interaction.reply({ content: `⚠️ This application was already **${app.status}**.`, ephemeral: true });
+    await interaction.reply({ content: `⚠️ This application was already **${app.status}**.`, flags: MessageFlags.Ephemeral });
     return;
   }
 
