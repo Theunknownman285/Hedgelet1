@@ -108,6 +108,44 @@ const commands = [
     .setDescription("View a Hedgelet player's profile card")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName("addrole")
+    .setDescription("Add an in-game role to a player (Owner / Co-Owner / Admin only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+    .addStringOption(o =>
+      o.setName("role").setDescription("Role to add").setRequired(true).addChoices(
+        { name: "👑 Owner",          value: "owner"          },
+        { name: "🔱 Co-Owner",       value: "co-owner"       },
+        { name: "🛡️ Admin",          value: "admin"          },
+        { name: "🔨 Moderator",      value: "moderator"      },
+        { name: "🤝 Helper",         value: "helper"         },
+        { name: "🧪 Tester",         value: "tester"         },
+        { name: "🎨 Artist",         value: "artist"         },
+        { name: "💎 Server Booster", value: "server-booster" },
+        { name: "⭐ OG",             value: "og"             },
+        { name: "🦔 True Hedgehog",  value: "true-hedgehog"  },
+      )),
+
+  new SlashCommandBuilder()
+    .setName("removerole")
+    .setDescription("Remove an in-game role from a player (Owner / Co-Owner / Admin only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+    .addStringOption(o =>
+      o.setName("role").setDescription("Role to remove").setRequired(true).addChoices(
+        { name: "👑 Owner",          value: "owner"          },
+        { name: "🔱 Co-Owner",       value: "co-owner"       },
+        { name: "🛡️ Admin",          value: "admin"          },
+        { name: "🔨 Moderator",      value: "moderator"      },
+        { name: "🤝 Helper",         value: "helper"         },
+        { name: "🧪 Tester",         value: "tester"         },
+        { name: "🎨 Artist",         value: "artist"         },
+        { name: "💎 Server Booster", value: "server-booster" },
+        { name: "⭐ OG",             value: "og"             },
+        { name: "🦔 True Hedgehog",  value: "true-hedgehog"  },
+      )),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -194,6 +232,19 @@ const RARITY_COLORS: Record<string, number> = {
 const RARITY_LABELS: Record<string, string> = {
   common: "Common", uncommon: "Uncommon", rare: "Rare",
   epic: "Epic", legendary: "Legendary", chroma: "Chroma",
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  "owner":          "👑 Owner",
+  "co-owner":       "🔱 Co-Owner",
+  "admin":          "🛡️ Admin",
+  "moderator":      "🔨 Moderator",
+  "helper":         "🤝 Helper",
+  "tester":         "🧪 Tester",
+  "artist":         "🎨 Artist",
+  "server-booster": "💎 Server Booster",
+  "og":             "⭐ OG",
+  "true-hedgehog":  "🦔 True Hedgehog",
 };
 
 // ── Blook lookup table (mirrors index.html blookData) ─────────────────────────
@@ -288,6 +339,11 @@ client.on("interactionCreate", async (interaction) => {
     if (d.muted)  statusParts.push("🔇 Muted");
     const status = statusParts.length ? statusParts.join(" · ") : "✅ Active";
 
+    const playerRoles: string[] = d.roles ?? [];
+    const rolesStr = playerRoles.length
+      ? playerRoles.map(r => ROLE_LABELS[r] ?? r).join("  ·  ")
+      : "None";
+
     const embed = new EmbedBuilder()
       .setColor(RARITY_COLORS[rarity] ?? 0x777777)
       .setTitle(`${titlePrefix}${d.username || username}`)
@@ -299,6 +355,7 @@ client.on("interactionCreate", async (interaction) => {
         { name: "✨ Blooks Unlocked",  value: `${unlocked} / 35`,inline: true  },
         { name: "👥 Friends",          value: String(friends),   inline: true  },
         { name: "📅 Joined",           value: joinedStr,         inline: true  },
+        { name: "🏷️ Roles",            value: rolesStr,          inline: false },
         { name: "🔰 Status",           value: status,            inline: false },
       )
       .setFooter({ text: "Hedgelet" })
@@ -391,6 +448,52 @@ client.on("interactionCreate", async (interaction) => {
       embeds: [new EmbedBuilder().setColor(Colors.Green)
         .setDescription(`✅ **${username}** was unbanned by ${mod}.`)],
     });
+
+  } else if (commandName === "addrole" || commandName === "removerole") {
+    const role = interaction.options.getString("role", true);
+    const snap = await ref.get();
+    const current: string[] = snap.exists ? (snap.data()?.roles ?? []) : [];
+
+    if (commandName === "addrole") {
+      if (current.includes(role)) {
+        await interaction.editReply({
+          embeds: [new EmbedBuilder().setColor(Colors.Yellow)
+            .setDescription(`⚠️ **${username}** already has the **${ROLE_LABELS[role] ?? role}** role.`)],
+        });
+        return;
+      }
+      const updated = [...current, role];
+      await ref.update({ roles: updated });
+      console.log(`[ROLE] ${mod} added ${role} to ${username}`);
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(0x4caf50).setTitle("✅ Role Added")
+          .setDescription(`**${ROLE_LABELS[role] ?? role}** has been added to **${username}**.`)],
+      });
+      channelReady?.send({
+        embeds: [new EmbedBuilder().setColor(0x4caf50)
+          .setDescription(`🏷️ **${username}** was given the **${ROLE_LABELS[role] ?? role}** role by ${mod}.`)],
+      });
+
+    } else {
+      if (!current.includes(role)) {
+        await interaction.editReply({
+          embeds: [new EmbedBuilder().setColor(Colors.Yellow)
+            .setDescription(`⚠️ **${username}** does not have the **${ROLE_LABELS[role] ?? role}** role.`)],
+        });
+        return;
+      }
+      const updated = current.filter(r => r !== role);
+      await ref.update({ roles: updated });
+      console.log(`[ROLE] ${mod} removed ${role} from ${username}`);
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Orange).setTitle("🗑️ Role Removed")
+          .setDescription(`**${ROLE_LABELS[role] ?? role}** has been removed from **${username}**.`)],
+      });
+      channelReady?.send({
+        embeds: [new EmbedBuilder().setColor(Colors.Orange)
+          .setDescription(`🏷️ **${username}**'s **${ROLE_LABELS[role] ?? role}** role was removed by ${mod}.`)],
+      });
+    }
   }
 });
 

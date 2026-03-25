@@ -82,6 +82,9 @@
 
         /* ── PROFILE BANNER ── */
         .profile-banner { border-radius: 20px; padding: 26px 28px; display: flex; align-items: center; gap: 22px; margin-bottom: 18px; background: linear-gradient(135deg,#4a2510,#7a4a2e); border: 2px solid rgba(255,255,255,0.12); box-shadow: 0 8px 32px rgba(0,0,0,0.35); position: relative; overflow: hidden; transition: background 0.6s ease; }
+        .roles-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .role-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; border: 1px solid; margin: 0; white-space: nowrap; cursor: default; }
+        .chat-roles { display: inline-flex; flex-wrap: wrap; gap: 3px; margin-left: 4px; vertical-align: middle; }
         .profile-banner::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 22px,rgba(255,255,255,0.03) 22px,rgba(255,255,255,0.03) 44px); pointer-events:none; }
         .profile-avatar { width: 86px; height: 86px; border-radius: 16px; background: rgba(0,0,0,0.35); border: 3px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 52px; flex-shrink: 0; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; z-index: 1; }
         .profile-avatar:hover { transform: scale(1.07); border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.45); }
@@ -336,6 +339,7 @@
             <div class="profile-info">
                 <h2 id="profile-username">hedgehog</h2>
                 <div class="profile-blook-name" id="profile-blook-name">No blook equipped</div>
+                <div class="roles-row" id="profile-roles"></div>
                 <button class="daily-btn" onclick="openDailyModal()">🎁 Daily Reward</button>
             </div>
         </div>
@@ -557,6 +561,36 @@
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
+    const ROLE_CONFIG = {
+        'owner':          { label: 'Owner',          badge: '👑', color: '#FF4444', bg: 'rgba(255,68,68,0.18)',      desc: 'The game owner' },
+        'co-owner':       { label: 'Co-Owner',        badge: '🔱', color: '#FF7043', bg: 'rgba(255,112,67,0.18)',     desc: 'Co-owner of the game' },
+        'admin':          { label: 'Admin',           badge: '🛡️', color: '#FF9800', bg: 'rgba(255,152,0,0.18)',      desc: 'Game administrator' },
+        'moderator':      { label: 'Moderator',       badge: '🔨', color: '#2196F3', bg: 'rgba(33,150,243,0.18)',     desc: 'Keeps the chat safe' },
+        'helper':         { label: 'Helper',          badge: '🤝', color: '#00BCD4', bg: 'rgba(0,188,212,0.18)',      desc: 'Helps the community' },
+        'tester':         { label: 'Tester',          badge: '🧪', color: '#9C27B0', bg: 'rgba(156,39,176,0.18)',     desc: 'Tests new features' },
+        'artist':         { label: 'Artist',          badge: '🎨', color: '#E91E63', bg: 'rgba(233,30,99,0.18)',      desc: 'Creates game art' },
+        'server-booster': { label: 'Server Booster',  badge: '💎', color: '#FF73FA', bg: 'rgba(255,115,250,0.18)',    desc: 'Boosting the Discord server' },
+        'og':             { label: 'OG',              badge: '⭐', color: '#FFD700', bg: 'rgba(255,215,0,0.18)',      desc: 'An original Hedgelet player' },
+        'true-hedgehog':  { label: 'True Hedgehog',   badge: '🦔', color: '#CD853F', bg: 'rgba(205,133,63,0.18)',    desc: 'A true Hedgelet fan' },
+    };
+
+    function buildRoleBadgeHtml(roles, forChat = false) {
+        if (!roles || !roles.length) return '';
+        return roles.map(r => {
+            const cfg = ROLE_CONFIG[r];
+            if (!cfg) return '';
+            const size = forChat ? 'font-size:10px;padding:1px 5px;' : '';
+            return `<span class="role-badge" title="${cfg.desc}" style="color:${cfg.color};background:${cfg.bg};border-color:${cfg.color};${size}">${cfg.badge} ${cfg.label}</span>`;
+        }).join('');
+    }
+
+    function renderProfileRoles(roles) {
+        const el = document.getElementById('profile-roles');
+        if (!el) return;
+        el.innerHTML = buildRoleBadgeHtml(roles);
+    }
+
+    let playerRoles = [];
     let tokens = 500, opened = 0, collection = {}, pendingBlook = 0, equippedBlook = null;
     let messagesSent = 0, friends = [], friendRequests = [];
     let muted = false, mutedReason = '', banned = false, bannedReason = '';
@@ -704,7 +738,9 @@
                 }
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 equippedBlook = data.equippedBlook || null;
+                playerRoles = data.roles || [];
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
+                renderProfileRoles(playerRoles);
                 updateStats();
                 updateProfileAvatar();
                 loadFriends();
@@ -1589,8 +1625,11 @@
                 </div>`;
             }
             const discordBadge = isDiscord ? '<span class="discord-badge">DISCORD</span>' : '';
+            const roleBadges  = (!isDiscord && msg.roles && msg.roles.length)
+                ? `<span class="chat-roles">${buildRoleBadgeHtml(msg.roles, true)}</span>`
+                : '';
             bubble.innerHTML = `
-                <div class="chat-name">${escapeHtml(msg.username)}${discordBadge} · ${timeStr}</div>
+                <div class="chat-name">${escapeHtml(msg.username)}${discordBadge}${roleBadges} · ${timeStr}</div>
                 ${quoteHtml}
                 <div>${escapeHtml(msg.text)}</div>
             `;
@@ -1634,6 +1673,7 @@
             username: chatUsername,
             text: text,
             blookEmoji: blookEmoji,
+            roles: playerRoles.length ? playerRoles : null,
             timestamp: Date.now()
         };
         if (replyingTo) payload.replyTo = { username: replyingTo.username, text: replyingTo.text };
@@ -1697,6 +1737,13 @@
                 bannedReason = data.bannedReason || '';
                 showToast('🔨 You have been banned from Hedgelet.', 'rgba(180,0,0,0.95)');
                 setTimeout(() => firebase.auth().signOut(), 3000);
+            }
+
+            // Handle role changes
+            const newRoles = data.roles || [];
+            if (JSON.stringify(newRoles) !== JSON.stringify(playerRoles)) {
+                playerRoles = newRoles;
+                renderProfileRoles(playerRoles);
             }
 
             // Handle timed mutes
