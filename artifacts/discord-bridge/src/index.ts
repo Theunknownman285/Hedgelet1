@@ -163,13 +163,12 @@ async function scheduleAutoUnmute(uid: string, username: string, ms: number) {
 
 // ── Helper: find user doc by username ─────────────────────────────────────────
 async function findUserByUsername(username: string) {
-  const snap = await firestore
-    .collection("users")
-    .where("username", "==", username.toLowerCase())
-    .limit(1)
-    .get();
-  if (snap.empty) return null;
-  return { uid: snap.docs[0].id, data: snap.docs[0].data() };
+  // Try exact match first, then lowercase fallback
+  for (const q of [username, username.toLowerCase()]) {
+    const snap = await firestore.collection("users").where("username", "==", q).limit(1).get();
+    if (!snap.empty) return { uid: snap.docs[0].id, data: snap.docs[0].data() };
+  }
+  return null;
 }
 
 // ── Moderation reply helper ───────────────────────────────────────────────────
@@ -245,7 +244,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
-  const username = interaction.options.getString("username", true).toLowerCase();
+  const username = interaction.options.getString("username", true);
 
   // ── /view — public, no role gate ──────────────────────────────────────────
   if (commandName === "view") {
