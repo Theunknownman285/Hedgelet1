@@ -739,7 +739,7 @@
         28: { name: "Cherry",       emoji: TW+'1f352.svg', rarity: "rare",     pack: "fruit" },
         29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" },
         // ── Staff-Only ──
-        36: { name: "Day 1 Hedgehog", emoji: "🦔🏆", rarity: "mythical" },
+        36: { name: "Day 1 Hedgehog", emoji: "/day1-hedgehog.png", rarity: "mythical" },
         // ── Emoji Pack ──
         37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
         38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
@@ -761,6 +761,7 @@
 
     const TOTAL_BLOOKS = 52;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
+    const isImg = e => e && (e.startsWith('http') || e.startsWith('/'));
 
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
     window.onload = () => {
@@ -981,7 +982,7 @@
         if (equippedBlook && blookData[equippedBlook]) {
             const data = blookData[equippedBlook];
             const e = data.emoji;
-            if (e && e.startsWith('http')) {
+            if (isImg(e)) {
                 el.innerHTML = `<img src="${e}" alt="${data.name}">`;
             } else {
                 el.innerHTML = e || '🦔';
@@ -1231,7 +1232,7 @@
         avatarDiv.className = 'friend-avatar';
         avatarDiv.style.borderColor = rarityColors[rarity] || '#444';
         const blookEmoji = data.equippedBlook && blookData[data.equippedBlook] ? blookData[data.equippedBlook].emoji : '🦔';
-        avatarDiv.innerHTML = blookEmoji.startsWith('http') ? `<img src="${blookEmoji}">` : blookEmoji;
+        avatarDiv.innerHTML = isImg(blookEmoji) ? `<img src="${blookEmoji}">` : blookEmoji;
 
         const infoDiv = document.createElement('div');
         infoDiv.innerHTML = `<div class="friend-name">${data.username || 'Unknown'}</div><div class="friend-tier">${rarity.charAt(0).toUpperCase() + rarity.slice(1)}</div>`;
@@ -1420,7 +1421,7 @@
         const revIcon = document.getElementById('reveal-icon');
         const icon = data.emoji;
 
-        if (icon.startsWith('http')) {
+        if (isImg(icon)) {
             revIcon.innerHTML = `<img src="${icon}" style="width:100px;height:100px;object-fit:contain;">`;
         } else {
             revIcon.style.fontSize = '80px';
@@ -1560,7 +1561,7 @@
                     card.innerHTML = `<div class="lock-icon">🔒</div><div style="font-size:10px">???</div>`;
                 } else {
                     const icon = data.emoji;
-                    let display = icon.startsWith('http')
+                    let display = isImg(icon)
                         ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;">`
                         : `<div style="font-size:40px">${icon}</div>`;
                     const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700', mythical:'#ff0055' };
@@ -1636,7 +1637,7 @@
                 if (data.rarity === 'mythical') card.classList.add('rarity-mythical');
             }
             const icon = data.emoji;
-            const display = icon.startsWith('http')
+            const display = isImg(icon)
                 ? `<img src="${icon}" style="width:50px;height:50px;object-fit:contain;">`
                 : `<div style="font-size:34px">${icon}</div>`;
             card.innerHTML = `${display}<div style="font-size:9px;text-align:center;padding:0 3px;">${data.name}</div>`;
@@ -1698,8 +1699,8 @@
         if (!pending.length) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
         pending.forEach(doc => {
             const t = doc.data();
-            const offerEmojis  = t.offerBlooks.map(id  => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
-            const requestEmojis = t.requestBlooks.map(id => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+            const offerEmojis  = t.offerBlooks.map(id  => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+            const requestEmojis = t.requestBlooks.map(id => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
             const offerNames   = t.offerBlooks.map(id  => blookData[id]?.name).join(', ')  || 'nothing';
             const requestNames = t.requestBlooks.map(id => blookData[id]?.name).join(', ') || 'nothing';
             const div = document.createElement('div');
@@ -1948,7 +1949,7 @@
                 <div>${escapeHtml(msg.text)}</div>
             `;
             const blookE = msg.blookEmoji || '🦔';
-            const avatarInner = blookE.startsWith('http')
+            const avatarInner = isImg(blookE)
                 ? `<img src="${blookE}" alt="blook">`
                 : blookE;
             const row = document.createElement('div');
