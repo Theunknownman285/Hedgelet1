@@ -559,6 +559,7 @@
     let currentUid = null;
     let tokens = 500, opened = 0, collection = {}, pendingBlook = 0, equippedBlook = null;
     let messagesSent = 0, friends = [], friendRequests = [];
+    let muted = false, mutedReason = '', banned = false, bannedReason = '';
     let pendingReward = 0, isSpinning = false, canClaim = false;
 
     const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
@@ -686,6 +687,21 @@
                 messagesSent = data.messagesSent || 0;
                 friends = data.friends || [];
                 friendRequests = data.friendRequests || [];
+                muted = data.muted || false;
+                mutedReason = data.mutedReason || '';
+                banned = data.banned || false;
+                bannedReason = data.bannedReason || '';
+                if (banned) {
+                    firebase.auth().signOut();
+                    document.getElementById('login-page').style.display = 'flex';
+                    document.getElementById('game-layout').style.display = 'none';
+                    const loginError = document.getElementById('login-error') || document.createElement('div');
+                    loginError.id = 'login-error';
+                    loginError.style.cssText = 'color:#ff6b6b;font-weight:bold;margin-top:12px;text-align:center;';
+                    loginError.innerText = '🔨 You are banned from Hedgelet.' + (bannedReason ? ' Reason: ' + bannedReason : '');
+                    document.querySelector('#login-page .auth-box')?.appendChild(loginError);
+                    return;
+                }
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 equippedBlook = data.equippedBlook || null;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
@@ -693,6 +709,7 @@
                 updateProfileAvatar();
                 loadFriends();
                 updateRequestsBadge();
+                startModListener(uid);
                 onPlayerReady(data.username);
             }
         });
@@ -1608,6 +1625,7 @@
         const text = input.value.trim();
         if (!text) return;
         if (!currentUid) { showChatError('You must be logged in to chat.'); return; }
+        if (muted) { showChatError('🔇 You are muted' + (mutedReason ? ': ' + mutedReason : '.') ); return; }
         input.value = '';
 
         const blookEmoji = equippedBlook && blookData[equippedBlook] ? blookData[equippedBlook].emoji : '🦔';
@@ -1643,6 +1661,34 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
+    }
+
+    // Real-time listener for mute/ban status changes while logged in
+    let modListenerUnsub = null;
+    function startModListener(uid) {
+        if (modListenerUnsub) modListenerUnsub();
+        modListenerUnsub = db.collection('users').doc(uid).onSnapshot(doc => {
+            if (!doc.exists) return;
+            const data = doc.data();
+            muted = data.muted || false;
+            mutedReason = data.mutedReason || '';
+            const nowBanned = data.banned || false;
+            if (nowBanned && !banned) {
+                banned = true;
+                bannedReason = data.bannedReason || '';
+                showToast('🔨 You have been banned from Hedgelet.', 'rgba(180,0,0,0.95)');
+                setTimeout(() => {
+                    firebase.auth().signOut();
+                }, 3000);
+            }
+            if (muted) {
+                const input = document.getElementById('chat-input');
+                if (input) { input.placeholder = '🔇 You are muted'; input.disabled = true; }
+            } else {
+                const input = document.getElementById('chat-input');
+                if (input) { input.placeholder = 'Say something...'; input.disabled = false; }
+            }
+        });
     }
 
     // Start chat listener once the user is logged in (called after loadPlayerData)
