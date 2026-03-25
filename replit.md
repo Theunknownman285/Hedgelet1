@@ -94,3 +94,5 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+- `notify-discord` — sends a Discord embed to the configured webhook (`DISCORD_WEBHOOK_URL` secret). Usage: `pnpm --filter @workspace/scripts run notify-discord "message"`. **Always run this at the end of every coding session to announce what changed.**
