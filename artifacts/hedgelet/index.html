@@ -1468,16 +1468,16 @@
         try {
             snap = await db.collection('trades')
                 .where('toUid', '==', currentUid)
-                .where('status', '==', 'pending')
                 .get();
         } catch (e) {
-            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ Trades blocked by Firestore rules.<br>Ask the owner to update rules — see instructions.</p>`;
-            console.error('Trades permission error:', e);
+            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ Could not load trades. Please try again.</p>`;
+            console.error('loadIncomingTrades error:', e);
             return;
         }
+        const pending = snap.docs.filter(d => d.data().status === 'pending');
         list.innerHTML = '';
-        if (snap.empty) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
-        snap.docs.forEach(doc => {
+        if (!pending.length) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
+        pending.forEach(doc => {
             const t = doc.data();
             const offerEmojis  = t.offerBlooks.map(id  => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
             const requestEmojis = t.requestBlooks.map(id => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
