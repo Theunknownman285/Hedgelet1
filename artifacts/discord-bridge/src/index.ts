@@ -600,18 +600,22 @@ client.on("interactionCreate", async (interaction) => {
   const { customId } = interaction;
   if (!customId.startsWith("approve_") && !customId.startsWith("deny_")) return;
 
+  // Acknowledge immediately — Discord only gives 3 seconds before showing
+  // "This interaction failed". All Firestore + DM work happens after this.
+  await interaction.deferUpdate();
+
   const sepIdx = customId.indexOf("_");
   const action = customId.slice(0, sepIdx) as "approve" | "deny";
   const uid    = customId.slice(sepIdx + 1);
   const appRef = firestore.collection("applications").doc(uid);
   const appSnap = await appRef.get();
   if (!appSnap.exists) {
-    await interaction.reply({ content: "⚠️ Application not found — it may have already been processed.", flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: "⚠️ Application not found — it may have already been processed.", embeds: [], components: [] });
     return;
   }
   const app = appSnap.data()!;
   if (app.status !== "pending") {
-    await interaction.reply({ content: `⚠️ This application was already **${app.status}**.`, flags: MessageFlags.Ephemeral });
+    await interaction.editReply({ content: `⚠️ This application was already **${app.status}**.`, embeds: [], components: [] });
     return;
   }
 
@@ -640,7 +644,7 @@ client.on("interactionCreate", async (interaction) => {
       } catch (_) {}
     }
 
-    await interaction.update({
+    await interaction.editReply({
       content: `✅ Approved **${app.username}** — their account is now active.`,
       embeds: [], components: [],
     });
@@ -661,7 +665,7 @@ client.on("interactionCreate", async (interaction) => {
       } catch (_) {}
     }
 
-    await interaction.update({
+    await interaction.editReply({
       content: `❌ Denied **${app.username}**'s application.`,
       embeds: [], components: [],
     });
