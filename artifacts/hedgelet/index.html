@@ -461,6 +461,12 @@
     <!-- TRADE PAGE -->
     <div id="trade-page" class="page">
         <h2>Trade</h2>
+        <div style="margin-top:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;">
+            <div style="font-size:52px;">🚧</div>
+            <div style="font-size:22px;font-weight:bold;">Not Available in Beta</div>
+            <div style="font-size:15px;opacity:0.7;max-width:340px;line-height:1.6;">Trading will be unlocked in a future update. Stay tuned!</div>
+        </div>
+        <div style="display:none;">
         <div class="trade-tabs">
             <button id="tab-send-btn" class="trade-tab-btn active" onclick="showTradeTab('send')">Send Trade</button>
             <button id="tab-incoming-btn" class="trade-tab-btn" onclick="showTradeTab('incoming')">Incoming Trades</button>
@@ -497,6 +503,7 @@
         <div id="trade-incoming-tab" style="display:none;">
             <button onclick="loadIncomingTrades()" style="padding:8px 18px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-bottom:15px;">↻ Refresh</button>
             <div id="incoming-trades-list"></div>
+        </div>
         </div>
     </div>
 
