@@ -13,6 +13,7 @@ import {
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 
 // ── Firebase admin init ───────────────────────────────────────────────────────
 const serviceAccountRaw = process.env["FIREBASE_SERVICE_ACCOUNT"];
@@ -101,6 +102,12 @@ const commands = [
     .setDescription("Unban a player from Hedgelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName("view")
+    .setDescription("View a Hedgelet player's profile card")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -178,18 +185,139 @@ async function modReply(
   });
 }
 
-// ── Slash command handler ─────────────────────────────────────────────────────
+// ── Slash command handlers ────────────────────────────────────────────────────
+// ── Rarity colours ────────────────────────────────────────────────────────────
+const RARITY_COLORS: Record<string, number> = {
+  common: 0x777777, uncommon: 0x4caf50, rare: 0x2196f3,
+  epic: 0x9c27b0, legendary: 0xff9800, chroma: 0xffd700,
+};
+
+const RARITY_LABELS: Record<string, string> = {
+  common: "Common", uncommon: "Uncommon", rare: "Rare",
+  epic: "Epic", legendary: "Legendary", chroma: "Chroma",
+};
+
+// ── Blook lookup table (mirrors index.html blookData) ─────────────────────────
+interface BlookInfo { name: string; rarity: string; imageUrl?: string; emoji?: string; }
+const BLOOK_DATA: Record<number, BlookInfo> = {
+  // Hedgehog Pack (common)
+  1:  { name: "Hedgehog 1",    rarity: "common",    emoji: "🦔" },
+  2:  { name: "Hedgehog 2",    rarity: "common",    emoji: "🦔" },
+  3:  { name: "Hedgehog 3",    rarity: "common",    emoji: "🦔" },
+  4:  { name: "Hedgehog 4",    rarity: "common",    emoji: "🦔" },
+  5:  { name: "Hedgehog 5",    rarity: "common",    emoji: "🦔" },
+  6:  { name: "Hedgehog 6",    rarity: "common",    emoji: "🦔" },
+  7:  { name: "Hedgehog 7",    rarity: "common",    emoji: "🦔" },
+  8:  { name: "Hedgehog 8",    rarity: "common",    emoji: "🦔" },
+  9:  { name: "Hedgehog 9",    rarity: "common",    emoji: "🦔" },
+  10: { name: "Hedgehog 10",   rarity: "common",    emoji: "🦔" },
+  // Fast Food Pack
+  11: { name: "Ketchup",       rarity: "rare",      imageUrl: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png" },
+  12: { name: "Mustard",       rarity: "rare",      imageUrl: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png" },
+  13: { name: "French Fries",  rarity: "epic",      imageUrl: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png" },
+  14: { name: "Milkshake",     rarity: "legendary", imageUrl: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png" },
+  30: { name: "Hot Dog",       rarity: "uncommon",  emoji: "🌭" },
+  31: { name: "Hamburger",     rarity: "uncommon",  emoji: "🍔" },
+  32: { name: "Pizza",         rarity: "uncommon",  emoji: "🍕" },
+  33: { name: "Taco",          rarity: "uncommon",  emoji: "🌮" },
+  34: { name: "Soda",          rarity: "rare",      emoji: "🥤" },
+  35: { name: "Golden Hot Dog",rarity: "chroma",    emoji: "🌭" },
+  // Breakfast Pack
+  15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
+  16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
+  17: { name: "Eggs",          rarity: "common",    emoji: "🍳" },
+  18: { name: "Coffee",        rarity: "uncommon",  emoji: "☕" },
+  19: { name: "Waffle",        rarity: "uncommon",  emoji: "🧇" },
+  20: { name: "Toast",         rarity: "rare",      emoji: "🍞" },
+  21: { name: "Donut",         rarity: "legendary", emoji: "🍩" },
+  // Fruit Pack
+  22: { name: "Apple",         rarity: "common",    emoji: "🍎" },
+  23: { name: "Grapes",        rarity: "common",    emoji: "🍇" },
+  24: { name: "Strawberry",    rarity: "common",    emoji: "🍓" },
+  25: { name: "Banana",        rarity: "common",    emoji: "🍌" },
+  26: { name: "Watermelon",    rarity: "uncommon",  emoji: "🍉" },
+  27: { name: "Orange",        rarity: "uncommon",  emoji: "🍊" },
+  28: { name: "Cherry",        rarity: "rare",      emoji: "🍒" },
+  29: { name: "Peach",         rarity: "legendary", emoji: "🍑" },
+};
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
-  const username     = interaction.options.getString("username", true).toLowerCase();
+  const username = interaction.options.getString("username", true).toLowerCase();
+
+  // ── /view — public, no role gate ──────────────────────────────────────────
+  if (commandName === "view") {
+    await interaction.deferReply();
+    const user = await findUserByUsername(username);
+    if (!user) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player not found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+    const d = user.data;
+    const col: Record<string, number> = d.collection || {};
+    const unlocked = Object.values(col).filter((v: any) => v > 0).length;
+    const tokens   = (d.tokens   ?? 0).toLocaleString();
+    const opened   = (d.opened   ?? 0).toLocaleString();
+    const msgs     = (d.messagesSent ?? 0).toLocaleString();
+    const friends  = (d.friends  ?? []).length;
+
+    // Blook lookup
+    const blookId   = typeof d.equippedBlook === "number" ? d.equippedBlook : null;
+    const blookInfo = blookId ? BLOOK_DATA[blookId] : null;
+    const rarity    = blookInfo?.rarity ?? "common";
+    const blookName = blookInfo?.name   ?? "None";
+    const titlePrefix = blookInfo?.emoji ? `${blookInfo.emoji} ` : "🦔 ";
+
+    // Get join date from Firebase Auth
+    let joinedStr = "Unknown";
+    try {
+      const authUser = await getAuth().getUser(user.uid);
+      if (authUser.metadata.creationTime) {
+        joinedStr = new Date(authUser.metadata.creationTime).toLocaleDateString("en-US", {
+          year: "numeric", month: "long", day: "numeric",
+        });
+      }
+    } catch (_) {}
+
+    const statusParts: string[] = [];
+    if (d.banned) statusParts.push("🔨 Banned");
+    if (d.muted)  statusParts.push("🔇 Muted");
+    const status = statusParts.length ? statusParts.join(" · ") : "✅ Active";
+
+    const embed = new EmbedBuilder()
+      .setColor(RARITY_COLORS[rarity] ?? 0x777777)
+      .setTitle(`${titlePrefix}${d.username || username}`)
+      .addFields(
+        { name: "🃏 Equipped Blook",   value: blookId ? `${blookName} *(${RARITY_LABELS[rarity] ?? rarity})*` : "None", inline: false },
+        { name: "🪙 Tokens",           value: tokens,            inline: true  },
+        { name: "📦 Packs Opened",     value: opened,            inline: true  },
+        { name: "💬 Messages Sent",    value: msgs,              inline: true  },
+        { name: "✨ Blooks Unlocked",  value: `${unlocked} / 35`,inline: true  },
+        { name: "👥 Friends",          value: String(friends),   inline: true  },
+        { name: "📅 Joined",           value: joinedStr,         inline: true  },
+        { name: "🔰 Status",           value: status,            inline: false },
+      )
+      .setFooter({ text: "Hedgelet" })
+      .setTimestamp();
+
+    // Thumbnail — use image URL if available, else skip (Discord can't render SVG emoji URLs)
+    if (blookInfo?.imageUrl) embed.setThumbnail(blookInfo.imageUrl);
+
+    await interaction.editReply({ embeds: [embed] });
+    return;
+  }
+
+  // ── Mod commands — role gate ───────────────────────────────────────────────
   const durationRaw  = interaction.options.getString("duration");
   const reason       = interaction.options.getString("reason") ?? "No reason provided";
   const mod          = interaction.user.username;
   const { ms: durationMs, label: durationLabel } = parseDuration(durationRaw);
 
-  // Role gate — only Owner, Co-Owner, Admin roles may use these commands
   if (!hasModRole(interaction)) {
     await interaction.reply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
