@@ -985,28 +985,40 @@
             alert('Select at least one blook on either side!'); return;
         }
         const myUsername = document.getElementById('profile-username').innerText;
-        await db.collection('trades').add({
-            fromUid: currentUid, fromUsername: myUsername,
-            toUid: tradeTargetUid, toUsername: tradeTargetUsername,
-            offerBlooks: tradeOfferIds, requestBlooks: tradeRequestIds,
-            status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`Trade offer sent to ${tradeTargetUsername}!`);
-        tradeTargetUid = null;
-        document.getElementById('trade-builder').style.display = 'none';
-        document.getElementById('trade-search-input').value = '';
-        document.getElementById('trade-search-status').innerText = '';
+        try {
+            await db.collection('trades').add({
+                fromUid: currentUid, fromUsername: myUsername,
+                toUid: tradeTargetUid, toUsername: tradeTargetUsername,
+                offerBlooks: tradeOfferIds, requestBlooks: tradeRequestIds,
+                status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showToast(`Trade sent to ${tradeTargetUsername}!`, 'rgba(30,140,70,0.95)');
+            tradeTargetUid = null;
+            document.getElementById('trade-builder').style.display = 'none';
+            document.getElementById('trade-search-input').value = '';
+            document.getElementById('trade-search-status').innerText = '';
+        } catch (e) {
+            showToast('Could not send trade — Firestore rules need updating.', 'rgba(180,40,40,0.95)');
+            console.error('sendTrade error:', e);
+        }
     }
 
     async function loadIncomingTrades() {
         if (!currentUid) return;
         const list = document.getElementById('incoming-trades-list');
         list.innerHTML = '<p style="opacity:0.5;">Loading...</p>';
-        const snap = await db.collection('trades')
-            .where('toUid', '==', currentUid)
-            .where('status', '==', 'pending')
-            .get();
+        let snap;
+        try {
+            snap = await db.collection('trades')
+                .where('toUid', '==', currentUid)
+                .where('status', '==', 'pending')
+                .get();
+        } catch (e) {
+            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ Trades blocked by Firestore rules.<br>Ask the owner to update rules — see instructions.</p>`;
+            console.error('Trades permission error:', e);
+            return;
+        }
         list.innerHTML = '';
         if (snap.empty) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
         snap.docs.forEach(doc => {
@@ -1063,8 +1075,12 @@
     }
 
     async function declineTrade(tradeId) {
-        await db.collection('trades').doc(tradeId).update({ status: 'declined' });
-        loadIncomingTrades();
+        try {
+            await db.collection('trades').doc(tradeId).update({ status: 'declined' });
+            loadIncomingTrades();
+        } catch (e) {
+            showToast('Could not decline — Firestore rules need updating.', 'rgba(180,40,40,0.95)');
+        }
     }
 
     // ─── SPIN WHEEL ───────────────────────────────────────────────────────────
