@@ -299,16 +299,28 @@
             <input id="login-username" type="text" placeholder="Username" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;" onkeydown="if(event.key==='Enter')loginUser()">
             <input id="login-password" type="password" placeholder="Password" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;" onkeydown="if(event.key==='Enter')loginUser()">
             <button onclick="loginUser()" style="width:100%;padding:13px;margin-top:12px;background:#4CAF50;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:16px;transition:0.2s;" onmouseover="this.style.background='#43a047'" onmouseout="this.style.background='#4CAF50'">Login</button>
-            <p style="margin:16px 0 0;font-size:13px;opacity:0.75;cursor:pointer;" onclick="setAuthMode('signup')">No account? <u>Sign up</u></p>
+            <p style="margin:16px 0 0;font-size:13px;opacity:0.75;cursor:pointer;" onclick="setAuthMode('apply')">No account? <u>Apply to Join</u></p>
         </div>
 
-        <!-- SIGNUP FORM -->
+        <!-- APPLICATION FORM -->
         <div id="form-signup" style="display:none;">
-            <input id="signup-email" type="email" placeholder="Email" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
-            <input id="signup-username" type="text" placeholder="Username" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
-            <input id="signup-password" type="password" placeholder="Password" style="width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
-            <button onclick="signupUser()" style="width:100%;padding:13px;margin-top:12px;background:#2196F3;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:16px;transition:0.2s;" onmouseover="this.style.background='#1e88e5'" onmouseout="this.style.background='#2196F3'">Create Account</button>
-            <p style="margin:16px 0 0;font-size:13px;opacity:0.75;cursor:pointer;" onclick="setAuthMode('login')">Have an account? <u>Login</u></p>
+            <div style="font-size:13px;opacity:0.8;margin-bottom:12px;line-height:1.5;">Fill out this application — our team will review it and DM you on Discord.</div>
+            <input id="apply-age" type="number" min="1" max="99" placeholder="Your Age" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
+            <input id="apply-discord" type="text" placeholder="Discord Username (e.g. lock#0001)" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
+            <input id="apply-username" type="text" placeholder="Desired In-Game Username" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;" maxlength="20">
+            <input id="apply-email" type="email" placeholder="Email" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
+            <input id="apply-password" type="password" placeholder="Password (6+ chars)" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
+            <textarea id="apply-reason" placeholder="Why do you want to play Hedgelet?" maxlength="300" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:14px;box-sizing:border-box;outline:none;resize:none;height:80px;font-family:inherit;"></textarea>
+            <button onclick="submitApplication()" style="width:100%;padding:13px;margin-top:10px;background:#8B5A3E;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:16px;transition:0.2s;" onmouseover="this.style.background='#a0693f'" onmouseout="this.style.background='#8B5A3E'">Submit Application 🦔</button>
+            <p style="margin:14px 0 0;font-size:13px;opacity:0.75;cursor:pointer;" onclick="setAuthMode('login')">Already approved? <u>Login</u></p>
+        </div>
+
+        <!-- PENDING SCREEN -->
+        <div id="form-pending" style="display:none;text-align:center;">
+            <div style="font-size:48px;margin-bottom:12px;">⏳</div>
+            <div style="font-size:15px;font-weight:bold;margin-bottom:8px;">Application Submitted!</div>
+            <div style="font-size:13px;opacity:0.8;line-height:1.6;">Our team will review your application and message you on Discord. Once approved, come back and log in with your username and password.</div>
+            <button onclick="setAuthMode('login')" style="width:100%;padding:12px;margin-top:18px;background:#4CAF50;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:15px;">Go to Login</button>
         </div>
 
         <p id="login-status" style="margin:12px 0 0;font-size:13px;min-height:18px;color:#FFD700;font-weight:bold;"></p>
@@ -661,28 +673,61 @@
 
     function setAuthMode(mode) {
         document.getElementById('form-login').style.display   = mode === 'login'  ? 'block' : 'none';
-        document.getElementById('form-signup').style.display  = mode === 'signup' ? 'block' : 'none';
+        document.getElementById('form-signup').style.display  = (mode === 'signup' || mode === 'apply') ? 'block' : 'none';
+        document.getElementById('form-pending').style.display = mode === 'pending' ? 'block' : 'none';
         document.getElementById('login-status').innerText = '';
     }
 
-    function signupUser() {
-        const email    = document.getElementById('signup-email').value.trim();
-        const username = document.getElementById('signup-username').value.trim();
-        const password = document.getElementById('signup-password').value;
+    async function submitApplication() {
+        const age      = document.getElementById('apply-age').value.trim();
+        const discord  = document.getElementById('apply-discord').value.trim();
+        const username = document.getElementById('apply-username').value.trim().toLowerCase();
+        const email    = document.getElementById('apply-email').value.trim();
+        const password = document.getElementById('apply-password').value;
+        const reason   = document.getElementById('apply-reason').value.trim();
         const status   = document.getElementById('login-status');
-        if (!email || !username || !password) { status.innerText = 'Please fill in all fields.'; return; }
+
+        if (!age || !discord || !username || !email || !password || !reason) {
+            status.innerText = 'Please fill in every field.'; return;
+        }
+        if (isNaN(age) || +age < 1 || +age > 99) { status.innerText = 'Please enter a valid age.'; return; }
         if (password.length < 6) { status.innerText = 'Password must be at least 6 characters.'; return; }
-        status.innerText = 'Creating account...';
-        auth.createUserWithEmailAndPassword(email, password)
-            .then(cred => {
-                const uid = cred.user.uid;
-                const initCollection = {};
-                for (let i = 1; i <= TOTAL_BLOOKS; i++) initCollection[i] = 0;
-                return db.collection('users').doc(uid).set({ email, username, tokens: 500, opened: 0, collection: initCollection });
-            })
-            .then(() => { status.innerText = 'Account created! Logging in...'; })
-            .catch(e => { status.innerText = e.message; });
+        if (username.length < 3) { status.innerText = 'Username must be at least 3 characters.'; return; }
+
+        status.innerText = 'Checking username…';
+
+        // Check for existing username
+        const existing = await db.collection('users').where('username', '==', username).limit(1).get();
+        if (!existing.empty) { status.innerText = 'That username is already taken.'; return; }
+
+        // Check for existing pending application with same username
+        const existingApp = await db.collection('applications').where('username', '==', username).where('status', '==', 'pending').limit(1).get();
+        if (!existingApp.empty) { status.innerText = 'An application for that username is already pending.'; return; }
+
+        status.innerText = 'Creating account…';
+
+        try {
+            // Create the Firebase Auth account
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            const uid  = cred.user.uid;
+
+            // Store application in Firestore
+            await db.collection('applications').doc(uid).set({
+                uid, age: +age, discord, username, email,
+                reason, status: 'pending', submittedAt: Date.now()
+            });
+
+            // Sign them out immediately — they can't access game until approved
+            await auth.signOut();
+
+            status.innerText = '';
+            setAuthMode('pending');
+        } catch (e) {
+            status.innerText = e.message;
+        }
     }
+
+    function signupUser() { submitApplication(); }
 
     async function loginUser() {
         const username = document.getElementById('login-username').value.trim();
@@ -691,10 +736,27 @@
         if (!username || !password) { status.innerText = 'Enter your username and password.'; return; }
         status.innerText = 'Logging in...';
         try {
-            const snap = await db.collection('users').where('username', '==', username).limit(1).get();
-            if (snap.empty) { status.innerText = 'Username not found.'; return; }
-            const email = snap.docs[0].data().email;
-            await auth.signInWithEmailAndPassword(email, password);
+            // First check if they have an approved user doc
+            const snap = await db.collection('users').where('username', '==', username.toLowerCase()).limit(1).get();
+            if (!snap.empty) {
+                const email = snap.docs[0].data().email;
+                await auth.signInWithEmailAndPassword(email, password);
+                return;
+            }
+            // Check for an application
+            const appSnap = await db.collection('applications').where('username', '==', username.toLowerCase()).limit(1).get();
+            if (!appSnap.empty) {
+                const appData = appSnap.docs[0].data();
+                if (appData.status === 'pending') {
+                    status.innerText = '⏳ Your application is still under review. Check your Discord DMs for updates.';
+                } else if (appData.status === 'denied') {
+                    status.innerText = '❌ Application denied. Please submit a new application with a better reason.';
+                } else {
+                    status.innerText = 'Username not found.';
+                }
+                return;
+            }
+            status.innerText = 'Username not found.';
         } catch(e) {
             status.innerText = e.code === 'auth/wrong-password' ? 'Incorrect password.' : e.message;
         }

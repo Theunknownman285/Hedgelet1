@@ -9,6 +9,9 @@ import {
   PermissionFlagsBits,
   ChatInputCommandInteraction,
   Colors,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } from "discord.js";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
@@ -497,6 +500,138 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
+// ── Reviewer Discord user IDs ─────────────────────────────────────────────────
+const REVIEWER_IDS = [
+  "1477329893766336663",
+  "1426942471299928297",
+  "1271214946843099249",
+];
+
+// ── Application listener — watch Firestore for new pending apps ───────────────
+async function startApplicationListener() {
+  console.log("[Apps] Listening for new applications…");
+  firestore.collection("applications")
+    .where("status", "==", "pending")
+    .onSnapshot(async (snap) => {
+      for (const change of snap.docChanges()) {
+        if (change.type !== "added") continue;
+        const app = change.doc.data() as {
+          uid: string; username: string; age: number;
+          discord: string; email: string; reason: string; submittedAt: number;
+        };
+        console.log(`[Apps] New application from ${app.username} (${app.discord})`);
+
+        const embed = new EmbedBuilder()
+          .setColor(0x8b5a3e)
+          .setTitle("🦔 New Hedgelet Application")
+          .addFields(
+            { name: "👤 Username",       value: app.username,          inline: true },
+            { name: "🎂 Age",            value: String(app.age),       inline: true },
+            { name: "💬 Discord",        value: app.discord,           inline: true },
+            { name: "📝 Why they want to play", value: app.reason,    inline: false },
+          )
+          .setFooter({ text: `Application ID: ${app.uid}` })
+          .setTimestamp(app.submittedAt);
+
+        const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setCustomId(`approve_${app.uid}`)
+            .setLabel("✅ Approve")
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(`deny_${app.uid}`)
+            .setLabel("❌ Deny")
+            .setStyle(ButtonStyle.Danger),
+        );
+
+        for (const reviewerId of REVIEWER_IDS) {
+          try {
+            const user = await client.users.fetch(reviewerId);
+            await user.send({ embeds: [embed], components: [row] });
+            console.log(`[Apps] DMed reviewer ${reviewerId}`);
+          } catch (e) {
+            console.warn(`[Apps] Could not DM reviewer ${reviewerId}:`, (e as Error).message);
+          }
+        }
+      }
+    });
+}
+
+// ── Handle approve / deny button clicks ──────────────────────────────────────
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) return;
+  const { customId } = interaction;
+  if (!customId.startsWith("approve_") && !customId.startsWith("deny_")) return;
+
+  const sepIdx = customId.indexOf("_");
+  const action = customId.slice(0, sepIdx) as "approve" | "deny";
+  const uid    = customId.slice(sepIdx + 1);
+  const appRef = firestore.collection("applications").doc(uid);
+  const appSnap = await appRef.get();
+  if (!appSnap.exists) {
+    await interaction.reply({ content: "⚠️ Application not found — it may have already been processed.", ephemeral: true });
+    return;
+  }
+  const app = appSnap.data()!;
+  if (app.status !== "pending") {
+    await interaction.reply({ content: `⚠️ This application was already **${app.status}**.`, ephemeral: true });
+    return;
+  }
+
+  const reviewer = interaction.user.username;
+
+  if (action === "approve") {
+    // Create player doc in users collection
+    const initCollection: Record<number, number> = {};
+    for (let i = 1; i <= 35; i++) initCollection[i] = 0;
+    await firestore.collection("users").doc(uid).set({
+      email: app.email, username: app.username, tokens: 500,
+      opened: 0, collection: initCollection, messagesSent: 0,
+      friends: [], friendRequests: [], roles: [],
+    });
+    await appRef.update({ status: "approved", reviewedBy: reviewer, reviewedAt: Date.now() });
+
+    // DM all reviewers that it was approved
+    const approvedEmbed = new EmbedBuilder().setColor(Colors.Green)
+      .setTitle("✅ Application Approved")
+      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to Hedgelet.`);
+
+    for (const rid of REVIEWER_IDS) {
+      try {
+        const u = await client.users.fetch(rid);
+        await u.send({ embeds: [approvedEmbed] });
+      } catch (_) {}
+    }
+
+    await interaction.update({
+      content: `✅ Approved **${app.username}** — their account is now active.`,
+      embeds: [], components: [],
+    });
+    console.log(`[Apps] ${reviewer} approved application for ${app.username}`);
+
+  } else {
+    await appRef.update({ status: "denied", reviewedBy: reviewer, reviewedAt: Date.now() });
+
+    // DM all reviewers that it was denied
+    const deniedEmbed = new EmbedBuilder().setColor(Colors.Red)
+      .setTitle("❌ Application Denied")
+      .setDescription(`**${app.username}**'s application was denied by **${reviewer}**.`);
+
+    for (const rid of REVIEWER_IDS) {
+      try {
+        const u = await client.users.fetch(rid);
+        await u.send({ embeds: [deniedEmbed] });
+      } catch (_) {}
+    }
+
+    await interaction.update({
+      content: `❌ Denied **${app.username}**'s application.`,
+      embeds: [], components: [],
+    });
+    console.log(`[Apps] ${reviewer} denied application for ${app.username}`);
+  }
+});
+
 // ── Discord → Game ────────────────────────────────────────────────────────────
 client.on("messageCreate", async (message) => {
   if (message.channelId !== DISCORD_CHANNEL_ID) return;
@@ -598,6 +733,7 @@ client.once("clientReady", async () => {
   } catch (_) {}
 
   startGameListener();
+  startApplicationListener();
 });
 
 client.login(DISCORD_TOKEN);
