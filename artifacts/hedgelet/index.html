@@ -983,7 +983,7 @@
             const data = blookData[equippedBlook];
             const e = data.emoji;
             if (isImg(e)) {
-                el.innerHTML = `<img src="${e}" alt="${data.name}">`;
+                el.innerHTML = `<img src="${e}" alt="${data.name}" style="${e.startsWith('/')?'mix-blend-mode:screen;':''}">`;
             } else {
                 el.innerHTML = e || '🦔';
             }
@@ -1232,7 +1232,7 @@
         avatarDiv.className = 'friend-avatar';
         avatarDiv.style.borderColor = rarityColors[rarity] || '#444';
         const blookEmoji = data.equippedBlook && blookData[data.equippedBlook] ? blookData[data.equippedBlook].emoji : '🦔';
-        avatarDiv.innerHTML = isImg(blookEmoji) ? `<img src="${blookEmoji}">` : blookEmoji;
+        avatarDiv.innerHTML = isImg(blookEmoji) ? `<img src="${blookEmoji}" style="${blookEmoji.startsWith('/')?'mix-blend-mode:screen;':''}">` : blookEmoji;
 
         const infoDiv = document.createElement('div');
         infoDiv.innerHTML = `<div class="friend-name">${data.username || 'Unknown'}</div><div class="friend-tier">${rarity.charAt(0).toUpperCase() + rarity.slice(1)}</div>`;
@@ -1422,7 +1422,7 @@
         const icon = data.emoji;
 
         if (isImg(icon)) {
-            revIcon.innerHTML = `<img src="${icon}" style="width:100px;height:100px;object-fit:contain;">`;
+            revIcon.innerHTML = `<img src="${icon}" style="width:100px;height:100px;object-fit:contain;${icon.startsWith('/')?'mix-blend-mode:screen;':''}">`;
         } else {
             revIcon.style.fontSize = '80px';
             revIcon.innerText = icon;
@@ -1562,7 +1562,7 @@
                 } else {
                     const icon = data.emoji;
                     let display = isImg(icon)
-                        ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;">`
+                        ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;${icon.startsWith('/')?'mix-blend-mode:screen;':''}">`
                         : `<div style="font-size:40px">${icon}</div>`;
                     const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700', mythical:'#ff0055' };
                     const badgeColor = data.rarity ? (rarityBadgeColors[data.rarity] || 'white') : 'white';
@@ -1638,7 +1638,7 @@
             }
             const icon = data.emoji;
             const display = isImg(icon)
-                ? `<img src="${icon}" style="width:50px;height:50px;object-fit:contain;">`
+                ? `<img src="${icon}" style="width:50px;height:50px;object-fit:contain;${icon.startsWith('/')?'mix-blend-mode:screen;':''}">`
                 : `<div style="font-size:34px">${icon}</div>`;
             card.innerHTML = `${display}<div style="font-size:9px;text-align:center;padding:0 3px;">${data.name}</div>`;
             card.onclick = () => {
