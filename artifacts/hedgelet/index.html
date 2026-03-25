@@ -371,7 +371,7 @@
                 <h2 id="profile-username">hedgehog</h2>
                 <div class="profile-blook-name" id="profile-blook-name">No blook equipped</div>
                 <div class="roles-row" id="profile-roles"></div>
-                <button class="daily-btn" onclick="openDailyModal()">🎁 Daily Reward</button>
+                <button class="daily-btn" onclick="openDailyModal()">🎁 Hourly Reward</button>
             </div>
         </div>
 
@@ -606,7 +606,7 @@
 <div id="daily-modal">
     <div class="modal-box">
         <span style="position:absolute;top:10px;right:20px;cursor:pointer;font-weight:bold;" onclick="closeDailyModal()">✕</span>
-        <h2>Daily Reward</h2>
+        <h2>Hourly Reward</h2>
         <div class="wheel-container">
             <div class="wheel-wrapper">
                 <div class="wheel-pointer">▼</div>
@@ -1853,7 +1853,7 @@
         tokens += pendingReward;
         updateStats();
         savePlayerData();
-        localStorage.setItem('hedge_cooldown', Date.now() + 24 * 60 * 60 * 1000);
+        localStorage.setItem('hedge_cooldown', Date.now() + 60 * 60 * 1000);
         canClaim = false;
         const btn = document.getElementById('spin-btn');
         btn.classList.remove('claim-mode');
