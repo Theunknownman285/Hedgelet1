@@ -86,6 +86,13 @@
             88%     { transform:rotate(-1deg); }
         }
 
+        /* ── CHROMA RARITY ── */
+        .rarity-chroma { border: 4px solid #FFD700 !important; animation: chroma-glow 1.8s ease-in-out infinite alternate !important; }
+        @keyframes chroma-glow {
+            from { box-shadow: 0 0 10px 3px #ff4400, 0 0 20px #ffcc00; }
+            to   { box-shadow: 0 0 14px 5px #cc00ff, 0 0 28px #00aaff; }
+        }
+
         /* ── TRADE ── */
         .trade-tabs { display:flex; gap:10px; margin-bottom:20px; }
         .trade-tab-btn { padding:10px 24px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px; background:rgba(255,255,255,0.15); color:black; }
@@ -419,10 +426,16 @@
         8:  { name: "hedgehog 8",   emoji: TW+'1f994.svg', pack: "hedgehog" },
         9:  { name: "hedgehog 9",   emoji: TW+'1f994.svg', pack: "hedgehog" },
         10: { name: "hedgehog 10",  emoji: TW+'1f994.svg', pack: "hedgehog" },
-        11: { name: "Ketchup",      emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "uncommon", pack: "fastfood" },
-        12: { name: "Mustard",      emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "uncommon", pack: "fastfood" },
-        13: { name: "French Fries", emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "rare", pack: "fastfood" },
-        14: { name: "Milkshake",    emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" },
+        11: { name: "Ketchup",        emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "rare",      pack: "fastfood" },
+        12: { name: "Mustard",        emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "rare",      pack: "fastfood" },
+        13: { name: "French Fries",   emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "epic",      pack: "fastfood" },
+        14: { name: "Milkshake",      emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" },
+        30: { name: "Hot Dog",        emoji: TW+'1f32d.svg', rarity: "uncommon", pack: "fastfood" },
+        31: { name: "Hamburger",      emoji: TW+'1f354.svg', rarity: "uncommon", pack: "fastfood" },
+        32: { name: "Pizza",          emoji: TW+'1f355.svg', rarity: "uncommon", pack: "fastfood" },
+        33: { name: "Taco",           emoji: TW+'1f32e.svg', rarity: "uncommon", pack: "fastfood" },
+        34: { name: "Soda",           emoji: TW+'1f964.svg', rarity: "rare",     pack: "fastfood" },
+        35: { name: "Golden Hot Dog", emoji: TW+'1f32d.svg', rarity: "chroma",   pack: "fastfood" },
         // ── Breakfast Pack ──
         15: { name: "Pancakes",     emoji: TW+'1f95e.svg', pack: "breakfast" },
         16: { name: "Bacon",        emoji: TW+'1f953.svg', pack: "breakfast" },
@@ -442,7 +455,7 @@
         29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" }
     };
 
-    const TOTAL_BLOOKS = 29;
+    const TOTAL_BLOOKS = 35;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
 
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
@@ -567,10 +580,21 @@
         tokens -= 20; opened++;
         updateStats(); savePlayerData();
         const rand = Math.random();
-        if (rand < 0.40)      pendingBlook = 11; // Ketchup   40%
-        else if (rand < 0.80) pendingBlook = 12; // Mustard   40%
-        else if (rand < 0.95) pendingBlook = 13; // Fries     15%
-        else                  pendingBlook = 14; // Milkshake  5%
+        // Uncommon ~75%
+        if      (rand < 0.20)  pendingBlook = 30; // Hot Dog       20%
+        else if (rand < 0.40)  pendingBlook = 31; // Hamburger     20%
+        else if (rand < 0.58)  pendingBlook = 32; // Pizza         18%
+        else if (rand < 0.75)  pendingBlook = 33; // Taco          17%
+        // Rare ~20%
+        else if (rand < 0.82)  pendingBlook = 11; // Ketchup        7%
+        else if (rand < 0.89)  pendingBlook = 12; // Mustard        7%
+        else if (rand < 0.95)  pendingBlook = 34; // Soda           6%
+        // Epic ~4%
+        else if (rand < 0.99)  pendingBlook = 13; // French Fries   4%
+        // Legendary ~0.8%
+        else if (rand < 0.998) pendingBlook = 14; // Milkshake      0.8%
+        // Chroma ~0.2%
+        else                   pendingBlook = 35; // Golden Hot Dog 0.2%
         showReveal();
     }
 
@@ -631,10 +655,13 @@
         document.getElementById('reveal-name').innerText = data.name;
 
         const rarityEl = document.getElementById('reveal-rarity');
-        const rarityColors = { uncommon: '#4CAF50', rare: '#2196F3', legendary: '#FF9800' };
+        const rarityColors = { uncommon: '#4CAF50', rare: '#2196F3', epic: '#9C27B0', legendary: '#FF9800', chroma: '#FFD700' };
+        const revStage = document.getElementById('reveal-stage');
+        revStage.classList.remove('rarity-chroma');
         if (data.rarity) {
             rarityEl.innerText = data.rarity.toUpperCase();
-            rarityEl.style.color = rarityColors[data.rarity];
+            rarityEl.style.color = rarityColors[data.rarity] || '#888';
+            if (data.rarity === 'chroma') revStage.classList.add('rarity-chroma');
         } else {
             rarityEl.innerText = 'COMMON';
             rarityEl.style.color = '#888';
@@ -655,7 +682,7 @@
         grid.innerHTML = '';
         const packs = [
             { name: 'Hedgehog Pack',  ids: [1,2,3,4,5,6,7,8,9,10] },
-            { name: 'Fast Food Pack', ids: [11,12,13,14] },
+            { name: 'Fast Food Pack', ids: [30,31,32,33,11,12,34,13,14,35] },
             { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
             { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] }
         ];
@@ -673,8 +700,9 @@
                 card.className = `blook-card${locked ? ' locked' : ''}`;
 
                 if (!locked && data.rarity) {
-                    const borders = { uncommon: '#4CAF50', rare: '#2196F3', legendary: '#FF9800' };
-                    card.style.border = `4px solid ${borders[data.rarity]}`;
+                    const borders = { uncommon: '#4CAF50', rare: '#2196F3', epic: '#9C27B0', legendary: '#FF9800', chroma: '#FFD700' };
+                    card.style.border = `4px solid ${borders[data.rarity] || '#aaa'}`;
+                    if (data.rarity === 'chroma') card.classList.add('rarity-chroma');
                 }
 
                 if (locked) {
@@ -740,8 +768,9 @@
             card.className = 'blook-card' + (selected ? ' trade-selected' : '');
             card.style.cursor = 'pointer';
             if (data.rarity && !selected) {
-                const borders = { uncommon:'#4CAF50', rare:'#2196F3', legendary:'#FF9800' };
-                card.style.border = `3px solid ${borders[data.rarity]}`;
+                const borders = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700' };
+                card.style.border = `3px solid ${borders[data.rarity] || '#aaa'}`;
+                if (data.rarity === 'chroma') card.classList.add('rarity-chroma');
             }
             const icon = data.emoji;
             const display = icon.startsWith('http')
