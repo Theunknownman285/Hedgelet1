@@ -115,7 +115,7 @@
             <button class="daily-btn" onclick="openDailyModal()">daily reward</button>
         </div>
         <div class="stats-bar">
-            <div class="stat-item">Unlocked: <span id="stat-unlocked">0/14</span></div>
+            <div class="stat-item">Unlocked: <span id="stat-unlocked">0/29</span></div>
             <div class="stat-item">Opened: <span id="stat-opened">0</span></div>
             <div class="stat-item">Tokens: <span id="stat-tokens">500</span></div>
         </div>
@@ -132,6 +132,14 @@
             <div class="pack-card" onclick="openFastFoodPack()" style="background: #D35400; color: white;">
                 <div style="font-size:60px;">🍔</div>
                 <b>Fast Food Pack</b><br>20 Tokens
+            </div>
+            <div class="pack-card" onclick="openBreakfastPack()" style="background: #E8A838; color: white;">
+                <div style="font-size:60px;">🥞</div>
+                <b>Breakfast Pack</b><br>22 Tokens
+            </div>
+            <div class="pack-card" onclick="openFruitPack()" style="background: #27AE60; color: white;">
+                <div style="font-size:60px;">🍌</div>
+                <b>Fruit Pack</b><br>18 Tokens
             </div>
         </div>
     </div>
@@ -272,10 +280,28 @@
         11: { name: "Ketchup",      emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "uncommon", pack: "fastfood" },
         12: { name: "Mustard",      emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "uncommon", pack: "fastfood" },
         13: { name: "French Fries", emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "rare", pack: "fastfood" },
-        14: { name: "Milkshake",    emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" }
+        14: { name: "Milkshake",    emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" },
+        // ── Breakfast Pack ──
+        15: { name: "Pancakes",     emoji: "🥞", pack: "breakfast" },
+        16: { name: "Bacon",        emoji: "🥓", pack: "breakfast" },
+        17: { name: "Eggs",         emoji: "🍳", pack: "breakfast" },
+        18: { name: "Coffee",       emoji: "☕", rarity: "uncommon", pack: "breakfast" },
+        19: { name: "Waffle",       emoji: "🧇", rarity: "uncommon", pack: "breakfast" },
+        20: { name: "Toast",        emoji: "🍞", rarity: "rare",     pack: "breakfast" },
+        21: { name: "Donut",        emoji: "🍩", rarity: "legendary",pack: "breakfast" },
+        // ── Fruit Pack ──
+        22: { name: "Apple",        emoji: "🍎", pack: "fruit" },
+        23: { name: "Grapes",       emoji: "🍇", pack: "fruit" },
+        24: { name: "Strawberry",   emoji: "🍓", pack: "fruit" },
+        25: { name: "Banana",       emoji: "🍌", pack: "fruit" },
+        26: { name: "Watermelon",   emoji: "🍉", rarity: "uncommon", pack: "fruit" },
+        27: { name: "Orange",       emoji: "🍊", rarity: "uncommon", pack: "fruit" },
+        28: { name: "Cherry",       emoji: "🍒", rarity: "rare",     pack: "fruit" },
+        29: { name: "Peach",        emoji: "🍑", rarity: "legendary",pack: "fruit" }
     };
 
-    for (let i = 1; i <= 14; i++) collection[i] = 0;
+    const TOTAL_BLOOKS = 29;
+    for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
 
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
     window.onload = () => {
@@ -301,7 +327,7 @@
             .then(cred => {
                 const uid = cred.user.uid;
                 const initCollection = {};
-                for (let i = 1; i <= 14; i++) initCollection[i] = 0;
+                for (let i = 1; i <= TOTAL_BLOOKS; i++) initCollection[i] = 0;
                 return db.collection('users').doc(uid).set({ email, username, discord, tokens: 500, opened: 0, collection: initCollection });
             })
             .then(() => { document.getElementById('login-status').innerText = 'Account created! Logging in...'; })
@@ -337,7 +363,7 @@
                 tokens = data.tokens || 500;
                 opened = data.opened || 0;
                 collection = data.collection || {};
-                for (let i = 1; i <= 14; i++) if (!collection[i]) collection[i] = 0;
+                for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
                 updateStats();
                 onPlayerReady(data.username);
@@ -365,7 +391,7 @@
     function updateStats() {
         document.getElementById('stat-tokens').innerText = tokens;
         document.getElementById('stat-opened').innerText = opened;
-        document.getElementById('stat-unlocked').innerText = Object.values(collection).filter(x => x > 0).length + '/14';
+        document.getElementById('stat-unlocked').innerText = Object.values(collection).filter(x => x > 0).length + '/' + TOTAL_BLOOKS;
     }
 
     // ─── PACK OPENING ─────────────────────────────────────────────────────────
@@ -386,6 +412,37 @@
         else if (rand < 0.80) pendingBlook = 12; // Mustard   40%
         else if (rand < 0.95) pendingBlook = 13; // Fries     15%
         else                  pendingBlook = 14; // Milkshake  5%
+        showReveal();
+    }
+
+    function openBreakfastPack() {
+        if (tokens < 22) { alert('Not enough tokens! You need 22 tokens.'); return; }
+        tokens -= 22; opened++;
+        updateStats(); savePlayerData();
+        const rand = Math.random();
+        if (rand < 0.35)      pendingBlook = 15; // Pancakes   35%
+        else if (rand < 0.65) pendingBlook = 16; // Bacon      30%
+        else if (rand < 0.85) pendingBlook = 17; // Eggs       20%
+        else if (rand < 0.93) pendingBlook = 18; // Coffee      8%  (uncommon)
+        else if (rand < 0.98) pendingBlook = 19; // Waffle      5%  (uncommon)
+        else if (rand < 0.995)pendingBlook = 20; // Toast       1.5%(rare)
+        else                  pendingBlook = 21; // Donut       0.5%(legendary)
+        showReveal();
+    }
+
+    function openFruitPack() {
+        if (tokens < 18) { alert('Not enough tokens! You need 18 tokens.'); return; }
+        tokens -= 18; opened++;
+        updateStats(); savePlayerData();
+        const rand = Math.random();
+        if (rand < 0.30)      pendingBlook = 22; // Apple       30%
+        else if (rand < 0.55) pendingBlook = 23; // Grapes      25%
+        else if (rand < 0.75) pendingBlook = 24; // Strawberry  20%
+        else if (rand < 0.88) pendingBlook = 25; // Banana      13%
+        else if (rand < 0.94) pendingBlook = 26; // Watermelon   6% (uncommon)
+        else if (rand < 0.98) pendingBlook = 27; // Orange       4% (uncommon)
+        else if (rand < 0.995)pendingBlook = 28; // Cherry       1.5%(rare)
+        else                  pendingBlook = 29; // Peach        0.5%(legendary)
         showReveal();
     }
 
@@ -438,8 +495,10 @@
         const grid = document.getElementById('hedges-display');
         grid.innerHTML = '';
         const packs = [
-            { name: 'Hedgehog Pack', ids: [1,2,3,4,5,6,7,8,9,10] },
-            { name: 'Fast Food Pack', ids: [11,12,13,14] }
+            { name: 'Hedgehog Pack',  ids: [1,2,3,4,5,6,7,8,9,10] },
+            { name: 'Fast Food Pack', ids: [11,12,13,14] },
+            { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
+            { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] }
         ];
         packs.forEach(pack => {
             const header = document.createElement('h3');
