@@ -160,6 +160,14 @@ const commands = [
       o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true))
     .addIntegerOption(o =>
       o.setName("quantity").setDescription("How many to give (default: 1)").setRequired(false).setMinValue(1).setMaxValue(99)),
+
+  new SlashCommandBuilder()
+    .setName("createpartnercode")
+    .setDescription("Create a partner code for a content creator (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username to create the code for").setRequired(true))
+    .addStringOption(o =>
+      o.setName("code").setDescription("Custom code (auto-generated if blank)").setRequired(false)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -306,6 +314,12 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   28: { name: "Cherry",        rarity: "rare",      emoji: "🍒" },
   29: { name: "Peach",         rarity: "legendary", emoji: "🍑" },
 };
+
+// ── Partner code generator ────────────────────────────────────────────────────
+function generatePartnerCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous chars (O/0, I/1)
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
 
 // ── Autocomplete: /give blook field ──────────────────────────────────────────
 client.on("interactionCreate", async (interaction) => {
@@ -530,6 +544,75 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
   } // end mod commands block
+
+  // ── /createpartnercode ───────────────────────────────────────────────────
+  if (commandName === "createpartnercode") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can create partner codes.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const customCode = interaction.options.getString("code");
+    const code = customCode
+      ? customCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20)
+      : generatePartnerCode();
+
+    if (!code) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Invalid Code")
+          .setDescription("Code must contain letters or numbers.")],
+      });
+      return;
+    }
+
+    const found = await findUserByUsername(username);
+    if (!found) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    // Prevent duplicate codes
+    const existingSnap = await firestore.collection("partnerCodes").doc(code).get();
+    if (existingSnap.exists) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Orange).setTitle("⚠️ Code Already Taken")
+          .setDescription(`The code **\`${code}\`** already exists. Try a different one.`)],
+      });
+      return;
+    }
+
+    // Prevent giving a player two codes
+    if (found.data.partnerCode) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Orange).setTitle("⚠️ Already Has a Code")
+          .setDescription(`**${found.data.username}** already has partner code **\`${found.data.partnerCode}\`**.`)],
+      });
+      return;
+    }
+
+    await firestore.collection("partnerCodes").doc(code).set({
+      ownerUid: found.uid,
+      ownerUsername: found.data.username,
+      uses: 0,
+      createdAt: Date.now(),
+    });
+    await firestore.collection("users").doc(found.uid).update({ partnerCode: code });
+
+    const mod = interaction.user.username;
+    console.log(`[PARTNER] ${mod} created code ${code} for ${found.data.username}`);
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Gold)
+        .setTitle("🤝 Partner Code Created")
+        .setDescription(`Partner code **\`${code}\`** created for **${found.data.username}**.\nEvery time a player redeems it, they earn **+5 🪙**.`)
+        .setFooter({ text: `Created by ${mod}` })],
+    });
+  }
 
   // ── /give ──────────────────────────────────────────────────────────────────
   if (commandName === "give") {

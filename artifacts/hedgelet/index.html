@@ -378,6 +378,19 @@
             </div>
         </div>
 
+        <!-- Partner Code -->
+        <div class="friends-section" id="partner-section">
+            <div class="section-label">Partner Code</div>
+            <div id="partner-used-msg" style="display:none;font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:8px;"></div>
+            <div id="partner-input-row" style="display:flex;gap:10px;align-items:center;">
+                <input id="partner-code-input" type="text" placeholder="Enter a creator's code..." maxlength="20"
+                    style="padding:10px 16px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.85);outline:none;flex:1;text-transform:uppercase;letter-spacing:2px;"
+                    oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPartnerCode()">
+                <button onclick="redeemPartnerCode()" style="padding:10px 20px;border:none;border-radius:8px;background:#f39c12;color:white;font-weight:bold;cursor:pointer;font-size:14px;">Redeem</button>
+            </div>
+            <div id="partner-status" style="font-size:13px;min-height:18px;margin-top:8px;"></div>
+        </div>
+
         <!-- Friends -->
         <div class="friends-section">
             <div class="friends-header">
@@ -591,6 +604,7 @@
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
+    let usedPartnerCode = false;
     let submittingApplication = false; // prevents onAuthStateChanged from acting during app submission
     const ROLE_CONFIG = {
         'owner':          { label: 'Owner',          badge: '👑', color: '#FF4444', bg: 'rgba(255,68,68,0.18)',      desc: 'The game owner' },
@@ -854,10 +868,12 @@
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 equippedBlook = data.equippedBlook || null;
                 playerRoles = data.roles || [];
+                usedPartnerCode = data.usedPartnerCode || false;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
                 renderProfileRoles(playerRoles);
                 updateStats();
                 updateProfileAvatar();
+                renderPartnerSection();
                 loadFriends();
                 updateRequestsBadge();
                 startModListener(uid);
@@ -1018,6 +1034,55 @@
             badge.innerText = friendRequests.length;
         } else {
             badge.style.display = 'none';
+        }
+    }
+
+    // ─── PARTNER CODE ─────────────────────────────────────────────────────────
+    function renderPartnerSection() {
+        const row = document.getElementById('partner-input-row');
+        const used = document.getElementById('partner-used-msg');
+        const status = document.getElementById('partner-status');
+        if (!row || !used) return;
+        if (usedPartnerCode) {
+            row.style.display = 'none';
+            used.style.display = '';
+            used.innerText = '✅ You have already used a partner code.';
+            if (status) status.innerText = '';
+        } else {
+            row.style.display = 'flex';
+            used.style.display = 'none';
+        }
+    }
+
+    async function redeemPartnerCode() {
+        const input  = document.getElementById('partner-code-input');
+        const status = document.getElementById('partner-status');
+        const code   = (input.value || '').trim().toUpperCase().replace(/\s/g, '');
+        if (!code)        { status.style.color = '#e74c3c'; status.innerText = 'Enter a code first.'; return; }
+        if (!currentUid)  return;
+        status.style.color = '#f39c12'; status.innerText = 'Checking…';
+        const codeRef = db.collection('partnerCodes').doc(code);
+        const myRef   = db.collection('users').doc(currentUid);
+        try {
+            await db.runTransaction(async (t) => {
+                const codeSnap = await t.get(codeRef);
+                const mySnap   = await t.get(myRef);
+                if (!codeSnap.exists)           throw new Error('Invalid partner code.');
+                if (mySnap.data().usedPartnerCode) throw new Error('You have already used a partner code.');
+                const ownerUid = codeSnap.data().ownerUid;
+                if (ownerUid === currentUid)    throw new Error('You cannot use your own partner code.');
+                const ownerRef = db.collection('users').doc(ownerUid);
+                t.update(codeRef, { uses: firebase.firestore.FieldValue.increment(1) });
+                t.update(ownerRef, { tokens: firebase.firestore.FieldValue.increment(5) });
+                t.update(myRef,    { usedPartnerCode: true });
+            });
+            usedPartnerCode = true;
+            renderPartnerSection();
+            status.style.color = '#2ecc71';
+            status.innerText = '🎉 Code redeemed! The creator earned +5 🪙 — thanks for supporting them!';
+        } catch (e) {
+            status.style.color = '#e74c3c';
+            status.innerText = '❌ ' + e.message;
         }
     }
 
