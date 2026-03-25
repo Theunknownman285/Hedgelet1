@@ -1806,7 +1806,7 @@
 
     function spinWheel() {
         if (isSpinning) return;
-        const cd = localStorage.getItem('hedge_cooldown');
+        const cd = localStorage.getItem('hedge_cd_h');
         if (cd && Date.now() < Number(cd)) return;
 
         isSpinning = true;
@@ -1853,7 +1853,7 @@
         tokens += pendingReward;
         updateStats();
         savePlayerData();
-        localStorage.setItem('hedge_cooldown', Date.now() + 60 * 60 * 1000);
+        localStorage.setItem('hedge_cd_h', Date.now() + 60 * 60 * 1000);
         canClaim = false;
         const btn = document.getElementById('spin-btn');
         btn.classList.remove('claim-mode');
@@ -1863,7 +1863,7 @@
 
     function updateTimer() {
         const btn = document.getElementById('spin-btn');
-        const cd = localStorage.getItem('hedge_cooldown');
+        const cd = localStorage.getItem('hedge_cd_h');
         if (cd && Date.now() < Number(cd) && !canClaim) {
             const tl = Number(cd) - Date.now();
             const h = Math.floor(tl / 3600000);
