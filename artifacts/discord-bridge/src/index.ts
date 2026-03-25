@@ -16,7 +16,7 @@ import {
 } from "discord.js";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
 
 // ── Firebase admin init ───────────────────────────────────────────────────────
@@ -587,7 +587,7 @@ client.on("interactionCreate", async (interaction) => {
       return;
     }
     await firestore.collection("users").doc(found.uid).update({
-      tokens: admin.firestore.FieldValue.increment(amount),
+      tokens: FieldValue.increment(amount),
     });
     const newTotal = (found.data.tokens || 0) + amount;
     const mod = interaction.user.username;
