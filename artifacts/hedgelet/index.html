@@ -25,16 +25,10 @@
         @keyframes page-in { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         #chat-page.active { display: flex; animation: page-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
 
-        /* ── PROFILE / STATS ── */
-        .profile-header { display: flex; align-items: center; gap: 16px; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 18px 26px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.18); margin-bottom: 6px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
-        .profile-header h2 { font-size: 32px; margin: 0; text-transform: lowercase; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        /* ── DAILY BTN ── */
         .daily-btn { font-size: 13px; padding: 8px 14px; cursor: pointer; background: linear-gradient(135deg,#f39c12,#e67e22); color: white; border: none; border-radius: 8px; font-weight: bold; box-shadow: 0 3px 10px rgba(0,0,0,0.2); animation: daily-pulse 2.4s ease-in-out infinite; transition: transform 0.15s; }
         .daily-btn:hover { transform: scale(1.08); }
         @keyframes daily-pulse { 0%,100% { box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 0 0 rgba(255,215,0,0.5); } 50% { box-shadow: 0 3px 10px rgba(0,0,0,0.2), 0 0 0 10px rgba(255,215,0,0); } }
-        .stats-bar { background: transparent; border: none; display: flex; justify-content: space-around; gap: 16px; padding: 0; margin: 22px 0 30px; }
-        .stat-item { background: rgba(255,255,255,0.13); backdrop-filter: blur(8px); border-radius: 16px; padding: 22px 20px; border: 1px solid rgba(255,255,255,0.2); flex: 1; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transition: transform 0.2s, box-shadow 0.2s; }
-        .stat-item:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-        .stat-item span { display: block; font-weight: bold; font-size: 28px; color: #FFD700; text-shadow: 0 0 12px rgba(255,215,0,0.4); }
 
         /* ── MARKET ── */
         .market-grid { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 30px; }
@@ -86,10 +80,48 @@
         .equip-btn:hover { background: rgba(33,180,255,1); }
         .equip-btn.is-equipped { background: rgba(200,170,0,0.95); color: #fff; }
 
-        /* ── PROFILE AVATAR ── */
-        .profile-avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 42px; flex-shrink: 0; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
-        .profile-avatar:hover { transform: scale(1.08); border-color: #FFD700; box-shadow: 0 0 16px rgba(255,215,0,0.4); }
+        /* ── PROFILE BANNER ── */
+        .profile-banner { border-radius: 20px; padding: 26px 28px; display: flex; align-items: center; gap: 22px; margin-bottom: 18px; background: linear-gradient(135deg,#4a2510,#7a4a2e); border: 2px solid rgba(255,255,255,0.12); box-shadow: 0 8px 32px rgba(0,0,0,0.35); position: relative; overflow: hidden; transition: background 0.6s ease; }
+        .profile-banner::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(45deg,transparent,transparent 22px,rgba(255,255,255,0.03) 22px,rgba(255,255,255,0.03) 44px); pointer-events:none; }
+        .profile-avatar { width: 86px; height: 86px; border-radius: 16px; background: rgba(0,0,0,0.35); border: 3px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 52px; flex-shrink: 0; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; z-index: 1; }
+        .profile-avatar:hover { transform: scale(1.07); border-color: #FFD700; box-shadow: 0 0 20px rgba(255,215,0,0.45); }
         .profile-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+        .profile-info { z-index: 1; flex: 1; }
+        .profile-info h2 { font-size: 30px; margin: 0 0 4px; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+        .profile-blook-name { font-size: 12px; color: rgba(255,255,255,0.55); margin-bottom: 10px; }
+        .profile-banner-actions { z-index: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+        /* ── STATS SECTION ── */
+        .stats-section { background: rgba(0,0,0,0.35); border-radius: 16px; padding: 20px 22px; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.07); }
+        .section-label { font-size: 15px; font-weight: bold; color: rgba(255,255,255,0.8); margin-bottom: 14px; letter-spacing: 0.5px; }
+        .stats-bar { background: transparent; border: none; display: flex; gap: 12px; padding: 0; margin: 0; }
+        .stat-item { background: rgba(255,255,255,0.07); border-radius: 12px; padding: 16px 12px; border: 1px solid rgba(255,255,255,0.1); flex: 1; text-align: center; transition: transform 0.2s, background 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .stat-item:hover { transform: translateY(-3px); background: rgba(255,255,255,0.12); }
+        .stat-icon { font-size: 26px; }
+        .stat-label { font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 26px; font-weight: bold; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
+
+        /* ── FRIENDS SECTION ── */
+        .friends-section { background: rgba(0,0,0,0.25); border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(255,255,255,0.07); }
+        .friends-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .requests-btn { background: #e53935; color: white; border: none; border-radius: 8px; padding: 7px 16px; font-weight: bold; cursor: pointer; font-size: 13px; transition: background 0.15s; position: relative; }
+        .requests-btn:hover { background: #c62828; }
+        .requests-badge { background: white; color: #e53935; border-radius: 50%; font-size: 10px; padding: 1px 5px; margin-left: 6px; font-weight: bold; }
+        .friend-add-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .friend-add-row input { flex: 1; padding: 10px 14px; border-radius: 8px; border: none; background: rgba(255,255,255,0.12); color: white; font-size: 14px; outline: none; }
+        .friend-add-row input::placeholder { color: rgba(255,255,255,0.4); }
+        .friend-add-row button { padding: 10px 18px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.15s; }
+        .friend-add-row button:hover { background: #43a047; }
+        .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .friend-card { border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.1); transition: transform 0.15s, background 0.15s; cursor: default; }
+        .friend-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.14); }
+        .friend-avatar { width: 46px; height: 46px; border-radius: 10px; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(255,255,255,0.15); }
+        .friend-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+        .friend-name { font-weight: bold; font-size: 14px; color: white; }
+        .friend-tier { font-size: 11px; color: rgba(255,255,255,0.5); }
+        .friend-req-btn { margin-left: auto; padding: 5px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .friend-req-accept { background: #4CAF50; color: white; }
+        .friend-req-decline { background: rgba(255,255,255,0.15); color: white; }
 
         /* ── CHAT AVATAR ── */
         .chat-row { display: flex; align-items: flex-end; gap: 8px; }
@@ -282,18 +314,39 @@
 <div class="main-content">
     <!-- STATS PAGE -->
     <div id="stats-page" class="page active">
-        <div class="profile-header">
-            <div class="profile-avatar" id="profile-avatar" title="Click to change blook" onclick="showPage('hedges-page')">🦔</div>
-            <div>
-                <h2 id="profile-username" style="margin-bottom:4px;">hedgehog</h2>
-                <div id="profile-blook-name" style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:6px;">No blook equipped</div>
-                <button class="daily-btn" onclick="openDailyModal()">daily reward</button>
+        <!-- Profile Banner -->
+        <div class="profile-banner" id="profile-banner">
+            <div class="profile-avatar" id="profile-avatar" title="Go to Hedges to equip" onclick="showPage('hedges-page')">🦔</div>
+            <div class="profile-info">
+                <h2 id="profile-username">hedgehog</h2>
+                <div class="profile-blook-name" id="profile-blook-name">No blook equipped</div>
+                <button class="daily-btn" onclick="openDailyModal()">🎁 Daily Reward</button>
             </div>
         </div>
-        <div class="stats-bar">
-            <div class="stat-item">Unlocked: <span id="stat-unlocked">0/29</span></div>
-            <div class="stat-item">Opened: <span id="stat-opened">0</span></div>
-            <div class="stat-item">Tokens: <span id="stat-tokens">500</span></div>
+
+        <!-- Stats -->
+        <div class="stats-section">
+            <div class="section-label">Stats</div>
+            <div class="stats-bar">
+                <div class="stat-item"><div class="stat-icon">🪙</div><div class="stat-label">Tokens</div><div class="stat-value" id="stat-tokens">500</div></div>
+                <div class="stat-item"><div class="stat-icon">✨</div><div class="stat-label">Blooks Unlocked</div><div class="stat-value" id="stat-unlocked">0/35</div></div>
+                <div class="stat-item"><div class="stat-icon">📦</div><div class="stat-label">Packs Opened</div><div class="stat-value" id="stat-opened">0</div></div>
+                <div class="stat-item"><div class="stat-icon">💬</div><div class="stat-label">Messages Sent</div><div class="stat-value" id="stat-messages">0</div></div>
+            </div>
+        </div>
+
+        <!-- Friends -->
+        <div class="friends-section">
+            <div class="friends-header">
+                <div class="section-label" style="margin:0;">Friends</div>
+                <button class="requests-btn" onclick="showFriendRequests()">Requests <span class="requests-badge" id="requests-badge" style="display:none">0</span></button>
+            </div>
+            <div class="friend-add-row">
+                <input id="friend-search-input" type="text" placeholder="Add a friend by username..." maxlength="30">
+                <button onclick="sendFriendRequest()">Add</button>
+            </div>
+            <div id="friend-status" style="font-size:13px;color:#FFD700;min-height:18px;margin-bottom:10px;"></div>
+            <div class="friends-grid" id="friends-grid"><p style="opacity:0.5;font-size:13px;">No friends yet — add one above!</p></div>
         </div>
     </div>
 
@@ -484,6 +537,7 @@
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
     let tokens = 500, opened = 0, collection = {}, pendingBlook = 0, equippedBlook = null;
+    let messagesSent = 0, friends = [], friendRequests = [];
     let pendingReward = 0, isSpinning = false, canClaim = false;
 
     const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
@@ -608,11 +662,16 @@
                 tokens = data.tokens || 500;
                 opened = data.opened || 0;
                 collection = data.collection || {};
+                messagesSent = data.messagesSent || 0;
+                friends = data.friends || [];
+                friendRequests = data.friendRequests || [];
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 equippedBlook = data.equippedBlook || null;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
                 updateStats();
                 updateProfileAvatar();
+                loadFriends();
+                updateRequestsBadge();
                 onPlayerReady(data.username);
             }
         });
@@ -620,7 +679,7 @@
 
     function savePlayerData() {
         if (!currentUid) return;
-        db.collection('users').doc(currentUid).update({ tokens, opened, collection, equippedBlook });
+        db.collection('users').doc(currentUid).update({ tokens, opened, collection, equippedBlook, messagesSent, friends, friendRequests });
     }
 
     // ─── EQUIP SYSTEM ─────────────────────────────────────────────────────────
@@ -630,9 +689,19 @@
         return e || '🦔';
     }
 
+    const RARITY_BANNERS = {
+        common:    'linear-gradient(135deg,#3a3a3a 0%,#555 100%)',
+        uncommon:  'linear-gradient(135deg,#1a5c1a 0%,#2d8a2d 100%)',
+        rare:      'linear-gradient(135deg,#0d3b8e 0%,#1a5bc4 100%)',
+        epic:      'linear-gradient(135deg,#3d0d8e 0%,#6a1fc4 100%)',
+        legendary: 'linear-gradient(135deg,#7a3a00 0%,#c46a00 100%)',
+        chroma:    'linear-gradient(135deg,#8B1A1A,#8B6914,#1A8B1A,#1A568B,#5A1A8B)',
+    };
+
     function updateProfileAvatar() {
         const el = document.getElementById('profile-avatar');
         const nameEl = document.getElementById('profile-blook-name');
+        const banner = document.getElementById('profile-banner');
         if (!el) return;
         if (equippedBlook && blookData[equippedBlook]) {
             const data = blookData[equippedBlook];
@@ -643,9 +712,11 @@
                 el.innerHTML = e || '🦔';
             }
             if (nameEl) nameEl.innerText = data.name;
+            if (banner) banner.style.background = RARITY_BANNERS[data.rarity || 'common'] || RARITY_BANNERS.common;
         } else {
             el.innerHTML = '🦔';
-            if (nameEl) nameEl.innerText = 'No blook equipped — click to pick one';
+            if (nameEl) nameEl.innerText = 'No blook equipped — go to Hedges to pick one';
+            if (banner) banner.style.background = 'linear-gradient(135deg,#4a2510,#7a4a2e)';
         }
     }
 
@@ -666,6 +737,7 @@
         document.querySelectorAll('.nav-item[data-page]').forEach(item => {
             item.classList.toggle('active-nav', item.dataset.page === pId);
         });
+        if (pId === 'stats-page') { loadFriends(); updateRequestsBadge(); }
         if (pId === 'hedges-page') updateHedges();
         if (pId === 'trade-page') { showTradeTab('send'); loadIncomingTrades(); }
         if (pId === 'chat-page') {
@@ -732,9 +804,163 @@
 
     // ─── STATS ────────────────────────────────────────────────────────────────
     function updateStats() {
-        document.getElementById('stat-tokens').innerText = tokens;
-        document.getElementById('stat-opened').innerText = opened;
+        document.getElementById('stat-tokens').innerText = tokens.toLocaleString();
+        document.getElementById('stat-opened').innerText = opened.toLocaleString();
         document.getElementById('stat-unlocked').innerText = Object.values(collection).filter(x => x > 0).length + '/' + TOTAL_BLOOKS;
+        const msgEl = document.getElementById('stat-messages');
+        if (msgEl) msgEl.innerText = messagesSent.toLocaleString();
+    }
+
+    // ─── FRIENDS SYSTEM ───────────────────────────────────────────────────────
+    function friendStatus(msg, color) {
+        const el = document.getElementById('friend-status');
+        if (!el) return;
+        el.style.color = color || '#FFD700';
+        el.innerText = msg;
+        setTimeout(() => { if (el.innerText === msg) el.innerText = ''; }, 4000);
+    }
+
+    function updateRequestsBadge() {
+        const badge = document.getElementById('requests-badge');
+        if (!badge) return;
+        if (friendRequests.length > 0) {
+            badge.style.display = 'inline';
+            badge.innerText = friendRequests.length;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    async function sendFriendRequest() {
+        const input = document.getElementById('friend-search-input');
+        const username = input.value.trim().toLowerCase();
+        if (!username) return;
+        const myUsername = document.getElementById('profile-username').innerText.toLowerCase();
+        if (username === myUsername) { friendStatus('That\'s you!', '#FF9800'); return; }
+        try {
+            const snap = await db.collection('users').where('username', '==', username).limit(1).get();
+            if (snap.empty) { friendStatus('User not found.', '#e53935'); return; }
+            const theirDoc = snap.docs[0];
+            const theirUid = theirDoc.id;
+            if (friends.includes(theirUid)) { friendStatus('Already friends!', '#4CAF50'); return; }
+            const theirData = theirDoc.data();
+            const theirRequests = theirData.friendRequests || [];
+            if (theirRequests.includes(currentUid)) { friendStatus('Request already sent!', '#FF9800'); return; }
+            await db.collection('users').doc(theirUid).update({
+                friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUid)
+            });
+            input.value = '';
+            friendStatus(`Friend request sent to ${theirData.username}!`, '#4CAF50');
+        } catch (e) {
+            friendStatus('Error — check Firestore rules.', '#e53935');
+        }
+    }
+
+    async function loadFriends() {
+        const grid = document.getElementById('friends-grid');
+        if (!grid || friends.length === 0) {
+            if (grid) grid.innerHTML = '<p style="opacity:0.5;font-size:13px;">No friends yet — add one above!</p>';
+            return;
+        }
+        grid.innerHTML = '<p style="opacity:0.5;font-size:13px;">Loading...</p>';
+        try {
+            const docs = await Promise.all(friends.map(uid => db.collection('users').doc(uid).get()));
+            grid.innerHTML = '';
+            docs.forEach(doc => {
+                if (!doc.exists) return;
+                grid.appendChild(renderFriendCard(doc.data(), doc.id, false));
+            });
+        } catch (e) { grid.innerHTML = '<p style="color:#ff6b6b;font-size:13px;">Could not load friends — check Firestore rules.</p>'; }
+    }
+
+    async function showFriendRequests() {
+        const grid = document.getElementById('friends-grid');
+        if (friendRequests.length === 0) { friendStatus('No pending requests.', '#FF9800'); return; }
+        grid.innerHTML = '<p style="opacity:0.5;font-size:13px;">Loading requests...</p>';
+        try {
+            const docs = await Promise.all(friendRequests.map(uid => db.collection('users').doc(uid).get()));
+            grid.innerHTML = '';
+            const header = document.createElement('p');
+            header.style.cssText = 'color:rgba(255,255,255,0.7);font-size:13px;margin:0 0 10px;';
+            header.innerText = 'Friend Requests — ';
+            const back = document.createElement('span');
+            back.style.cssText = 'color:#FFD700;cursor:pointer;font-weight:bold;';
+            back.innerText = 'Back to friends';
+            back.onclick = loadFriends;
+            header.appendChild(back);
+            grid.appendChild(header);
+            docs.forEach(doc => {
+                if (!doc.exists) return;
+                grid.appendChild(renderFriendCard(doc.data(), doc.id, true));
+            });
+        } catch (e) { grid.innerHTML = '<p style="color:#ff6b6b;font-size:13px;">Could not load requests — check Firestore rules.</p>'; }
+    }
+
+    function renderFriendCard(data, uid, isRequest) {
+        const rarity = data.equippedBlook && blookData[data.equippedBlook] ? (blookData[data.equippedBlook].rarity || 'common') : 'common';
+        const rarityColors = { common:'#444', uncommon:'#1a5c1a', rare:'#0d3b8e', epic:'#3d0d8e', legendary:'#7a3a00', chroma:'#5a1a5a' };
+        const card = document.createElement('div');
+        card.className = 'friend-card';
+        card.style.borderColor = rarityColors[rarity] || '#444';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'friend-avatar';
+        avatarDiv.style.borderColor = rarityColors[rarity] || '#444';
+        const blookEmoji = data.equippedBlook && blookData[data.equippedBlook] ? blookData[data.equippedBlook].emoji : '🦔';
+        avatarDiv.innerHTML = blookEmoji.startsWith('http') ? `<img src="${blookEmoji}">` : blookEmoji;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.innerHTML = `<div class="friend-name">${data.username || 'Unknown'}</div><div class="friend-tier">${rarity.charAt(0).toUpperCase() + rarity.slice(1)}</div>`;
+
+        card.appendChild(avatarDiv);
+        card.appendChild(infoDiv);
+
+        if (isRequest) {
+            const btnWrap = document.createElement('div');
+            btnWrap.style.cssText = 'margin-left:auto;display:flex;gap:6px;';
+            const accept = document.createElement('button');
+            accept.className = 'friend-req-btn friend-req-accept';
+            accept.innerText = '✓';
+            accept.title = 'Accept';
+            accept.onclick = () => acceptFriendRequest(uid, data.username);
+            const decline = document.createElement('button');
+            decline.className = 'friend-req-btn friend-req-decline';
+            decline.innerText = '✕';
+            decline.title = 'Decline';
+            decline.onclick = () => declineFriendRequest(uid);
+            btnWrap.appendChild(accept);
+            btnWrap.appendChild(decline);
+            card.appendChild(btnWrap);
+        }
+        return card;
+    }
+
+    async function acceptFriendRequest(uid, username) {
+        try {
+            await db.collection('users').doc(currentUid).update({
+                friends: firebase.firestore.FieldValue.arrayUnion(uid),
+                friendRequests: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            await db.collection('users').doc(uid).update({
+                friends: firebase.firestore.FieldValue.arrayUnion(currentUid)
+            });
+            friends.push(uid);
+            friendRequests = friendRequests.filter(x => x !== uid);
+            updateRequestsBadge();
+            showToast(`${username} is now your friend!`, 'rgba(30,140,70,0.95)');
+            loadFriends();
+        } catch (e) { friendStatus('Error accepting — check Firestore rules.', '#e53935'); }
+    }
+
+    async function declineFriendRequest(uid) {
+        try {
+            await db.collection('users').doc(currentUid).update({
+                friendRequests: firebase.firestore.FieldValue.arrayRemove(uid)
+            });
+            friendRequests = friendRequests.filter(x => x !== uid);
+            updateRequestsBadge();
+            showFriendRequests();
+        } catch (e) { friendStatus('Error declining — check Firestore rules.', '#e53935'); }
     }
 
     // ─── PACK OPENING ─────────────────────────────────────────────────────────
@@ -1338,9 +1564,13 @@
             text: text,
             blookEmoji: blookEmoji,
             timestamp: Date.now()
+        }).then(() => {
+            messagesSent++;
+            savePlayerData();
+            updateStats();
         }).catch(err => {
             showChatError('Send failed: ' + err.message);
-            input.value = text; // restore text so user can retry
+            input.value = text;
         });
     }
 
