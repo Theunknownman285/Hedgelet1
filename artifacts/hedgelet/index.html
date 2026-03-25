@@ -202,6 +202,14 @@
             88%     { transform:rotate(-1deg); }
         }
 
+        /* ── SOB FLOOD ── */
+        @keyframes tear-fall {
+            0%   { transform: translateY(-60px) rotate(0deg); opacity: 1; }
+            80%  { opacity: 0.9; }
+            100% { transform: translateY(110vh) rotate(20deg); opacity: 0; }
+        }
+        .sob-tear { position: absolute; top: -60px; animation: tear-fall linear forwards; pointer-events: none; user-select: none; }
+
         /* ── CHROMA RARITY ── */
         .rarity-chroma { border: 4px solid #FFD700 !important; animation: chroma-glow 1.8s ease-in-out infinite alternate !important; }
         @keyframes chroma-glow {
@@ -412,6 +420,10 @@
             <div class="pack-card" onclick="openFruitPack()" style="background: #27AE60; color: white;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34c.svg" style="width:70px;height:70px;">
                 <b>Fruit Pack</b><br>18 Tokens
+            </div>
+            <div class="pack-card" onclick="openEmojiPack()" style="background: #F7DC6F; color: #333;">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f604.svg" style="width:70px;height:70px;">
+                <b>Emoji Pack</b><br>20 Tokens
             </div>
         </div>
 
@@ -727,10 +739,27 @@
         28: { name: "Cherry",       emoji: TW+'1f352.svg', rarity: "rare",     pack: "fruit" },
         29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" },
         // ── Staff-Only ──
-        36: { name: "Day 1 Hedgehog", emoji: "🦔🏆", rarity: "mythical" }
+        36: { name: "Day 1 Hedgehog", emoji: "🦔🏆", rarity: "mythical" },
+        // ── Emoji Pack ──
+        37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
+        38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
+        39: { name: "Angry",          emoji: TW+'1f620.svg', pack: "emoji" },
+        40: { name: "Nerd",           emoji: TW+'1f913.svg', pack: "emoji" },
+        41: { name: "Cool",           emoji: TW+'1f60e.svg', rarity: "uncommon", pack: "emoji" },
+        42: { name: "Clown",          emoji: TW+'1f921.svg', rarity: "uncommon", pack: "emoji" },
+        43: { name: "Sob",            emoji: TW+'1f62d.svg', rarity: "chroma",   pack: "emoji" },
+        44: { name: "Heart Eyes",     emoji: TW+'1f60d.svg', rarity: "uncommon", pack: "emoji" },
+        45: { name: "Cold Face",      emoji: TW+'1f976.svg', rarity: "rare",     pack: "emoji" },
+        46: { name: "Expressionless", emoji: TW+'1f611.svg', pack: "emoji" },
+        47: { name: "Smirk",          emoji: TW+'1f60f.svg', rarity: "epic",     pack: "emoji" },
+        48: { name: "Relieved",       emoji: TW+'1f60c.svg', rarity: "uncommon", pack: "emoji" },
+        49: { name: "Zany",           emoji: TW+'1f92a.svg', rarity: "uncommon", pack: "emoji" },
+        50: { name: "Shushing",       emoji: TW+'1f92b.svg', rarity: "rare",     pack: "emoji" },
+        51: { name: "Sleeping",       emoji: TW+'1f634.svg', rarity: "uncommon", pack: "emoji" },
+        52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" }
     };
 
-    const TOTAL_BLOOKS = 36;
+    const TOTAL_BLOOKS = 52;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
 
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
@@ -1321,6 +1350,60 @@
         showReveal();
     }
 
+    function openEmojiPack() {
+        if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
+        tokens -= 20; opened++;
+        updateStats(); savePlayerData();
+        const rand = Math.random();
+        // Common ~55%
+        if      (rand < 0.12) pendingBlook = 37; // Money Mouth    12%
+        else if (rand < 0.24) pendingBlook = 38; // Beaming        12%
+        else if (rand < 0.36) pendingBlook = 39; // Angry          12%
+        else if (rand < 0.46) pendingBlook = 40; // Nerd           10%
+        else if (rand < 0.55) pendingBlook = 46; // Expressionless  9%
+        // Uncommon ~30%
+        else if (rand < 0.60) pendingBlook = 41; // Cool            5%
+        else if (rand < 0.65) pendingBlook = 42; // Clown           5%
+        else if (rand < 0.70) pendingBlook = 44; // Heart Eyes      5%
+        else if (rand < 0.75) pendingBlook = 48; // Relieved        5%
+        else if (rand < 0.79) pendingBlook = 49; // Zany            4%
+        else if (rand < 0.825)pendingBlook = 51; // Sleeping        3.5%
+        else if (rand < 0.85) pendingBlook = 52; // Yum             2.5%
+        // Rare ~10%
+        else if (rand < 0.91) pendingBlook = 45; // Cold Face       6%
+        else if (rand < 0.95) pendingBlook = 50; // Shushing        4%
+        // Epic ~4%
+        else if (rand < 0.99) pendingBlook = 47; // Smirk           4%
+        // Chroma ~1%
+        else                  pendingBlook = 43; // Sob             1%
+        showReveal();
+    }
+
+    // ─── SOB FLOOD ANIMATION ──────────────────────────────────────────────────
+    function triggerSobFlood() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;pointer-events:none;overflow:hidden;background:rgba(20,60,180,0.12);';
+        document.body.appendChild(overlay);
+        const tearEmojis = ['💧','😭','💧','💦','💧'];
+        for (let i = 0; i < 80; i++) {
+            const tear = document.createElement('div');
+            tear.className = 'sob-tear';
+            const size   = 16 + Math.random() * 26;
+            const dur    = 1.2 + Math.random() * 2.0;
+            const delay  = Math.random() * 3.5;
+            const x      = Math.random() * 100;
+            const spin   = (Math.random() - 0.5) * 30;
+            tear.style.cssText = `left:${x}%;font-size:${size}px;animation-duration:${dur}s;animation-delay:${delay}s;--spin:${spin}deg;`;
+            tear.innerText = tearEmojis[Math.floor(Math.random() * tearEmojis.length)];
+            overlay.appendChild(tear);
+        }
+        setTimeout(() => {
+            overlay.style.transition = 'opacity 1.2s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 1300);
+        }, 4800);
+    }
+
     function showReveal() {
         const overlay = document.getElementById('reveal-overlay');
         overlay.style.display = 'flex';
@@ -1371,6 +1454,8 @@
             rarityEl.innerText = 'COMMON';
             rarityEl.style.color = '#888';
         }
+
+        if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
 
         collection[pendingBlook] = (collection[pendingBlook] || 0) + 1;
         savePlayerData();
@@ -1448,6 +1533,7 @@
             { name: 'Fast Food Pack', ids: [30,31,32,33,11,12,34,13,14,35] },
             { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
             { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] },
+            { name: '😄 Emoji Pack',   ids: [37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52] },
             { name: '✨ Special',      ids: [36] }
         ];
         packs.forEach(pack => {

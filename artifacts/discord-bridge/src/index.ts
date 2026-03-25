@@ -296,6 +296,23 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   35: { name: "Golden Hot Dog",rarity: "chroma",    emoji: "🌭" },
   // Staff Exclusive
   36: { name: "Day 1 Hedgehog", rarity: "mythical",   emoji: "🦔🏆" },
+  // ── Emoji Pack ──
+  37: { name: "Money Mouth",    rarity: "common",    emoji: "🤑" },
+  38: { name: "Beaming",        rarity: "common",    emoji: "😄" },
+  39: { name: "Angry",          rarity: "common",    emoji: "😠" },
+  40: { name: "Nerd",           rarity: "common",    emoji: "🤓" },
+  41: { name: "Cool",           rarity: "uncommon",  emoji: "😎" },
+  42: { name: "Clown",          rarity: "uncommon",  emoji: "🤡" },
+  43: { name: "Sob",            rarity: "chroma",    emoji: "😭" },
+  44: { name: "Heart Eyes",     rarity: "uncommon",  emoji: "😍" },
+  45: { name: "Cold Face",      rarity: "rare",      emoji: "🥶" },
+  46: { name: "Expressionless", rarity: "common",    emoji: "😑" },
+  47: { name: "Smirk",          rarity: "epic",      emoji: "😏" },
+  48: { name: "Relieved",       rarity: "uncommon",  emoji: "😌" },
+  49: { name: "Zany",           rarity: "uncommon",  emoji: "🤪" },
+  50: { name: "Shushing",       rarity: "rare",      emoji: "🤫" },
+  51: { name: "Sleeping",       rarity: "uncommon",  emoji: "😴" },
+  52: { name: "Yum",            rarity: "uncommon",  emoji: "😋" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
@@ -791,7 +808,7 @@ client.on("interactionCreate", async (interaction) => {
   if (action === "approve") {
     // Create player doc in users collection
     const initCollection: Record<number, number> = {};
-    for (let i = 1; i <= 36; i++) initCollection[i] = 0;
+    for (let i = 1; i <= 52; i++) initCollection[i] = 0;
     await firestore.collection("users").doc(uid).set({
       email: app.email, username: app.username, tokens: 500,
       opened: 0, collection: initCollection, messagesSent: 0,
