@@ -298,7 +298,9 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
-  const username = interaction.options.getString("username", true);
+  const username = interaction.options.getString("username") ?? "";
+
+  try {
 
   // ── /view — public, no role gate ──────────────────────────────────────────
   if (commandName === "view") {
@@ -497,6 +499,20 @@ client.on("interactionCreate", async (interaction) => {
           .setDescription(`🏷️ **${username}**'s **${ROLE_LABELS[role] ?? role}** role was removed by ${mod}.`)],
       });
     }
+  }
+
+  } catch (e: any) {
+    console.error(`[Slash /${commandName}] Unhandled error:`, e?.message ?? e);
+    try {
+      const errEmbed = new EmbedBuilder().setColor(Colors.Red)
+        .setTitle("❌ Error")
+        .setDescription(`Something went wrong: ${e?.message ?? "Unknown error"}`);
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ embeds: [errEmbed] });
+      } else {
+        await interaction.reply({ embeds: [errEmbed], ephemeral: true });
+      }
+    } catch (_) {}
   }
 });
 
