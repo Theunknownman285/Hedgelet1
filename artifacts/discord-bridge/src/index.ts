@@ -240,12 +240,12 @@ async function modReply(
 // ── Rarity colours ────────────────────────────────────────────────────────────
 const RARITY_COLORS: Record<string, number> = {
   common: 0x777777, uncommon: 0x4caf50, rare: 0x2196f3,
-  epic: 0x9c27b0, legendary: 0xff9800, chroma: 0xffd700, staff: 0xff0055,
+  epic: 0x9c27b0, legendary: 0xff9800, chroma: 0xffd700, mythical: 0xff0055,
 };
 
 const RARITY_LABELS: Record<string, string> = {
   common: "Common", uncommon: "Uncommon", rare: "Rare",
-  epic: "Epic", legendary: "Legendary", chroma: "Chroma", staff: "⭐ Staff Exclusive",
+  epic: "Epic", legendary: "Legendary", chroma: "Chroma", mythical: "✨ Mythical",
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -287,7 +287,7 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   34: { name: "Soda",          rarity: "rare",      emoji: "🥤" },
   35: { name: "Golden Hot Dog",rarity: "chroma",    emoji: "🌭" },
   // Staff Exclusive
-  36: { name: "Day 1 Hedgehog", rarity: "staff",   emoji: "🦔🏆" },
+  36: { name: "Day 1 Hedgehog", rarity: "mythical",   emoji: "🦔🏆" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
