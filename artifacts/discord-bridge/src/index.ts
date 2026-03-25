@@ -52,14 +52,30 @@ let channelReady: TextChannel | null = null;
 const seenKeys    = new Set<string>();
 const sentByBridge = new Set<string>();
 
-// ── Slash command definitions ─────────────────────────────────────────────────
-const MOD_PERM = PermissionFlagsBits.BanMembers;
+// ── Allowed role names (case-insensitive) ─────────────────────────────────────
+const ALLOWED_ROLES = ["owner", "co-owner", "co owner", "admin", "administrator"];
 
+function hasModRole(interaction: ChatInputCommandInteraction): boolean {
+  const member = interaction.member;
+  if (!member || !("roles" in member)) return false;
+  const roles = member.roles;
+  // roles is a GuildMemberRoleManager or array of role IDs in partial members
+  if (typeof roles === "object" && "cache" in roles) {
+    return roles.cache.some(r =>
+      ALLOWED_ROLES.includes(r.name.toLowerCase())
+    );
+  }
+  return false;
+}
+
+// ── Slash command definitions ─────────────────────────────────────────────────
+// default_member_permissions(0) hides commands from regular members by default;
+// role-based access is enforced in code via hasModRole().
 const commands = [
   new SlashCommandBuilder()
     .setName("mute")
     .setDescription("Mute a player in Hedgelet (they cannot send in-game chat)")
-    .setDefaultMemberPermissions(MOD_PERM)
+    .setDefaultMemberPermissions(0)
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true))
     .addStringOption(o =>
@@ -68,14 +84,14 @@ const commands = [
   new SlashCommandBuilder()
     .setName("unmute")
     .setDescription("Unmute a player in Hedgelet")
-    .setDefaultMemberPermissions(MOD_PERM)
+    .setDefaultMemberPermissions(0)
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ban")
     .setDescription("Ban a player from Hedgelet (they cannot log in)")
-    .setDefaultMemberPermissions(MOD_PERM)
+    .setDefaultMemberPermissions(0)
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true))
     .addStringOption(o =>
@@ -84,7 +100,7 @@ const commands = [
   new SlashCommandBuilder()
     .setName("unban")
     .setDescription("Unban a player from Hedgelet")
-    .setDefaultMemberPermissions(MOD_PERM)
+    .setDefaultMemberPermissions(0)
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 ].map(c => c.toJSON());
@@ -135,6 +151,16 @@ client.on("interactionCreate", async (interaction) => {
   const username = interaction.options.getString("username", true).toLowerCase();
   const reason   = interaction.options.getString("reason") ?? "No reason provided";
   const mod      = interaction.user.username;
+
+  // Role gate — only Owner, Co-Owner, Admin roles may use these commands
+  if (!hasModRole(interaction)) {
+    await interaction.reply({
+      embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
+        .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use Hedgelet mod commands.")],
+      ephemeral: true,
+    });
+    return;
+  }
 
   await interaction.deferReply({ ephemeral: true });
 
