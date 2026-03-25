@@ -208,6 +208,17 @@
             from { box-shadow: 0 0 10px 3px #ff4400, 0 0 20px #ffcc00; }
             to   { box-shadow: 0 0 14px 5px #cc00ff, 0 0 28px #00aaff; }
         }
+        /* ── STAFF RARITY ── */
+        .rarity-staff { border: 4px solid #ff0000 !important; animation: staff-glow 2.4s linear infinite !important; }
+        @keyframes staff-glow {
+            0%   { border-color: #ff0055; box-shadow: 0 0 12px 4px #ff0055; }
+            16%  { border-color: #ff8800; box-shadow: 0 0 12px 4px #ff8800; }
+            33%  { border-color: #ffee00; box-shadow: 0 0 12px 4px #ffee00; }
+            50%  { border-color: #00ff88; box-shadow: 0 0 12px 4px #00ff88; }
+            66%  { border-color: #0099ff; box-shadow: 0 0 12px 4px #0099ff; }
+            83%  { border-color: #cc00ff; box-shadow: 0 0 12px 4px #cc00ff; }
+            100% { border-color: #ff0055; box-shadow: 0 0 12px 4px #ff0055; }
+        }
 
         /* ── TRADE ── */
         .trade-tabs { display:flex; gap:10px; margin-bottom:20px; }
@@ -660,10 +671,12 @@
         26: { name: "Watermelon",   emoji: TW+'1f349.svg', rarity: "uncommon", pack: "fruit" },
         27: { name: "Orange",       emoji: TW+'1f34a.svg', rarity: "uncommon", pack: "fruit" },
         28: { name: "Cherry",       emoji: TW+'1f352.svg', rarity: "rare",     pack: "fruit" },
-        29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" }
+        29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" },
+        // ── Staff-Only ──
+        36: { name: "Day 1 Hedgehog", emoji: "🦔🏆", rarity: "staff" }
     };
 
-    const TOTAL_BLOOKS = 35;
+    const TOTAL_BLOOKS = 36;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
 
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
@@ -872,6 +885,7 @@
         epic:      'linear-gradient(135deg,#3d0d8e 0%,#6a1fc4 100%)',
         legendary: 'linear-gradient(135deg,#7a3a00 0%,#c46a00 100%)',
         chroma:    'linear-gradient(135deg,#8B1A1A,#8B6914,#1A8B1A,#1A568B,#5A1A8B)',
+        staff:     'linear-gradient(135deg,#7a0022,#7a3a00,#6a7a00,#007a3a,#00457a,#4a007a)',
     };
 
     function updateProfileAvatar() {
@@ -1074,7 +1088,7 @@
 
     function renderFriendCard(data, uid, isRequest) {
         const rarity = data.equippedBlook && blookData[data.equippedBlook] ? (blookData[data.equippedBlook].rarity || 'common') : 'common';
-        const rarityColors = { common:'#444', uncommon:'#1a5c1a', rare:'#0d3b8e', epic:'#3d0d8e', legendary:'#7a3a00', chroma:'#5a1a5a' };
+        const rarityColors = { common:'#444', uncommon:'#1a5c1a', rare:'#0d3b8e', epic:'#3d0d8e', legendary:'#7a3a00', chroma:'#5a1a5a', staff:'#7a0044' };
         const card = document.createElement('div');
         card.className = 'friend-card';
         card.style.borderColor = rarityColors[rarity] || '#444';
@@ -1231,10 +1245,14 @@
         const rarityColors = { uncommon: '#4CAF50', rare: '#2196F3', epic: '#9C27B0', legendary: '#FF9800', chroma: '#FFD700' };
         const revStage = document.getElementById('reveal-stage');
         revStage.classList.remove('rarity-chroma');
+        revStage.classList.remove('rarity-staff');
         if (data.rarity) {
-            rarityEl.innerText = data.rarity.toUpperCase();
+            rarityEl.innerText = data.rarity === 'staff' ? 'STAFF EXCLUSIVE' : data.rarity.toUpperCase();
             rarityEl.style.color = rarityColors[data.rarity] || '#888';
-            if (data.rarity === 'chroma') {
+            if (data.rarity === 'staff') {
+                revStage.classList.add('rarity-staff');
+                burstConfetti(150, ['#ff0055','#ff8800','#ffee00','#00ff88','#0099ff','#cc00ff','#fff']);
+            } else if (data.rarity === 'chroma') {
                 revStage.classList.add('rarity-chroma');
                 burstConfetti(120, ['#FFD700','#FFF','#FF69B4','#00CFFF','#FF6600','#ADFF2F','#FF4444']);
             } else if (data.rarity === 'legendary') {
@@ -1259,7 +1277,7 @@
     }
 
     // ─── SELL SYSTEM ──────────────────────────────────────────────────────────
-    const SELL_PRICES = { common: 5, uncommon: 8, rare: 15, epic: 35, legendary: 75, chroma: 200 };
+    const SELL_PRICES = { common: 5, uncommon: 8, rare: 15, epic: 35, legendary: 75, chroma: 200, staff: 0 };
     function getSellPrice(id) { return SELL_PRICES[blookData[id].rarity || 'common']; }
 
     function showToast(msg, color) {
@@ -1340,9 +1358,10 @@
                 card.className = `blook-card${locked ? ' locked' : ''}`;
 
                 if (!locked && data.rarity) {
-                    const borders = { uncommon: '#4CAF50', rare: '#2196F3', epic: '#9C27B0', legendary: '#FF9800', chroma: '#FFD700' };
+                    const borders = { uncommon: '#4CAF50', rare: '#2196F3', epic: '#9C27B0', legendary: '#FF9800', chroma: '#FFD700', staff: '#ff0055' };
                     card.style.border = `4px solid ${borders[data.rarity] || '#aaa'}`;
                     if (data.rarity === 'chroma') card.classList.add('rarity-chroma');
+                    if (data.rarity === 'staff') card.classList.add('rarity-staff');
                 }
 
                 if (locked) {
@@ -1352,13 +1371,13 @@
                     let display = icon.startsWith('http')
                         ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;">`
                         : `<div style="font-size:40px">${icon}</div>`;
-                    const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700' };
+                    const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700', staff:'#ff0055' };
                     const badgeColor = data.rarity ? (rarityBadgeColors[data.rarity] || 'white') : 'white';
                     const p = getSellPrice(i);
                     const isEquipped = equippedBlook === i;
                     const equipLabel = isEquipped ? '✓ On' : 'Equip';
                     let overlayBtns = '';
-                    if (count > 1) {
+                    if (count > 1 && data.rarity !== 'staff') {
                         overlayBtns += `<button class="sell-btn" onclick="sellDuplicate(${i}, event)">Sell 1<br>${p} 🪙</button>`;
                         overlayBtns += `<button class="sell-btn sell-all-card" onclick="sellAllOfCard(${i}, event)">Sell All<br>${(count-1)*p} 🪙</button>`;
                     }
@@ -1419,9 +1438,10 @@
             card.className = 'blook-card' + (selected ? ' trade-selected' : '');
             card.style.cursor = 'pointer';
             if (data.rarity && !selected) {
-                const borders = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700' };
+                const borders = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700', staff:'#ff0055' };
                 card.style.border = `3px solid ${borders[data.rarity] || '#aaa'}`;
                 if (data.rarity === 'chroma') card.classList.add('rarity-chroma');
+                if (data.rarity === 'staff') card.classList.add('rarity-staff');
             }
             const icon = data.emoji;
             const display = icon.startsWith('http')

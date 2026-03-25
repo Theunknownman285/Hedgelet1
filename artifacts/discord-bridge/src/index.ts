@@ -150,6 +150,16 @@ const commands = [
         { name: "⭐ OG",             value: "og"             },
         { name: "🦔 True Hedgehog",  value: "true-hedgehog"  },
       )),
+
+  new SlashCommandBuilder()
+    .setName("give")
+    .setDescription("Give any Hedge to a player (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+    .addStringOption(o =>
+      o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true))
+    .addIntegerOption(o =>
+      o.setName("quantity").setDescription("How many to give (default: 1)").setRequired(false).setMinValue(1).setMaxValue(99)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -230,12 +240,12 @@ async function modReply(
 // ── Rarity colours ────────────────────────────────────────────────────────────
 const RARITY_COLORS: Record<string, number> = {
   common: 0x777777, uncommon: 0x4caf50, rare: 0x2196f3,
-  epic: 0x9c27b0, legendary: 0xff9800, chroma: 0xffd700,
+  epic: 0x9c27b0, legendary: 0xff9800, chroma: 0xffd700, staff: 0xff0055,
 };
 
 const RARITY_LABELS: Record<string, string> = {
   common: "Common", uncommon: "Uncommon", rare: "Rare",
-  epic: "Epic", legendary: "Legendary", chroma: "Chroma",
+  epic: "Epic", legendary: "Legendary", chroma: "Chroma", staff: "⭐ Staff Exclusive",
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -276,6 +286,8 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   33: { name: "Taco",          rarity: "uncommon",  emoji: "🌮" },
   34: { name: "Soda",          rarity: "rare",      emoji: "🥤" },
   35: { name: "Golden Hot Dog",rarity: "chroma",    emoji: "🌭" },
+  // Staff Exclusive
+  36: { name: "Day 1 Hedgehog", rarity: "staff",   emoji: "🦔🏆" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
@@ -294,6 +306,21 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   28: { name: "Cherry",        rarity: "rare",      emoji: "🍒" },
   29: { name: "Peach",         rarity: "legendary", emoji: "🍑" },
 };
+
+// ── Autocomplete: /give blook field ──────────────────────────────────────────
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isAutocomplete()) return;
+  if (interaction.commandName !== "give") return;
+  const focused = interaction.options.getFocused().toLowerCase();
+  const choices = Object.entries(BLOOK_DATA)
+    .filter(([, b]) => b.name.toLowerCase().includes(focused))
+    .slice(0, 25)
+    .map(([id, b]) => ({
+      name: `${b.emoji || "🃏"} ${b.name} — ${RARITY_LABELS[b.rarity] || b.rarity}`,
+      value: id,
+    }));
+  await interaction.respond(choices);
+});
 
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
@@ -502,6 +529,55 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 
+  // ── /give ──────────────────────────────────────────────────────────────────
+  if (commandName === "give") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can use `/give`.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const blookIdStr = interaction.options.getString("blook", true);
+    const qty        = interaction.options.getInteger("quantity") ?? 1;
+    const blookId    = parseInt(blookIdStr, 10);
+    const blookInfo  = BLOOK_DATA[blookId];
+
+    if (!blookInfo) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Unknown Blook")
+          .setDescription(`No blook found for ID \`${blookIdStr}\`. Use the autocomplete to pick one.`)],
+      });
+      return;
+    }
+
+    const found = await findUserByUsername(username);
+    if (!found) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    const current = found.data.collection?.[blookId] ?? 0;
+    await firestore.collection("users").doc(found.uid).update({
+      [`collection.${blookId}`]: current + qty,
+    });
+
+    const mod   = interaction.user.username;
+    const emoji = blookInfo.emoji || "🃏";
+    const rLabel = RARITY_LABELS[blookInfo.rarity] || blookInfo.rarity;
+    console.log(`[GIVE] ${mod} gave ${qty}× ${blookInfo.name} to ${found.data.username}`);
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(RARITY_COLORS[blookInfo.rarity] ?? Colors.Gold)
+        .setTitle("✅ Blook Given")
+        .setDescription(`Gave **${qty}×** ${emoji} **${blookInfo.name}** (${rLabel}) to **${found.data.username}**.`)
+        .setFooter({ text: `Given by ${mod}` })],
+    });
+  }
+
   } catch (e: any) {
     console.error(`[Slash /${commandName}] Unhandled error:`, e?.message ?? e);
     try {
@@ -624,7 +700,7 @@ client.on("interactionCreate", async (interaction) => {
   if (action === "approve") {
     // Create player doc in users collection
     const initCollection: Record<number, number> = {};
-    for (let i = 1; i <= 35; i++) initCollection[i] = 0;
+    for (let i = 1; i <= 36; i++) initCollection[i] = 0;
     await firestore.collection("users").doc(uid).set({
       email: app.email, username: app.username, tokens: 500,
       opened: 0, collection: initCollection, messagesSent: 0,
