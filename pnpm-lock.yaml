@@ -655,6 +655,10 @@ importers:
         version: 0.31.9
 
   scripts:
+    dependencies:
+      firebase-admin:
+        specifier: ^13.7.0
+        version: 13.7.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
