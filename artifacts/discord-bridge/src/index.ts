@@ -69,13 +69,12 @@ function hasModRole(interaction: ChatInputCommandInteraction): boolean {
 }
 
 // ── Slash command definitions ─────────────────────────────────────────────────
-// default_member_permissions(0) hides commands from regular members by default;
-// role-based access is enforced in code via hasModRole().
+// Commands visible to members with Administrator Discord permission.
+// Fine-grained access (Owner/Co-Owner/Admin role names) is enforced in code.
 const commands = [
   new SlashCommandBuilder()
     .setName("mute")
-    .setDescription("Mute a player in Hedgelet (they cannot send in-game chat)")
-    .setDefaultMemberPermissions(0)
+    .setDescription("Mute a player in Hedgelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true))
     .addStringOption(o =>
@@ -83,15 +82,13 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName("unmute")
-    .setDescription("Unmute a player in Hedgelet")
-    .setDefaultMemberPermissions(0)
+    .setDescription("Unmute a player in Hedgelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ban")
-    .setDescription("Ban a player from Hedgelet (they cannot log in)")
-    .setDefaultMemberPermissions(0)
+    .setDescription("Ban a player from Hedgelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true))
     .addStringOption(o =>
@@ -99,8 +96,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName("unban")
-    .setDescription("Unban a player from Hedgelet")
-    .setDefaultMemberPermissions(0)
+    .setDescription("Unban a player from Hedgelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 ].map(c => c.toJSON());
