@@ -378,19 +378,6 @@
             </div>
         </div>
 
-        <!-- Partner Code -->
-        <div class="friends-section" id="partner-section">
-            <div class="section-label">Partner Code</div>
-            <div id="partner-used-msg" style="display:none;font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:8px;"></div>
-            <div id="partner-input-row" style="display:flex;gap:10px;align-items:center;">
-                <input id="partner-code-input" type="text" placeholder="Enter a creator's code..." maxlength="20"
-                    style="padding:10px 16px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.85);outline:none;flex:1;text-transform:uppercase;letter-spacing:2px;"
-                    oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPartnerCode()">
-                <button onclick="redeemPartnerCode()" style="padding:10px 20px;border:none;border-radius:8px;background:#f39c12;color:white;font-weight:bold;cursor:pointer;font-size:14px;">Redeem</button>
-            </div>
-            <div id="partner-status" style="font-size:13px;min-height:18px;margin-top:8px;"></div>
-        </div>
-
         <!-- Friends -->
         <div class="friends-section">
             <div class="friends-header">
@@ -426,6 +413,19 @@
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34c.svg" style="width:70px;height:70px;">
                 <b>Fruit Pack</b><br>18 Tokens
             </div>
+        </div>
+
+        <!-- Partner Code -->
+        <div style="margin-top:24px;background:rgba(255,255,255,0.08);border-radius:14px;padding:18px 20px;">
+            <div class="section-label" style="margin-bottom:10px;">🤝 Partner Code</div>
+            <div id="partner-used-msg" style="display:none;font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:8px;"></div>
+            <div id="partner-input-row" style="display:flex;gap:10px;align-items:center;">
+                <input id="partner-code-input" type="text" placeholder="Enter a creator's code..." maxlength="20"
+                    style="padding:10px 16px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.85);outline:none;flex:1;text-transform:uppercase;letter-spacing:2px;"
+                    oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemPartnerCode()">
+                <button onclick="redeemPartnerCode()" style="padding:10px 20px;border:none;border-radius:8px;background:#f39c12;color:white;font-weight:bold;cursor:pointer;font-size:14px;">Redeem</button>
+            </div>
+            <div id="partner-status" style="font-size:13px;min-height:18px;margin-top:8px;"></div>
         </div>
     </div>
 
