@@ -680,7 +680,13 @@ client.on("interactionCreate", async (interaction) => {
 
   // Acknowledge immediately — Discord only gives 3 seconds before showing
   // "This interaction failed". All Firestore + DM work happens after this.
-  await interaction.deferUpdate();
+  try {
+    await interaction.deferUpdate();
+  } catch (e: any) {
+    // Interaction already expired (e.g. bot restarted after button was sent)
+    console.warn("[Button] deferUpdate failed — interaction expired:", e?.message ?? e);
+    return;
+  }
 
   const sepIdx = customId.indexOf("_");
   const action = customId.slice(0, sepIdx) as "approve" | "deny";
@@ -853,6 +859,11 @@ client.once("clientReady", async () => {
 
   startGameListener();
   startApplicationListener();
+});
+
+// ── Global error guard — prevents uncaught Discord API errors from crashing ───
+client.on("error", (e) => {
+  console.error("[Discord] Client error (non-fatal):", e?.message ?? e);
 });
 
 client.login(DISCORD_TOKEN);
