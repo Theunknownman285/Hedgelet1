@@ -1665,29 +1665,65 @@
 
     // Real-time listener for mute/ban status changes while logged in
     let modListenerUnsub = null;
+    let muteExpiryTimer = null;
+
+    function applyMuteState() {
+        const input = document.getElementById('chat-input');
+        if (!input) return;
+        if (muted) {
+            let label = '🔇 You are muted';
+            if (window._mutedUntil) {
+                const secsLeft = Math.max(0, Math.round((window._mutedUntil - Date.now()) / 1000));
+                const mins = Math.floor(secsLeft / 60), secs = secsLeft % 60;
+                label = `🔇 Muted — ${mins}m ${secs}s left`;
+            }
+            input.placeholder = label;
+            input.disabled = true;
+        } else {
+            input.placeholder = 'Say something...';
+            input.disabled = false;
+            window._mutedUntil = null;
+        }
+    }
+
     function startModListener(uid) {
         if (modListenerUnsub) modListenerUnsub();
         modListenerUnsub = db.collection('users').doc(uid).onSnapshot(doc => {
             if (!doc.exists) return;
             const data = doc.data();
-            muted = data.muted || false;
-            mutedReason = data.mutedReason || '';
             const nowBanned = data.banned || false;
             if (nowBanned && !banned) {
                 banned = true;
                 bannedReason = data.bannedReason || '';
                 showToast('🔨 You have been banned from Hedgelet.', 'rgba(180,0,0,0.95)');
-                setTimeout(() => {
-                    firebase.auth().signOut();
-                }, 3000);
+                setTimeout(() => firebase.auth().signOut(), 3000);
             }
-            if (muted) {
-                const input = document.getElementById('chat-input');
-                if (input) { input.placeholder = '🔇 You are muted'; input.disabled = true; }
+
+            // Handle timed mutes
+            if (muteExpiryTimer) { clearTimeout(muteExpiryTimer); muteExpiryTimer = null; }
+            const rawMuted = data.muted || false;
+            const mutedUntil = data.mutedUntil || null;
+
+            if (rawMuted && mutedUntil && Date.now() >= mutedUntil) {
+                // Mute has already expired — clear it on the server
+                muted = false; mutedReason = ''; window._mutedUntil = null;
+                db.collection('users').doc(uid).update({ muted: false, mutedReason: null, mutedUntil: null });
             } else {
-                const input = document.getElementById('chat-input');
-                if (input) { input.placeholder = 'Say something...'; input.disabled = false; }
+                muted = rawMuted;
+                mutedReason = data.mutedReason || '';
+                window._mutedUntil = mutedUntil;
+                if (muted && mutedUntil) {
+                    const remaining = mutedUntil - Date.now();
+                    if (remaining > 0) {
+                        muteExpiryTimer = setTimeout(() => {
+                            muted = false; mutedReason = ''; window._mutedUntil = null;
+                            applyMuteState();
+                            showToast('🔊 Your mute has expired — you can chat again!', 'rgba(30,140,70,0.95)');
+                        }, remaining);
+                    }
+                }
             }
+            applyMuteState();
         });
     }
 

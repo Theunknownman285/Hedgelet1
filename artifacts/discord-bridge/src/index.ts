@@ -78,6 +78,8 @@ const commands = [
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true))
     .addStringOption(o =>
+      o.setName("duration").setDescription("How long: 10m · 1h · 6h · 1d · 7d · permanent (default)").setRequired(false))
+    .addStringOption(o =>
       o.setName("reason").setDescription("Reason for mute").setRequired(false)),
 
   new SlashCommandBuilder()
@@ -115,6 +117,43 @@ async function registerCommands(guildId: string) {
   }
 }
 
+// ── Duration parser ───────────────────────────────────────────────────────────
+function parseDuration(raw: string | null): { ms: number | null; label: string } {
+  if (!raw || raw.toLowerCase() === "permanent") return { ms: null, label: "permanent" };
+  const match = raw.match(/^(\d+)(m|h|d)$/i);
+  if (!match) return { ms: null, label: "permanent" };
+  const n = parseInt(match[1]);
+  const unit = match[2].toLowerCase();
+  const ms = unit === "m" ? n * 60_000
+            : unit === "h" ? n * 3_600_000
+            : n * 86_400_000;
+  const label = unit === "m" ? `${n} minute${n !== 1 ? "s" : ""}`
+              : unit === "h" ? `${n} hour${n !== 1 ? "s" : ""}`
+              : `${n} day${n !== 1 ? "s" : ""}`;
+  return { ms, label };
+}
+
+// Active auto-unmute timers so we can cancel them on /unmute
+const muteTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+async function scheduleAutoUnmute(uid: string, username: string, ms: number) {
+  if (muteTimers.has(uid)) clearTimeout(muteTimers.get(uid)!);
+  const timer = setTimeout(async () => {
+    try {
+      await firestore.collection("users").doc(uid).update({
+        muted: false, mutedReason: null, mutedBy: null, mutedUntil: null,
+      });
+      muteTimers.delete(uid);
+      console.log(`[AUTO-UNMUTE] ${username} unmuted after timeout`);
+      channelReady?.send({
+        embeds: [new EmbedBuilder().setColor(Colors.Green)
+          .setDescription(`🔊 **${username}**'s mute has expired — they can chat again.`)],
+      });
+    } catch (e) { console.error("Auto-unmute failed:", e); }
+  }, ms);
+  muteTimers.set(uid, timer);
+}
+
 // ── Helper: find user doc by username ─────────────────────────────────────────
 async function findUserByUsername(username: string) {
   const snap = await firestore
@@ -144,9 +183,11 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
-  const username = interaction.options.getString("username", true).toLowerCase();
-  const reason   = interaction.options.getString("reason") ?? "No reason provided";
-  const mod      = interaction.user.username;
+  const username     = interaction.options.getString("username", true).toLowerCase();
+  const durationRaw  = interaction.options.getString("duration");
+  const reason       = interaction.options.getString("reason") ?? "No reason provided";
+  const mod          = interaction.user.username;
+  const { ms: durationMs, label: durationLabel } = parseDuration(durationRaw);
 
   // Role gate — only Owner, Co-Owner, Admin roles may use these commands
   if (!hasModRole(interaction)) {
@@ -172,19 +213,24 @@ client.on("interactionCreate", async (interaction) => {
   const ref = firestore.collection("users").doc(user.uid);
 
   if (commandName === "mute") {
-    await ref.update({ muted: true, mutedReason: reason, mutedBy: mod });
-    console.log(`[MOD] ${mod} muted ${username}: ${reason}`);
+    const mutedUntil = durationMs ? Date.now() + durationMs : null;
+    await ref.update({ muted: true, mutedReason: reason, mutedBy: mod, mutedUntil });
+    if (durationMs) scheduleAutoUnmute(user.uid, username, durationMs);
+    const durationText = durationLabel === "permanent" ? "permanently" : `for **${durationLabel}**`;
+    console.log(`[MOD] ${mod} muted ${username} ${durationText}: ${reason}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Orange).setTitle("🔇 Player Muted")
-        .setDescription(`**${username}** has been muted in Hedgelet.\n**Reason:** ${reason}`)],
+        .setDescription(`**${username}** has been muted ${durationText}.\n**Reason:** ${reason}`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Orange)
-        .setDescription(`🔇 **${username}** was muted by ${mod}. Reason: ${reason}`)],
+        .setDescription(`🔇 **${username}** was muted ${durationText} by ${mod}. Reason: ${reason}`)],
     });
 
   } else if (commandName === "unmute") {
-    await ref.update({ muted: false, mutedReason: null, mutedBy: null });
+    // Cancel any pending auto-unmute timer
+    if (muteTimers.has(user.uid)) { clearTimeout(muteTimers.get(user.uid)!); muteTimers.delete(user.uid); }
+    await ref.update({ muted: false, mutedReason: null, mutedBy: null, mutedUntil: null });
     console.log(`[MOD] ${mod} unmuted ${username}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("🔊 Player Unmuted")
