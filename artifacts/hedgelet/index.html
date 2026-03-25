@@ -75,6 +75,14 @@
         /* ── H2 TITLES ── */
         .main-content h2 { color: white; font-size: 30px; text-shadow: 0 2px 12px rgba(0,0,0,0.25); margin-top: 0; }
 
+        /* ── SELL ── */
+        .sell-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(20,160,80,0.9); border-radius: 0 0 10px 10px; padding: 5px 0; text-align: center; font-size: 11px; font-weight: bold; color: white; cursor: pointer; opacity: 0; transition: opacity 0.18s; pointer-events: none; }
+        .blook-card:not(.locked):hover .sell-overlay { opacity: 1; pointer-events: auto; }
+        .sell-overlay:hover { background: rgba(20,180,80,0.97); }
+        .sell-all-btn { background: linear-gradient(135deg,#27ae60,#1e8449); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: transform 0.15s, box-shadow 0.15s; margin-left: 12px; }
+        .sell-all-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+        @keyframes toast-in { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
         /* ── CHAT ── */
         #chat-page { display: none; flex-direction: column; height: calc(100vh - 80px); }
         #chat-page.active { display: flex; }
@@ -291,7 +299,11 @@
 
     <!-- HEDGES PAGE -->
     <div id="hedges-page" class="page">
-        <h2>My Hedges</h2>
+        <div style="display:flex;align-items:center;margin-bottom:8px;">
+            <h2 style="margin:0;">My Hedges</h2>
+            <button class="sell-all-btn" onclick="sellAllDuplicates()">💰 Sell All Duplicates</button>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:16px;">Hover a card you own multiple of to sell one duplicate.</div>
         <div class="hedges-grid" id="hedges-display"></div>
     </div>
 
@@ -783,6 +795,50 @@
         document.getElementById('reveal-overlay').style.display = 'none';
     }
 
+    // ─── SELL SYSTEM ──────────────────────────────────────────────────────────
+    const SELL_PRICES = { common: 5, uncommon: 8, rare: 15, epic: 35, legendary: 75, chroma: 200 };
+    function getSellPrice(id) { return SELL_PRICES[blookData[id].rarity || 'common']; }
+
+    function showToast(msg, color) {
+        const t = document.createElement('div');
+        t.style.cssText = `position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:${color||'rgba(0,0,0,0.88)'};color:white;padding:13px 24px;border-radius:12px;font-size:14px;font-weight:bold;z-index:99999;animation:toast-in 0.3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.3);`;
+        t.innerText = msg;
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.transition='opacity 0.4s'; t.style.opacity='0'; }, 2200);
+        setTimeout(() => t.remove(), 2700);
+    }
+
+    function sellDuplicate(id, event) {
+        event.stopPropagation();
+        if ((collection[id] || 0) <= 1) return;
+        const price = getSellPrice(id);
+        collection[id]--;
+        tokens += price;
+        savePlayerData();
+        updateStats();
+        updateHedges();
+        showToast(`Sold 1 ${blookData[id].name} for ${price} 🪙`, 'rgba(30,140,70,0.95)');
+    }
+
+    function sellAllDuplicates() {
+        let earned = 0, sold = 0;
+        for (let i = 1; i <= TOTAL_BLOOKS; i++) {
+            const dupes = (collection[i] || 0) - 1;
+            if (dupes > 0) {
+                earned += dupes * getSellPrice(i);
+                sold += dupes;
+                collection[i] = 1;
+            }
+        }
+        if (sold === 0) { showToast('No duplicates to sell!', 'rgba(120,80,40,0.95)'); return; }
+        tokens += earned;
+        savePlayerData();
+        updateStats();
+        updateHedges();
+        burstConfetti(40, ['#27ae60','#FFD700','#FFF','#2ecc71']);
+        showToast(`Sold ${sold} duplicate${sold>1?'s':''} for ${earned} 🪙`, 'rgba(30,140,70,0.95)');
+    }
+
     // ─── HEDGES COLLECTION ────────────────────────────────────────────────────
     function updateHedges() {
         const grid = document.getElementById('hedges-display');
@@ -819,8 +875,12 @@
                     let display = icon.startsWith('http')
                         ? `<img src="${icon}" style="width:60px;height:60px;object-fit:contain;">`
                         : `<div style="font-size:40px">${icon}</div>`;
-                    const badgeColor = data.rarity ? { uncommon:'#4CAF50', rare:'#2196F3', legendary:'#FF9800' }[data.rarity] : 'white';
-                    card.innerHTML = `${display}<div style="font-size:10px;text-align:center;padding:0 4px;">${data.name}</div><div class="count-badge" style="color:${badgeColor}">x${count}</div>`;
+                    const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700' };
+                    const badgeColor = data.rarity ? (rarityBadgeColors[data.rarity] || 'white') : 'white';
+                    const sellOverlay = count > 1
+                        ? `<div class="sell-overlay" onclick="sellDuplicate(${i}, event)">Sell 1 · ${getSellPrice(i)} 🪙</div>`
+                        : '';
+                    card.innerHTML = `${display}<div style="font-size:10px;text-align:center;padding:0 4px;">${data.name}</div><div class="count-badge" style="color:${badgeColor}">x${count}</div>${sellOverlay}`;
                 }
                 grid.appendChild(card);
             });
