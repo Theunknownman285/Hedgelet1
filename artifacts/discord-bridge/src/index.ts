@@ -402,6 +402,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // ── Mod commands — role gate ───────────────────────────────────────────────
+  if (["mute", "unmute", "ban", "unban", "addrole", "removerole"].includes(commandName)) {
   const durationRaw  = interaction.options.getString("duration");
   const reason       = interaction.options.getString("reason") ?? "No reason provided";
   const mod          = interaction.user.username;
@@ -528,6 +529,7 @@ client.on("interactionCreate", async (interaction) => {
       });
     }
   }
+  } // end mod commands block
 
   // ── /give ──────────────────────────────────────────────────────────────────
   if (commandName === "give") {
