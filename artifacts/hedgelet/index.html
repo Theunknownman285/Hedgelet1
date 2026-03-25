@@ -570,8 +570,8 @@
         'tester':         { label: 'Tester',          badge: '🧪', color: '#9C27B0', bg: 'rgba(156,39,176,0.18)',     desc: 'Tests new features' },
         'artist':         { label: 'Artist',          badge: '🎨', color: '#E91E63', bg: 'rgba(233,30,99,0.18)',      desc: 'Creates game art' },
         'server-booster': { label: 'Server Booster',  badge: '💎', color: '#FF73FA', bg: 'rgba(255,115,250,0.18)',    desc: 'Boosting the Discord server' },
-        'og':             { label: 'OG',              badge: '⭐', color: '#FFD700', bg: 'rgba(255,215,0,0.18)',      desc: 'An original Hedgelet player' },
-        'true-hedgehog':  { label: 'True Hedgehog',   badge: '🦔', color: '#CD853F', bg: 'rgba(205,133,63,0.18)',    desc: 'A true Hedgelet fan' },
+        'og':             { label: 'OG',              img: '/badge-og.png',            color: '#CD6A1A', bg: 'rgba(180,90,20,0.18)',      desc: 'An original Hedgelet player' },
+        'true-hedgehog':  { label: 'True Hedgehog',   img: '/badge-true-hedgehog.png', color: '#CD853F', bg: 'rgba(205,133,63,0.18)',    desc: 'A true Hedgelet fan' },
     };
 
     function buildRoleBadgeHtml(roles, forChat = false) {
@@ -580,7 +580,11 @@
             const cfg = ROLE_CONFIG[r];
             if (!cfg) return '';
             const size = forChat ? 'font-size:10px;padding:1px 5px;' : '';
-            return `<span class="role-badge" title="${cfg.desc}" style="color:${cfg.color};background:${cfg.bg};border-color:${cfg.color};${size}">${cfg.badge} ${cfg.label}</span>`;
+            const imgSize = forChat ? '13px' : '16px';
+            const icon = cfg.img
+                ? `<img src="${cfg.img}" alt="${cfg.label}" style="width:${imgSize};height:${imgSize};object-fit:contain;border-radius:50%;vertical-align:middle;margin-right:1px;">`
+                : cfg.badge;
+            return `<span class="role-badge" title="${cfg.desc}" style="color:${cfg.color};background:${cfg.bg};border-color:${cfg.color};${size}">${icon} ${cfg.label}</span>`;
         }).join('');
     }
 
