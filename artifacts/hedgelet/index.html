@@ -52,6 +52,23 @@
         #chat-send { padding: 12px 22px; border: none; border-radius: 24px; background: #8B5A3E; color: white; font-weight: bold; font-size: 15px; cursor: pointer; }
         #chat-send:hover { background: #7a4f37; }
         .chat-date { text-align: center; font-size: 11px; color: rgba(0,0,0,0.4); margin: 4px 0; }
+
+        /* ── TRADE ── */
+        .trade-tabs { display:flex; gap:10px; margin-bottom:20px; }
+        .trade-tab-btn { padding:10px 24px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px; background:rgba(255,255,255,0.15); color:black; }
+        .trade-tab-btn.active { background:#8B5A3E; color:white; }
+        .trade-builder { display:none; margin-top:20px; }
+        .trade-columns { display:flex; gap:30px; flex-wrap:wrap; margin-top:15px; }
+        .trade-col { flex:1; min-width:200px; }
+        .trade-col h4 { margin:0 0 10px 0; font-size:16px; }
+        .trade-blook-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:10px; min-height:80px; background:rgba(0,0,0,0.1); border-radius:10px; padding:10px; }
+        .blook-card.trade-selected { border:3px solid #FFD700 !important; background:#fff8dc; }
+        .trade-selected-summary { margin-top:10px; font-size:13px; min-height:20px; opacity:0.8; }
+        .trade-send-btn { margin-top:20px; padding:12px 30px; background:#4CAF50; color:white; border:none; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; }
+        .trade-send-btn:hover { background:#43a047; }
+        .incoming-trade-card { background:rgba(255,255,255,0.12); border-radius:12px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.15); }
+        .trade-blooks-preview { font-size:26px; letter-spacing:4px; margin:6px 0; }
+        .trade-action-btn { padding:9px 22px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; }
     </style>
 </head>
 <body>
@@ -101,6 +118,7 @@
     <div class="nav-item" onclick="showPage('market-page')">Market</div>
     <div class="nav-item" onclick="showPage('hedges-page')">Hedges</div>
     <div class="nav-item" onclick="showPage('news-page')">News</div>
+    <div class="nav-item" onclick="showPage('trade-page')">Trade</div>
     <div class="nav-item" onclick="showPage('chat-page')">Chat</div>
     <div class="nav-item" onclick="showPage('credits-page')">Credits</div>
     <div class="nav-item" onclick="logoutUser()" style="margin-top:30px; font-size:16px; color:#ddd;">Logout</div>
@@ -190,6 +208,48 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- TRADE PAGE -->
+    <div id="trade-page" class="page">
+        <h2>Trade</h2>
+        <div class="trade-tabs">
+            <button id="tab-send-btn" class="trade-tab-btn active" onclick="showTradeTab('send')">Send Trade</button>
+            <button id="tab-incoming-btn" class="trade-tab-btn" onclick="showTradeTab('incoming')">Incoming Trades</button>
+        </div>
+
+        <!-- SEND TRADE TAB -->
+        <div id="trade-send-tab">
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <input id="trade-search-input" type="text" placeholder="Enter username..." style="padding:10px 16px;border-radius:8px;border:none;font-size:15px;background:rgba(255,255,255,0.85);outline:none;width:220px;">
+                <button onclick="searchTradeUser()" style="padding:10px 20px;background:#8B5A3E;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:15px;">Find</button>
+                <span id="trade-search-status" style="font-size:13px;opacity:0.7;"></span>
+            </div>
+
+            <div id="trade-builder" class="trade-builder">
+                <h3 style="margin:20px 0 5px;">Trading with <span id="trade-target-name" style="color:#FFD700;"></span></h3>
+                <div class="trade-columns">
+                    <div class="trade-col">
+                        <h4>🫵 Your Offer <small style="font-weight:normal;opacity:0.7;">(tap to select)</small></h4>
+                        <div id="trade-offer-grid" class="trade-blook-grid"></div>
+                        <div id="trade-offer-summary" class="trade-selected-summary">None selected</div>
+                    </div>
+                    <div style="display:flex;align-items:center;font-size:30px;padding-top:30px;">⇄</div>
+                    <div class="trade-col">
+                        <h4>🙏 You Want <small style="font-weight:normal;opacity:0.7;">(tap to select)</small></h4>
+                        <div id="trade-request-grid" class="trade-blook-grid"></div>
+                        <div id="trade-request-summary" class="trade-selected-summary">None selected</div>
+                    </div>
+                </div>
+                <button class="trade-send-btn" onclick="sendTrade()">Send Trade Offer</button>
+            </div>
+        </div>
+
+        <!-- INCOMING TRADES TAB -->
+        <div id="trade-incoming-tab" style="display:none;">
+            <button onclick="loadIncomingTrades()" style="padding:8px 18px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-bottom:15px;">↻ Refresh</button>
+            <div id="incoming-trades-list"></div>
         </div>
     </div>
 
@@ -381,6 +441,7 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pId).classList.add('active');
         if (pId === 'hedges-page') updateHedges();
+        if (pId === 'trade-page') { showTradeTab('send'); loadIncomingTrades(); }
         if (pId === 'chat-page') {
             const m = document.getElementById('chat-messages');
             setTimeout(() => { m.scrollTop = m.scrollHeight; }, 50);
@@ -531,6 +592,164 @@
                 grid.appendChild(card);
             });
         });
+    }
+
+    // ─── TRADING ──────────────────────────────────────────────────────────────
+    let tradeTargetUid = null, tradeTargetUsername = null, tradeTargetCollection = {};
+    let tradeOfferIds = [], tradeRequestIds = [];
+
+    function showTradeTab(tab) {
+        document.getElementById('trade-send-tab').style.display     = tab === 'send'     ? 'block' : 'none';
+        document.getElementById('trade-incoming-tab').style.display = tab === 'incoming' ? 'block' : 'none';
+        document.getElementById('tab-send-btn').classList.toggle('active',     tab === 'send');
+        document.getElementById('tab-incoming-btn').classList.toggle('active', tab === 'incoming');
+    }
+
+    async function searchTradeUser() {
+        const query = document.getElementById('trade-search-input').value.trim();
+        const status = document.getElementById('trade-search-status');
+        if (!query) return;
+        status.innerText = 'Searching...';
+        const snap = await db.collection('users').where('username', '==', query).limit(1).get();
+        if (snap.empty) { status.innerText = 'User not found.'; return; }
+        const doc = snap.docs[0];
+        if (doc.id === currentUid) { status.innerText = "You can't trade with yourself!"; return; }
+        tradeTargetUid = doc.id;
+        tradeTargetUsername = doc.data().username;
+        tradeTargetCollection = doc.data().collection || {};
+        tradeOfferIds = []; tradeRequestIds = [];
+        status.innerText = '';
+        renderTradeBuilder();
+    }
+
+    function renderTradeBuilder() {
+        document.getElementById('trade-builder').style.display = 'block';
+        document.getElementById('trade-target-name').innerText = tradeTargetUsername;
+        renderTradeGrid('offer',   'trade-offer-grid',   'trade-offer-summary',   collection,             tradeOfferIds);
+        renderTradeGrid('request', 'trade-request-grid', 'trade-request-summary', tradeTargetCollection, tradeRequestIds);
+    }
+
+    function renderTradeGrid(type, gridId, summaryId, col, selectedIds) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = '';
+        let hasAny = false;
+        for (let i = 1; i <= TOTAL_BLOOKS; i++) {
+            if ((col[i] || 0) === 0) continue;
+            hasAny = true;
+            const data = blookData[i];
+            const card = document.createElement('div');
+            const selected = selectedIds.includes(i);
+            card.className = 'blook-card' + (selected ? ' trade-selected' : '');
+            card.style.cursor = 'pointer';
+            if (data.rarity && !selected) {
+                const borders = { uncommon:'#4CAF50', rare:'#2196F3', legendary:'#FF9800' };
+                card.style.border = `3px solid ${borders[data.rarity]}`;
+            }
+            const icon = data.emoji;
+            const display = icon.startsWith('http')
+                ? `<img src="${icon}" style="width:50px;height:50px;object-fit:contain;">`
+                : `<div style="font-size:34px">${icon}</div>`;
+            card.innerHTML = `${display}<div style="font-size:9px;text-align:center;padding:0 3px;">${data.name}</div>`;
+            card.onclick = () => {
+                const idx = selectedIds.indexOf(i);
+                if (idx === -1) selectedIds.push(i); else selectedIds.splice(idx, 1);
+                renderTradeGrid(type, gridId, summaryId, col, selectedIds);
+            };
+            grid.appendChild(card);
+        }
+        if (!hasAny) grid.innerHTML = '<p style="opacity:0.5;font-size:13px;padding:5px;">No blooks to show.</p>';
+        const summary = document.getElementById(summaryId);
+        summary.innerText = selectedIds.length
+            ? selectedIds.map(id => blookData[id]?.name).join(', ')
+            : 'None selected';
+    }
+
+    async function sendTrade() {
+        if (!tradeTargetUid) return;
+        if (tradeOfferIds.length === 0 && tradeRequestIds.length === 0) {
+            alert('Select at least one blook on either side!'); return;
+        }
+        const myUsername = document.getElementById('profile-username').innerText;
+        await db.collection('trades').add({
+            fromUid: currentUid, fromUsername: myUsername,
+            toUid: tradeTargetUid, toUsername: tradeTargetUsername,
+            offerBlooks: tradeOfferIds, requestBlooks: tradeRequestIds,
+            status: 'pending',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`Trade offer sent to ${tradeTargetUsername}!`);
+        tradeTargetUid = null;
+        document.getElementById('trade-builder').style.display = 'none';
+        document.getElementById('trade-search-input').value = '';
+        document.getElementById('trade-search-status').innerText = '';
+    }
+
+    async function loadIncomingTrades() {
+        if (!currentUid) return;
+        const list = document.getElementById('incoming-trades-list');
+        list.innerHTML = '<p style="opacity:0.5;">Loading...</p>';
+        const snap = await db.collection('trades')
+            .where('toUid', '==', currentUid)
+            .where('status', '==', 'pending')
+            .get();
+        list.innerHTML = '';
+        if (snap.empty) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
+        snap.docs.forEach(doc => {
+            const t = doc.data();
+            const offerEmojis  = t.offerBlooks.map(id  => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+            const requestEmojis = t.requestBlooks.map(id => blookData[id]?.emoji?.startsWith('http') ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+            const offerNames   = t.offerBlooks.map(id  => blookData[id]?.name).join(', ')  || 'nothing';
+            const requestNames = t.requestBlooks.map(id => blookData[id]?.name).join(', ') || 'nothing';
+            const div = document.createElement('div');
+            div.className = 'incoming-trade-card';
+            div.innerHTML = `
+                <b style="font-size:16px;">From: ${t.fromUsername}</b>
+                <div class="trade-blooks-preview">${offerEmojis} ⇄ ${requestEmojis}</div>
+                <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">They offer: <b>${offerNames}</b></div>
+                <div style="font-size:13px;opacity:0.8;margin-bottom:12px;">They want: <b>${requestNames}</b></div>
+                <div style="display:flex;gap:10px;">
+                    <button class="trade-action-btn" style="background:#4CAF50;color:white;" onclick="acceptTrade('${doc.id}')">✓ Accept</button>
+                    <button class="trade-action-btn" style="background:#e53935;color:white;" onclick="declineTrade('${doc.id}')">✕ Decline</button>
+                </div>`;
+            list.appendChild(div);
+        });
+    }
+
+    async function acceptTrade(tradeId) {
+        const tradeRef = db.collection('trades').doc(tradeId);
+        try {
+            await db.runTransaction(async tx => {
+                const tradeDoc = await tx.get(tradeRef);
+                if (!tradeDoc.exists || tradeDoc.data().status !== 'pending') throw new Error('Trade is no longer valid.');
+                const trade = tradeDoc.data();
+                const myRef    = db.collection('users').doc(currentUid);
+                const theirRef = db.collection('users').doc(trade.fromUid);
+                const [myDoc, theirDoc] = await Promise.all([tx.get(myRef), tx.get(theirRef)]);
+                const myCol    = { ...(myDoc.data().collection    || {}) };
+                const theirCol = { ...(theirDoc.data().collection || {}) };
+                for (const id of trade.requestBlooks) {
+                    if ((myCol[id] || 0) < 1) throw new Error(`You no longer have ${blookData[id]?.name}.`);
+                }
+                for (const id of trade.offerBlooks) {
+                    if ((theirCol[id] || 0) < 1) throw new Error(`${trade.fromUsername} no longer has ${blookData[id]?.name}.`);
+                }
+                for (const id of trade.requestBlooks) { myCol[id] = (myCol[id] || 0) - 1; theirCol[id] = (theirCol[id] || 0) + 1; }
+                for (const id of trade.offerBlooks)   { theirCol[id] = (theirCol[id] || 0) - 1; myCol[id] = (myCol[id] || 0) + 1; }
+                tx.update(myRef,    { collection: myCol });
+                tx.update(theirRef, { collection: theirCol });
+                tx.update(tradeRef, { status: 'accepted' });
+            });
+            alert('Trade accepted! Your collection has been updated.');
+            loadPlayerData(currentUid);
+            loadIncomingTrades();
+        } catch (e) {
+            alert('Trade failed: ' + e.message);
+        }
+    }
+
+    async function declineTrade(tradeId) {
+        await db.collection('trades').doc(tradeId).update({ status: 'declined' });
+        loadIncomingTrades();
     }
 
     // ─── SPIN WHEEL ───────────────────────────────────────────────────────────
