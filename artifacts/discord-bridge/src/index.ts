@@ -126,7 +126,7 @@ function startGameListener() {
 }
 
 // ── Bot ready ─────────────────────────────────────────────────────────────────
-client.once("ready", async () => {
+client.once("clientReady", async () => {
   console.log(`Discord bridge ready as ${client.user?.tag}`);
   const ch = await client.channels.fetch(DISCORD_CHANNEL_ID!);
   if (!ch || !ch.isTextBased()) {
