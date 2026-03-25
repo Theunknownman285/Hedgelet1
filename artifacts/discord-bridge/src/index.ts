@@ -509,12 +509,18 @@ const REVIEWER_IDS = [
 
 // ── Application listener — watch Firestore for new pending apps ───────────────
 async function startApplicationListener() {
+  // Only DM for applications submitted AFTER this bridge instance started.
+  // This prevents re-DMing reviewers for existing pending apps on every restart.
+  const bridgeStartedAt = Date.now();
   console.log("[Apps] Listening for new applications…");
   firestore.collection("applications")
     .where("status", "==", "pending")
     .onSnapshot(async (snap) => {
       for (const change of snap.docChanges()) {
         if (change.type !== "added") continue;
+        // Skip apps that already existed when the bridge started
+        const submittedAt: number = change.doc.data().submittedAt ?? 0;
+        if (submittedAt <= bridgeStartedAt) continue;
         const app = change.doc.data() as {
           uid: string; username: string; age: number;
           discord: string; email: string; reason: string; submittedAt: number;
