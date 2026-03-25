@@ -162,6 +162,14 @@ const commands = [
       o.setName("quantity").setDescription("How many to give (default: 1)").setRequired(false).setMinValue(1).setMaxValue(99)),
 
   new SlashCommandBuilder()
+    .setName("addtokens")
+    .setDescription("Add tokens to a player's account (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+    .addIntegerOption(o =>
+      o.setName("amount").setDescription("Number of tokens to add").setRequired(true).setMinValue(1).setMaxValue(100000)),
+
+  new SlashCommandBuilder()
     .setName("createpartnercode")
     .setDescription("Create a partner code for a content creator (Staff only)")
     .addStringOption(o =>
@@ -561,6 +569,37 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
   } // end mod commands block
+
+  // ── /addtokens ────────────────────────────────────────────────────────────
+  if (commandName === "addtokens") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can add tokens.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const amount = interaction.options.getInteger("amount")!;
+    const found  = await findUserByUsername(username);
+    if (!found) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+    await firestore.collection("users").doc(found.uid).update({
+      tokens: admin.firestore.FieldValue.increment(amount),
+    });
+    const newTotal = (found.data.tokens || 0) + amount;
+    const mod = interaction.user.username;
+    console.log(`[TOKENS] ${mod} gave ${amount} tokens to ${found.data.username} (now ~${newTotal})`);
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Gold)
+        .setTitle("🪙 Tokens Added")
+        .setDescription(`**+${amount} tokens** added to **${found.data.username}**.\nNew balance: ~**${newTotal} 🪙**`)
+        .setFooter({ text: `Added by ${mod}` })],
+    });
+  }
 
   // ── /createpartnercode ───────────────────────────────────────────────────
   if (commandName === "createpartnercode") {
