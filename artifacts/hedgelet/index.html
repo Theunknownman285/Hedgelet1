@@ -225,19 +225,19 @@
         <h2>Market</h2>
         <div class="market-grid">
             <div class="pack-card" onclick="startOpening()">
-                <div style="font-size:60px;">🦔</div>
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f994.svg" style="width:70px;height:70px;">
                 <b>Hedgehog Pack</b><br>25 Tokens
             </div>
             <div class="pack-card" onclick="openFastFoodPack()" style="background: #D35400; color: white;">
-                <div style="font-size:60px;">🍔</div>
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f354.svg" style="width:70px;height:70px;">
                 <b>Fast Food Pack</b><br>20 Tokens
             </div>
             <div class="pack-card" onclick="openBreakfastPack()" style="background: #E8A838; color: white;">
-                <div style="font-size:60px;">🥞</div>
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f95e.svg" style="width:70px;height:70px;">
                 <b>Breakfast Pack</b><br>22 Tokens
             </div>
             <div class="pack-card" onclick="openFruitPack()" style="background: #27AE60; color: white;">
-                <div style="font-size:60px;">🍌</div>
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34c.svg" style="width:70px;height:70px;">
                 <b>Fruit Pack</b><br>18 Tokens
             </div>
         </div>
@@ -407,38 +407,39 @@
 
     const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 
+    const TW = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/';
     const blookData = {
-        1:  { name: "hedgehog 1",   emoji: "🦔", pack: "hedgehog" },
-        2:  { name: "hedgehog 2",   emoji: "🦔", pack: "hedgehog" },
-        3:  { name: "hedgehog 3",   emoji: "🦔", pack: "hedgehog" },
-        4:  { name: "hedgehog 4",   emoji: "🦔", pack: "hedgehog" },
-        5:  { name: "hedgehog 5",   emoji: "🦔", pack: "hedgehog" },
-        6:  { name: "hedgehog 6",   emoji: "🦔", pack: "hedgehog" },
-        7:  { name: "hedgehog 7",   emoji: "🦔", pack: "hedgehog" },
-        8:  { name: "hedgehog 8",   emoji: "🦔", pack: "hedgehog" },
-        9:  { name: "hedgehog 9",   emoji: "🦔", pack: "hedgehog" },
-        10: { name: "hedgehog 10",  emoji: "🦔", pack: "hedgehog" },
+        1:  { name: "hedgehog 1",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        2:  { name: "hedgehog 2",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        3:  { name: "hedgehog 3",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        4:  { name: "hedgehog 4",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        5:  { name: "hedgehog 5",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        6:  { name: "hedgehog 6",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        7:  { name: "hedgehog 7",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        8:  { name: "hedgehog 8",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        9:  { name: "hedgehog 9",   emoji: TW+'1f994.svg', pack: "hedgehog" },
+        10: { name: "hedgehog 10",  emoji: TW+'1f994.svg', pack: "hedgehog" },
         11: { name: "Ketchup",      emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "uncommon", pack: "fastfood" },
         12: { name: "Mustard",      emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "uncommon", pack: "fastfood" },
         13: { name: "French Fries", emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "rare", pack: "fastfood" },
         14: { name: "Milkshake",    emoji: "https://i.postimg.cc/tgyBZjp3/Screenshot-2026-03-21-3-48-41-PM-removebg-preview.png", rarity: "legendary", pack: "fastfood" },
         // ── Breakfast Pack ──
-        15: { name: "Pancakes",     emoji: "🥞", pack: "breakfast" },
-        16: { name: "Bacon",        emoji: "🥓", pack: "breakfast" },
-        17: { name: "Eggs",         emoji: "🍳", pack: "breakfast" },
-        18: { name: "Coffee",       emoji: "☕", rarity: "uncommon", pack: "breakfast" },
-        19: { name: "Waffle",       emoji: "🧇", rarity: "uncommon", pack: "breakfast" },
-        20: { name: "Toast",        emoji: "🍞", rarity: "rare",     pack: "breakfast" },
-        21: { name: "Donut",        emoji: "🍩", rarity: "legendary",pack: "breakfast" },
+        15: { name: "Pancakes",     emoji: TW+'1f95e.svg', pack: "breakfast" },
+        16: { name: "Bacon",        emoji: TW+'1f953.svg', pack: "breakfast" },
+        17: { name: "Eggs",         emoji: TW+'1f373.svg', pack: "breakfast" },
+        18: { name: "Coffee",       emoji: TW+'2615.svg',  rarity: "uncommon", pack: "breakfast" },
+        19: { name: "Waffle",       emoji: TW+'1f9c7.svg', rarity: "uncommon", pack: "breakfast" },
+        20: { name: "Toast",        emoji: TW+'1f35e.svg', rarity: "rare",     pack: "breakfast" },
+        21: { name: "Donut",        emoji: TW+'1f369.svg', rarity: "legendary",pack: "breakfast" },
         // ── Fruit Pack ──
-        22: { name: "Apple",        emoji: "🍎", pack: "fruit" },
-        23: { name: "Grapes",       emoji: "🍇", pack: "fruit" },
-        24: { name: "Strawberry",   emoji: "🍓", pack: "fruit" },
-        25: { name: "Banana",       emoji: "🍌", pack: "fruit" },
-        26: { name: "Watermelon",   emoji: "🍉", rarity: "uncommon", pack: "fruit" },
-        27: { name: "Orange",       emoji: "🍊", rarity: "uncommon", pack: "fruit" },
-        28: { name: "Cherry",       emoji: "🍒", rarity: "rare",     pack: "fruit" },
-        29: { name: "Peach",        emoji: "🍑", rarity: "legendary",pack: "fruit" }
+        22: { name: "Apple",        emoji: TW+'1f34e.svg', pack: "fruit" },
+        23: { name: "Grapes",       emoji: TW+'1f347.svg', pack: "fruit" },
+        24: { name: "Strawberry",   emoji: TW+'1f353.svg', pack: "fruit" },
+        25: { name: "Banana",       emoji: TW+'1f34c.svg', pack: "fruit" },
+        26: { name: "Watermelon",   emoji: TW+'1f349.svg', rarity: "uncommon", pack: "fruit" },
+        27: { name: "Orange",       emoji: TW+'1f34a.svg', rarity: "uncommon", pack: "fruit" },
+        28: { name: "Cherry",       emoji: TW+'1f352.svg', rarity: "rare",     pack: "fruit" },
+        29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" }
     };
 
     const TOTAL_BLOOKS = 29;
