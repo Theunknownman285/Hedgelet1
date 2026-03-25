@@ -754,14 +754,13 @@
         if (!username || !password) { status.innerText = 'Enter your username and password.'; return; }
         status.innerText = 'Logging in...';
         try {
-            // First check if they have an approved user doc
+            // Firestore users/applications are publicly readable, so no auth needed here
             const snap = await db.collection('users').where('username', '==', username.toLowerCase()).limit(1).get();
             if (!snap.empty) {
                 const email = snap.docs[0].data().email;
                 await auth.signInWithEmailAndPassword(email, password);
                 return;
             }
-            // Check for an application
             const appSnap = await db.collection('applications').where('username', '==', username.toLowerCase()).limit(1).get();
             if (!appSnap.empty) {
                 const appData = appSnap.docs[0].data();
