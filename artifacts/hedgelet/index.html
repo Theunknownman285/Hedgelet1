@@ -75,13 +75,27 @@
         /* ── H2 TITLES ── */
         .main-content h2 { color: white; font-size: 30px; text-shadow: 0 2px 12px rgba(0,0,0,0.25); margin-top: 0; }
 
-        /* ── SELL ── */
+        /* ── SELL / EQUIP OVERLAY ── */
         .sell-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.78); border-radius: 0 0 10px 10px; padding: 5px 4px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.18s; pointer-events: none; }
         .blook-card:not(.locked):hover .sell-overlay { opacity: 1; pointer-events: auto; }
         .sell-btn { flex: 1; font-size: 10px; font-weight: bold; color: white; background: rgba(20,160,80,0.9); border: none; border-radius: 6px; padding: 4px 2px; cursor: pointer; line-height: 1.3; }
         .sell-btn:hover { background: rgba(20,190,90,1); }
         .sell-btn.sell-all-card { background: rgba(200,120,0,0.9); }
         .sell-btn.sell-all-card:hover { background: rgba(230,140,0,1); }
+        .equip-btn { flex: 1; font-size: 10px; font-weight: bold; color: white; background: rgba(33,150,243,0.9); border: none; border-radius: 6px; padding: 4px 2px; cursor: pointer; line-height: 1.3; }
+        .equip-btn:hover { background: rgba(33,180,255,1); }
+        .equip-btn.is-equipped { background: rgba(200,170,0,0.95); color: #fff; }
+
+        /* ── PROFILE AVATAR ── */
+        .profile-avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 42px; flex-shrink: 0; overflow: hidden; cursor: pointer; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+        .profile-avatar:hover { transform: scale(1.08); border-color: #FFD700; box-shadow: 0 0 16px rgba(255,215,0,0.4); }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+
+        /* ── CHAT AVATAR ── */
+        .chat-row { display: flex; align-items: flex-end; gap: 8px; }
+        .chat-row.mine { flex-direction: row-reverse; }
+        .chat-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; overflow: hidden; }
+        .chat-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
         .sell-all-btn { background: linear-gradient(135deg,#27ae60,#1e8449); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: transform 0.15s, box-shadow 0.15s; margin-left: 12px; }
         .sell-all-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
         @keyframes toast-in { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
@@ -90,10 +104,12 @@
         #chat-page { display: none; flex-direction: column; height: calc(100vh - 80px); }
         #chat-page.active { display: flex; }
         #chat-messages { flex: 1; overflow-y: auto; padding: 10px 0; display: flex; flex-direction: column; gap: 10px; }
-        .chat-msg { max-width: 70%; padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.4; word-break: break-word; animation: msgIn 0.2s ease; }
+        .chat-row { display: flex; align-items: flex-end; gap: 8px; align-self: flex-start; max-width: 82%; animation: msgIn 0.2s ease; }
+        .chat-row.mine { flex-direction: row-reverse; align-self: flex-end; }
         @keyframes msgIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
-        .chat-msg.mine { background: #8B5A3E; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .chat-msg.theirs { background: rgba(255,255,255,0.15); color: black; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-msg { max-width: 100%; padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.4; word-break: break-word; }
+        .chat-msg.mine { background: #8B5A3E; color: white; border-bottom-right-radius: 4px; }
+        .chat-msg.theirs { background: rgba(255,255,255,0.15); color: black; border-bottom-left-radius: 4px; }
         .chat-msg .chat-name { font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 3px; }
         .chat-msg.mine .chat-name { text-align: right; }
         #chat-input-row { display: flex; gap: 10px; margin-top: 12px; }
@@ -267,8 +283,12 @@
     <!-- STATS PAGE -->
     <div id="stats-page" class="page active">
         <div class="profile-header">
-            <h2 id="profile-username">hedgehog</h2>
-            <button class="daily-btn" onclick="openDailyModal()">daily reward</button>
+            <div class="profile-avatar" id="profile-avatar" title="Click to change blook" onclick="showPage('hedges-page')">🦔</div>
+            <div>
+                <h2 id="profile-username" style="margin-bottom:4px;">hedgehog</h2>
+                <div id="profile-blook-name" style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:6px;">No blook equipped</div>
+                <button class="daily-btn" onclick="openDailyModal()">daily reward</button>
+            </div>
         </div>
         <div class="stats-bar">
             <div class="stat-item">Unlocked: <span id="stat-unlocked">0/29</span></div>
@@ -463,7 +483,7 @@
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
-    let tokens = 500, opened = 0, collection = {}, pendingBlook = 0;
+    let tokens = 500, opened = 0, collection = {}, pendingBlook = 0, equippedBlook = null;
     let pendingReward = 0, isSpinning = false, canClaim = false;
 
     const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
@@ -589,8 +609,10 @@
                 opened = data.opened || 0;
                 collection = data.collection || {};
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
+                equippedBlook = data.equippedBlook || null;
                 if (data.username) document.getElementById('profile-username').innerText = data.username;
                 updateStats();
+                updateProfileAvatar();
                 onPlayerReady(data.username);
             }
         });
@@ -598,7 +620,43 @@
 
     function savePlayerData() {
         if (!currentUid) return;
-        db.collection('users').doc(currentUid).update({ tokens, opened, collection });
+        db.collection('users').doc(currentUid).update({ tokens, opened, collection, equippedBlook });
+    }
+
+    // ─── EQUIP SYSTEM ─────────────────────────────────────────────────────────
+    function getBlookEmoji(id) {
+        if (!id || !blookData[id]) return '🦔';
+        const e = blookData[id].emoji;
+        return e || '🦔';
+    }
+
+    function updateProfileAvatar() {
+        const el = document.getElementById('profile-avatar');
+        const nameEl = document.getElementById('profile-blook-name');
+        if (!el) return;
+        if (equippedBlook && blookData[equippedBlook]) {
+            const data = blookData[equippedBlook];
+            const e = data.emoji;
+            if (e && e.startsWith('http')) {
+                el.innerHTML = `<img src="${e}" alt="${data.name}">`;
+            } else {
+                el.innerHTML = e || '🦔';
+            }
+            if (nameEl) nameEl.innerText = data.name;
+        } else {
+            el.innerHTML = '🦔';
+            if (nameEl) nameEl.innerText = 'No blook equipped — click to pick one';
+        }
+    }
+
+    function equipBlook(id, event) {
+        event.stopPropagation();
+        equippedBlook = (equippedBlook === id) ? null : id;
+        savePlayerData();
+        updateProfileAvatar();
+        updateHedges();
+        const msg = equippedBlook ? `${blookData[id].name} equipped!` : 'Blook unequipped';
+        showToast(msg, 'rgba(33,130,220,0.95)');
     }
 
     // ─── NAVIGATION ───────────────────────────────────────────────────────────
@@ -895,12 +953,15 @@
                     const rarityBadgeColors = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700' };
                     const badgeColor = data.rarity ? (rarityBadgeColors[data.rarity] || 'white') : 'white';
                     const p = getSellPrice(i);
-                    const sellOverlay = count > 1
-                        ? `<div class="sell-overlay">
-                               <button class="sell-btn" onclick="sellDuplicate(${i}, event)">Sell 1<br>${p} 🪙</button>
-                               <button class="sell-btn sell-all-card" onclick="sellAllOfCard(${i}, event)">Sell All<br>${(count-1)*p} 🪙</button>
-                           </div>`
-                        : '';
+                    const isEquipped = equippedBlook === i;
+                    const equipLabel = isEquipped ? '✓ On' : 'Equip';
+                    let overlayBtns = '';
+                    if (count > 1) {
+                        overlayBtns += `<button class="sell-btn" onclick="sellDuplicate(${i}, event)">Sell 1<br>${p} 🪙</button>`;
+                        overlayBtns += `<button class="sell-btn sell-all-card" onclick="sellAllOfCard(${i}, event)">Sell All<br>${(count-1)*p} 🪙</button>`;
+                    }
+                    overlayBtns += `<button class="equip-btn${isEquipped ? ' is-equipped' : ''}" onclick="equipBlook(${i}, event)">${equipLabel}</button>`;
+                    const sellOverlay = `<div class="sell-overlay">${overlayBtns}</div>`;
                     card.innerHTML = `${display}<div style="font-size:10px;text-align:center;padding:0 4px;">${data.name}</div><div class="count-badge" style="color:${badgeColor}">x${count}</div>${sellOverlay}`;
                 }
                 grid.appendChild(card);
@@ -1245,7 +1306,18 @@
                 <div class="chat-name">${escapeHtml(msg.username)} · ${timeStr}</div>
                 <div>${escapeHtml(msg.text)}</div>
             `;
-            messagesDiv.appendChild(bubble);
+            const blookE = msg.blookEmoji || '🦔';
+            const avatarInner = blookE.startsWith('http')
+                ? `<img src="${blookE}" alt="blook">`
+                : blookE;
+            const row = document.createElement('div');
+            row.className = `chat-row ${isMe ? 'mine' : 'theirs'}`;
+            const avatar = document.createElement('div');
+            avatar.className = 'chat-avatar';
+            avatar.innerHTML = avatarInner;
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+            messagesDiv.appendChild(row);
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }, err => {
             showChatError('Could not load messages: ' + err.message);
@@ -1259,10 +1331,12 @@
         if (!currentUid) { showChatError('You must be logged in to chat.'); return; }
         input.value = '';
 
+        const blookEmoji = equippedBlook && blookData[equippedBlook] ? blookData[equippedBlook].emoji : '🦔';
         rtdb.ref('globalChat').push({
             uid: currentUid,
             username: chatUsername,
             text: text,
+            blookEmoji: blookEmoji,
             timestamp: Date.now()
         }).catch(err => {
             showChatError('Send failed: ' + err.message);
