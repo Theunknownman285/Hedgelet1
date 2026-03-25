@@ -1,3 +1,5 @@
+import { spawn, type ChildProcess } from "node:child_process";
+import path from "node:path";
 import app from "./app";
 import { logger } from "./lib/logger";
 
@@ -23,3 +25,51 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 });
+
+// ─── Discord Bridge (always-on in production) ────────────────────────────────
+// In the deployed environment the bridge runs as a supervised child process so
+// application DMs and moderation commands are always available even when no one
+// has the Replit editor open. In development the bridge runs as its own
+// separate workflow instead, so we skip spawning it here to avoid duplicates.
+
+if (process.env["NODE_ENV"] === "production") {
+  const bridgeDir = path.resolve(process.cwd(), "../discord-bridge");
+  let bridgeProc: ChildProcess | null = null;
+  let bridgeStopping = false;
+
+  function startBridge() {
+    if (bridgeStopping) return;
+
+    logger.info({ bridgeDir }, "Starting Discord bridge");
+
+    bridgeProc = spawn("pnpm", ["run", "start"], {
+      cwd: bridgeDir,
+      stdio: "inherit",
+      env: process.env,
+    });
+
+    bridgeProc.on("error", (err) => {
+      logger.error({ err }, "Discord bridge process error");
+    });
+
+    bridgeProc.on("exit", (code, signal) => {
+      if (bridgeStopping) return;
+      logger.warn({ code, signal }, "Discord bridge exited — restarting in 5s");
+      setTimeout(startBridge, 5000);
+    });
+  }
+
+  startBridge();
+
+  // Graceful shutdown: stop bridge when API server stops
+  process.on("SIGTERM", () => {
+    bridgeStopping = true;
+    bridgeProc?.kill("SIGTERM");
+    process.exit(0);
+  });
+  process.on("SIGINT", () => {
+    bridgeStopping = true;
+    bridgeProc?.kill("SIGTERM");
+    process.exit(0);
+  });
+}
