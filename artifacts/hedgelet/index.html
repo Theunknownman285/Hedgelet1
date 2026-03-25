@@ -712,6 +712,7 @@
             const existing = await db.collection('users').where('username', '==', username).limit(1).get();
             if (!existing.empty) {
                 await cred.user.delete();
+                submittingApplication = false;
                 status.innerText = 'That username is already taken.'; return;
             }
 
@@ -719,6 +720,7 @@
             const existingApp = await db.collection('applications').where('username', '==', username).where('status', 'in', ['pending', 'approved']).limit(1).get();
             if (!existingApp.empty) {
                 await cred.user.delete();
+                submittingApplication = false;
                 status.innerText = 'An application for that username is already pending or approved.'; return;
             }
 
@@ -731,6 +733,7 @@
             // Sign them out — they can't enter the game until approved
             await auth.signOut();
             submittingApplication = false;
+            document.getElementById('login-screen').style.display = 'flex';
             status.innerText = '';
             setAuthMode('pending');
 
@@ -786,17 +789,27 @@
         if (submittingApplication) return;
         if (user) {
             currentUid = user.uid;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('home-screen').style.display = 'none';
             loadPlayerData(user.uid);
         } else {
             currentUid = null;
+            // Always restore login screen when signed out
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('home-screen').style.display = 'none';
         }
     });
 
     function loadPlayerData(uid) {
         db.collection('users').doc(uid).get().then(doc => {
+            if (!doc.exists) {
+                // No game account yet (pending applicant or bad state) — sign out silently.
+                // onAuthStateChanged(null) will restore the login screen.
+                auth.signOut();
+                return;
+            }
             if (doc.exists) {
+                // Only hide the login overlay once we've confirmed there's a real player doc
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('home-screen').style.display = 'none';
                 const data = doc.data();
                 tokens = data.tokens || 500;
                 opened = data.opened || 0;
