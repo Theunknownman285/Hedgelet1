@@ -557,6 +557,20 @@ async function startApplicationListener() {
             console.log(`[Apps] DMed reviewer ${reviewerId}`);
           } catch (e) {
             console.warn(`[Apps] Could not DM reviewer ${reviewerId}:`, (e as Error).message);
+            // Fallback: ping them in the server channel with the embed + buttons
+            try {
+              const channel = await client.channels.fetch(process.env["DISCORD_CHANNEL_ID"]!);
+              if (channel && channel.isTextBased() && "send" in channel) {
+                await channel.send({
+                  content: `<@${reviewerId}> ⚠️ Couldn't DM you — new application to review:`,
+                  embeds: [embed],
+                  components: [row],
+                });
+                console.log(`[Apps] Pinged reviewer ${reviewerId} in channel (DM failed)`);
+              }
+            } catch (e2) {
+              console.error(`[Apps] Also failed to ping reviewer ${reviewerId} in channel:`, (e2 as Error).message);
+            }
           }
         }
       }
