@@ -33,7 +33,9 @@ app.listen(port, (err) => {
 // separate workflow instead, so we skip spawning it here to avoid duplicates.
 
 if (process.env["NODE_ENV"] === "production") {
-  const bridgeDir = path.resolve(process.cwd(), "../discord-bridge");
+  // process.cwd() is the workspace root in production
+  const bridgeDir = path.resolve(process.cwd(), "artifacts/discord-bridge");
+  const bridgeEntry = path.join(bridgeDir, "src/index.ts");
   let bridgeProc: ChildProcess | null = null;
   let bridgeStopping = false;
 
@@ -42,7 +44,8 @@ if (process.env["NODE_ENV"] === "production") {
 
     logger.info({ bridgeDir }, "Starting Discord bridge");
 
-    bridgeProc = spawn("pnpm", ["run", "start"], {
+    // Use Node's built-in TypeScript stripping (Node 22+) — no pnpm/tsx needed
+    bridgeProc = spawn(process.execPath, ["--experimental-strip-types", bridgeEntry], {
       cwd: bridgeDir,
       stdio: "inherit",
       env: process.env,
