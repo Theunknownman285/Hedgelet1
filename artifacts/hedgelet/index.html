@@ -573,6 +573,7 @@
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
+    let submittingApplication = false; // prevents onAuthStateChanged from acting during app submission
     const ROLE_CONFIG = {
         'owner':          { label: 'Owner',          badge: '👑', color: '#FF4444', bg: 'rgba(255,68,68,0.18)',      desc: 'The game owner' },
         'co-owner':       { label: 'Co-Owner',        badge: '🔱', color: '#FF7043', bg: 'rgba(255,112,67,0.18)',     desc: 'Co-owner of the game' },
@@ -696,6 +697,8 @@
 
         status.innerText = 'Creating account…';
 
+        // Block onAuthStateChanged from reacting while we control the auth state
+        submittingApplication = true;
         let cred = null;
         try {
             // Create Firebase Auth account first — this authenticates the user
@@ -727,16 +730,14 @@
 
             // Sign them out — they can't enter the game until approved
             await auth.signOut();
-            // Restore login screen (onAuthStateChanged hid it when account was created)
-            document.getElementById('login-screen').style.display = 'flex';
+            submittingApplication = false;
             status.innerText = '';
             setAuthMode('pending');
 
         } catch (e) {
             // Clean up the auth account if something went wrong mid-flow
             if (cred) { try { await cred.user.delete(); } catch(_) {} try { await auth.signOut(); } catch(_) {} }
-            // Restore login screen if hidden
-            document.getElementById('login-screen').style.display = 'flex';
+            submittingApplication = false;
             status.innerText = e.message;
         }
     }
@@ -781,6 +782,8 @@
     }
 
     auth.onAuthStateChanged(user => {
+        // Ignore all auth changes while we're mid-application-submission
+        if (submittingApplication) return;
         if (user) {
             currentUid = user.uid;
             document.getElementById('login-screen').style.display = 'none';
