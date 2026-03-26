@@ -1680,6 +1680,17 @@
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
 
+        // Announce legendary / chroma pulls to Discord
+        if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {
+            const myName = document.getElementById('profile-username')?.innerText || 'Someone';
+            apiCall('/api/drops/announce', {
+                blookName:  data.name,
+                blookEmoji: typeof data.emoji === 'string' && !data.emoji.startsWith('http') && !data.emoji.startsWith('/') ? data.emoji : '',
+                rarity:     data.rarity,
+                username:   myName,
+            }).catch(() => {}); // fire-and-forget, don't block the reveal
+        }
+
         collection[pendingBlook] = (collection[pendingBlook] || 0) + 1;
         savePlayerData();
         updateStats();
