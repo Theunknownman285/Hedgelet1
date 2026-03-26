@@ -121,6 +121,19 @@
         .stat-label { font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 26px; font-weight: bold; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
 
+        /* ── LEADERBOARD ── */
+        .lb-row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); transition:background 0.15s; }
+        .lb-row:hover { background:rgba(255,255,255,0.12); }
+        .lb-row.lb-me { background:rgba(255,215,0,0.10); border-color:rgba(255,215,0,0.35); }
+        .lb-rank { font-size:22px; font-weight:900; min-width:38px; text-align:center; color:rgba(255,255,255,0.55); }
+        .lb-rank.gold   { color:#FFD700; text-shadow:0 0 12px rgba(255,215,0,0.7); }
+        .lb-rank.silver { color:#C0C0C0; text-shadow:0 0 8px rgba(192,192,192,0.6); }
+        .lb-rank.bronze { color:#CD7F32; text-shadow:0 0 8px rgba(205,127,50,0.6); }
+        .lb-avatar { width:42px; height:42px; border-radius:10px; background:rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; overflow:hidden; border:2px solid rgba(255,255,255,0.15); }
+        .lb-avatar img { width:100%; height:100%; object-fit:contain; padding:3px; }
+        .lb-name { font-weight:bold; font-size:15px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .lb-coins { font-size:18px; font-weight:bold; color:#FFD700; white-space:nowrap; }
+
         /* ── FRIENDS SECTION ── */
         .friends-section { background: rgba(0,0,0,0.25); border-radius: 16px; padding: 20px 22px; border: 1px solid rgba(255,255,255,0.07); }
         .friends-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -373,6 +386,7 @@
     <div class="nav-item"           data-page="news-page"     onclick="showPage('news-page')">📰 News</div>
     <div class="nav-item"           data-page="trade-page"    onclick="showPage('trade-page')">🔄 Trade</div>
     <div class="nav-item"           data-page="chat-page"     onclick="showPage('chat-page')">💬 Chat</div>
+    <div class="nav-item"           data-page="leaderboard-page" onclick="showPage('leaderboard-page')">🏆 Leaderboard</div>
     <div class="nav-item"           data-page="credits-page"  onclick="showPage('credits-page')">⭐ Credits</div>
     <div class="nav-item" onclick="logoutUser()" style="margin-top:20px;font-size:14px;color:rgba(255,255,255,0.4);border-left-color:transparent;">↩ Logout</div>
 </div>
@@ -569,6 +583,19 @@
             </div>
 
         </div>
+    </div>
+
+    <!-- LEADERBOARD PAGE -->
+    <div id="leaderboard-page" class="page">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+            <h2 style="margin:0;">🏆 Leaderboard</h2>
+            <button onclick="loadLeaderboard()" style="padding:8px 18px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:white;font-size:13px;">↻ Refresh</button>
+        </div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:16px;">Top 25 players by 🪙 coins</div>
+        <div id="lb-list" style="display:flex;flex-direction:column;gap:8px;">
+            <p style="opacity:0.5;">Loading...</p>
+        </div>
+        <div id="lb-my-rank" style="margin-top:18px;font-size:13px;color:rgba(255,255,255,0.5);text-align:center;min-height:20px;"></div>
     </div>
 
     <!-- TRADE PAGE -->
@@ -1068,6 +1095,52 @@
         showToast(msg, 'rgba(33,130,220,0.95)');
     }
 
+    // ─── LEADERBOARD ──────────────────────────────────────────────────────────
+    async function loadLeaderboard() {
+        const list    = document.getElementById('lb-list');
+        const myRankEl = document.getElementById('lb-my-rank');
+        list.innerHTML = '<p style="opacity:0.5;">Loading...</p>';
+        myRankEl.innerText = '';
+        try {
+            const snap = await db.collection('users')
+                .orderBy('tokens', 'desc')
+                .limit(25)
+                .get();
+            list.innerHTML = '';
+            const medals = ['🥇','🥈','🥉'];
+            const rankClasses = ['gold','silver','bronze'];
+            let myRank = null;
+            snap.docs.forEach((doc, i) => {
+                const d = doc.data();
+                const rank = i + 1;
+                const isMe = doc.id === currentUid;
+                if (isMe) myRank = rank;
+                const emoji = d.equippedBlook && blookData[d.equippedBlook] ? blookData[d.equippedBlook].emoji : '🦔';
+                const avatarHtml = isImg(emoji)
+                    ? `<img src="${emoji}" style="${emoji.startsWith('/')?'mix-blend-mode:screen;':''}">`
+                    : emoji;
+                const rankLabel = rank <= 3 ? medals[rank-1] : `#${rank}`;
+                const rankClass = rank <= 3 ? rankClasses[rank-1] : '';
+                const row = document.createElement('div');
+                row.className = 'lb-row' + (isMe ? ' lb-me' : '');
+                row.innerHTML = `
+                    <div class="lb-rank ${rankClass}">${rankLabel}</div>
+                    <div class="lb-avatar">${avatarHtml}</div>
+                    <div class="lb-name">${d.username || 'Unknown'}${isMe ? ' <span style="font-size:11px;color:#FFD700;font-weight:normal;">(you)</span>' : ''}</div>
+                    <div class="lb-coins">${(d.tokens || 0).toLocaleString()} 🪙</div>`;
+                list.appendChild(row);
+            });
+            if (!snap.docs.length) list.innerHTML = '<p style="opacity:0.5;">No players yet.</p>';
+            if (myRank) {
+                myRankEl.innerText = `Your rank: #${myRank} of top 25`;
+            } else if (currentUid) {
+                myRankEl.innerText = "You're not in the top 25 yet — keep collecting!";
+            }
+        } catch (e) {
+            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ Could not load leaderboard. ${e.message || ''}</p>`;
+        }
+    }
+
     // ─── NAVIGATION ───────────────────────────────────────────────────────────
     function showPage(pId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1078,6 +1151,7 @@
         if (pId === 'stats-page') { loadFriends(); updateRequestsBadge(); }
         if (pId === 'hedges-page') updateHedges();
         if (pId === 'trade-page') { showTradeTab('send'); loadIncomingTrades(); }
+        if (pId === 'leaderboard-page') loadLeaderboard();
         if (pId === 'chat-page') {
             const m = document.getElementById('chat-messages');
             setTimeout(() => { m.scrollTop = m.scrollHeight; }, 50);
