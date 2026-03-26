@@ -204,6 +204,12 @@ const commands = [
       o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true)),
 
   new SlashCommandBuilder()
+    .setName("global")
+    .setDescription("Broadcast an announcement across every player's screen in-game (Staff only)")
+    .addStringOption(o =>
+      o.setName("message").setDescription("The message to broadcast").setRequired(true).setMaxLength(280)),
+
+  new SlashCommandBuilder()
     .setName("forcelogout")
     .setDescription("Force a player to be logged out immediately (Staff only)")
     .addStringOption(o =>
@@ -815,6 +821,35 @@ client.on("interactionCreate", async (interaction) => {
     if (blookInfo.imageUrl) embed.setThumbnail(blookInfo.imageUrl);
 
     await interaction.editReply({ embeds: [embed] });
+  }
+
+  // ── /global ───────────────────────────────────────────────────────────────
+  if (commandName === "global") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can send global announcements.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const message = interaction.options.getString("message", true);
+    const sender  = interaction.user.username;
+
+    await rtdb.ref("globalAnnouncement").set({
+      message,
+      sender,
+      timestamp: Date.now(),
+    });
+
+    console.log(`[GLOBAL] ${sender}: ${message}`);
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Gold)
+        .setTitle("📢 Global Announcement Sent")
+        .setDescription(`**Message:** ${message}`)
+        .setFooter({ text: `Broadcast by ${sender}` })
+        .setTimestamp()],
+    });
   }
 
   // ── /forcelogout ──────────────────────────────────────────────────────────
