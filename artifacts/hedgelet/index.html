@@ -240,81 +240,69 @@
         }
         .sob-tear { position: absolute; top: -60px; animation: tear-fall linear forwards; pointer-events: none; user-select: none; }
 
-        /* ── GLOBAL ANNOUNCEMENT OVERLAY ── */
-        #global-announcement-overlay {
-            position: fixed; inset: 0; z-index: 1000001;
-            display: flex; align-items: flex-start; justify-content: center;
-            background: rgba(0,0,0,0.55);
-            pointer-events: auto;
-            animation: ga-backdrop-in 0.4s ease forwards;
-        }
-        #global-announcement-overlay.closing {
-            animation: ga-backdrop-out 0.5s ease forwards;
-        }
-        .ga-banner {
-            margin-top: 7vh;
-            width: min(680px, 92vw);
-            background: linear-gradient(135deg, #0d1117 0%, #161b22 60%, #1c1c2e 100%);
+        /* ── GLOBAL ANNOUNCEMENT TOAST ── */
+        #ga-toast {
+            position: fixed;
+            top: 20px; right: 20px;
+            width: 320px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border: 2px solid #FFD700;
-            border-radius: 20px;
-            padding: 28px 32px 20px;
-            box-shadow: 0 0 60px rgba(255,215,0,0.35), 0 20px 60px rgba(0,0,0,0.7);
-            animation: ga-banner-in 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;
-            position: relative;
+            border-radius: 14px;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(255,215,0,0.2);
+            z-index: 1000001;
             overflow: hidden;
+            transform: translateX(360px);
+            animation: ga-slide-in 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+            pointer-events: auto;
         }
-        .ga-banner.closing { animation: ga-banner-out 0.45s cubic-bezier(0.55,0,1,0.45) forwards; }
-        .ga-banner::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 3px;
-            background: linear-gradient(90deg, #ff6b00, #FFD700, #fff, #FFD700, #ff6b00);
+        #ga-toast.ga-hiding {
+            animation: ga-slide-out 0.35s cubic-bezier(0.55,0,1,0.45) forwards;
+        }
+        #ga-toast .ga-top-bar {
+            height: 3px;
+            background: linear-gradient(90deg,#ff6b00,#FFD700,#fff,#FFD700,#ff6b00);
             background-size: 300% 100%;
             animation: ga-shimmer 2s linear infinite;
         }
-        .ga-header {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 13px; font-weight: 800; letter-spacing: 3px;
-            color: #FFD700; text-transform: uppercase; margin-bottom: 16px;
+        #ga-toast .ga-body {
+            padding: 12px 14px 10px;
         }
-        .ga-pulse-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background: #FFD700;
+        #ga-toast .ga-label {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 10px; font-weight: 800; letter-spacing: 2px;
+            color: #FFD700; text-transform: uppercase; margin-bottom: 8px;
+        }
+        #ga-toast .ga-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: #FFD700; flex-shrink: 0;
             animation: ga-dot-pulse 1s ease-in-out infinite;
-            flex-shrink: 0;
         }
-        .ga-message {
-            font-size: 22px; font-weight: 700; color: #ffffff;
-            line-height: 1.4; margin-bottom: 16px;
-            word-break: break-word;
+        #ga-toast .ga-x {
+            margin-left: auto; background: none; border: none; color: rgba(255,255,255,0.4);
+            font-size: 14px; cursor: pointer; padding: 0; line-height: 1;
+            transition: color 0.15s;
         }
-        .ga-sender {
-            font-size: 13px; color: rgba(255,255,255,0.5);
-            font-style: italic; margin-bottom: 16px;
+        #ga-toast .ga-x:hover { color: #ff6b6b; }
+        #ga-toast .ga-msg {
+            font-size: 14px; font-weight: 600; color: #fff;
+            line-height: 1.45; margin-bottom: 8px; word-break: break-word;
         }
-        .ga-progress {
-            width: 100%; height: 4px; background: rgba(255,255,255,0.12);
-            border-radius: 2px; overflow: hidden;
+        #ga-toast .ga-from {
+            font-size: 11px; color: rgba(255,255,255,0.4);
+            font-style: italic; margin-bottom: 10px;
         }
-        .ga-progress-bar {
+        #ga-toast .ga-bar-track {
+            height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;
+        }
+        #ga-toast .ga-bar-fill {
             height: 100%; background: linear-gradient(90deg,#FFD700,#ff8800);
-            border-radius: 2px;
             animation: ga-countdown linear forwards;
         }
-        .ga-dismiss {
-            position: absolute; top: 14px; right: 16px;
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-            color: rgba(255,255,255,0.5); font-size: 16px; width: 28px; height: 28px;
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center;
-            justify-content: center; line-height: 1; transition: background 0.2s, color 0.2s;
-        }
-        .ga-dismiss:hover { background: rgba(255,80,80,0.25); color: #ff6b6b; }
-        @keyframes ga-backdrop-in  { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes ga-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes ga-banner-in    { from { transform: translateY(-80px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
-        @keyframes ga-banner-out   { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-60px) scale(0.92); opacity: 0; } }
-        @keyframes ga-shimmer      { from { background-position: 0 0; } to { background-position: 300% 0; } }
-        @keyframes ga-dot-pulse    { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
-        @keyframes ga-countdown    { from { width: 100%; } to { width: 0%; } }
+        @keyframes ga-slide-in  { from { transform: translateX(360px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes ga-slide-out { from { transform: translateX(0); opacity: 1; } to { transform: translateX(360px); opacity: 0; } }
+        @keyframes ga-shimmer   { from { background-position: 0 0; } to { background-position: 300% 0; } }
+        @keyframes ga-dot-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.5; } }
+        @keyframes ga-countdown { from { width: 100%; } to { width: 0%; } }
 
         /* ── COOL HEDGEHOG ANIMATION ── */
         @keyframes road-scroll {
@@ -2636,44 +2624,39 @@
     let lastAnnouncementTs = 0;
 
     function showGlobalAnnouncement(message, sender) {
-        // Remove any existing overlay instantly
-        document.getElementById('global-announcement-overlay')?.remove();
+        // Remove any existing toast instantly
+        const old = document.getElementById('ga-toast');
+        if (old) { clearTimeout(old._gaTimer); old.remove(); }
 
-        const DURATION = 10000; // ms
+        const DURATION = 10000; // ms auto-dismiss
 
-        const overlay = document.createElement('div');
-        overlay.id = 'global-announcement-overlay';
-
-        const banner = document.createElement('div');
-        banner.className = 'ga-banner';
-        banner.innerHTML = `
-            <button class="ga-dismiss" onclick="dismissAnnouncement()" title="Dismiss">✕</button>
-            <div class="ga-header">
-                <div class="ga-pulse-dot"></div>
-                📢 Global Announcement
-            </div>
-            <div class="ga-message">${message.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-            <div class="ga-sender">— announced by ${sender.replace(/</g,'&lt;')}</div>
-            <div class="ga-progress">
-                <div class="ga-progress-bar" style="animation-duration:${DURATION}ms;"></div>
+        const toast = document.createElement('div');
+        toast.id = 'ga-toast';
+        const safe = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        toast.innerHTML = `
+            <div class="ga-top-bar"></div>
+            <div class="ga-body">
+                <div class="ga-label">
+                    <div class="ga-dot"></div>
+                    📢 Announcement
+                    <button class="ga-x" onclick="dismissAnnouncement()">✕</button>
+                </div>
+                <div class="ga-msg">${safe(message)}</div>
+                <div class="ga-from">— ${safe(sender)}</div>
+                <div class="ga-bar-track">
+                    <div class="ga-bar-fill" style="animation-duration:${DURATION}ms;"></div>
+                </div>
             </div>`;
-        overlay.appendChild(banner);
-        document.body.appendChild(overlay);
-
-        // Click backdrop to dismiss
-        overlay.addEventListener('click', e => { if (e.target === overlay) dismissAnnouncement(); });
-
-        // Auto-dismiss after DURATION
-        overlay._timer = setTimeout(dismissAnnouncement, DURATION);
+        document.body.appendChild(toast);
+        toast._gaTimer = setTimeout(dismissAnnouncement, DURATION);
     }
 
     window.dismissAnnouncement = function() {
-        const overlay = document.getElementById('global-announcement-overlay');
-        if (!overlay) return;
-        clearTimeout(overlay._timer);
-        overlay.classList.add('closing');
-        overlay.querySelector('.ga-banner')?.classList.add('closing');
-        setTimeout(() => overlay.remove(), 480);
+        const toast = document.getElementById('ga-toast');
+        if (!toast) return;
+        clearTimeout(toast._gaTimer);
+        toast.classList.add('ga-hiding');
+        setTimeout(() => toast.remove(), 380);
     };
 
     function startAnnouncementListener() {
@@ -2681,11 +2664,10 @@
             if (!snap.exists()) return;
             const data = snap.val();
             if (!data?.timestamp || !data?.message) return;
-            // Only show if it's a fresh broadcast (within the last 15 seconds)
-            // and newer than the last one we already showed
+            // Skip if we've already shown this one
             if (data.timestamp <= lastAnnouncementTs) return;
-            if (Date.now() - data.timestamp > 15000) {
-                // Already logged in — record it so we don't re-show on reconnect
+            // Skip stale announcements (older than 60 seconds on first load)
+            if (Date.now() - data.timestamp > 60000) {
                 lastAnnouncementTs = data.timestamp;
                 return;
             }
