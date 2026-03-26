@@ -390,6 +390,52 @@
         #bazaar-price-input { padding:10px 14px; border-radius:8px; border:none; font-size:16px; background:rgba(255,255,255,0.85); outline:none; width:100%; box-sizing:border-box; }
         #bazaar-list-confirm { width:100%; padding:12px; border:none; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; background:linear-gradient(135deg,#4CAF50,#2e7d32); color:white; }
         #bazaar-list-confirm:disabled { opacity:0.4; cursor:not-allowed; }
+
+        /* ── CLANS ── */
+        .clan-page-wrap { max-width: 720px; margin: 0 auto; }
+        .clan-hero { border-radius: 18px; overflow: hidden; background: linear-gradient(135deg,#1a0a00 0%,#3d1f00 100%); border: 2px solid rgba(255,215,0,0.25); margin-bottom: 24px; position: relative; }
+        .clan-banner-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .clan-banner-placeholder { width: 100%; height: 180px; background: linear-gradient(135deg,#3d1f00,#6b3a1a); display: flex; align-items: center; justify-content: center; font-size: 56px; }
+        .clan-hero-body { padding: 18px 22px 20px; }
+        .clan-hero-top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+        .clan-tag-badge { font-size: 13px; font-weight: bold; color: #FFD700; background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.4); border-radius: 8px; padding: 4px 10px; letter-spacing: 1px; white-space: nowrap; }
+        .clan-hero-name { font-size: 24px; font-weight: 800; color: white; }
+        .clan-hero-desc { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 14px; line-height: 1.5; }
+        .clan-hero-meta { font-size: 13px; color: rgba(255,255,255,0.45); }
+        .clan-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .clan-btn { padding: 10px 20px; border: none; border-radius: 10px; font-weight: bold; font-size: 14px; cursor: pointer; transition: all 0.18s; }
+        .clan-btn.primary { background: linear-gradient(135deg,#FFD700,#e67e22); color: #1a0a00; }
+        .clan-btn.primary:hover { transform: scale(1.04); }
+        .clan-btn.danger { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid rgba(231,76,60,0.4); }
+        .clan-btn.danger:hover { background: rgba(231,76,60,0.35); }
+        .clan-btn.muted { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+        .clan-btn.muted:hover { background: rgba(255,255,255,0.18); }
+        .clan-section-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 12px; font-weight: bold; }
+        .clan-members-grid { display: flex; flex-direction: column; gap: 8px; }
+        .clan-member-row { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 10px 14px; border: 1px solid rgba(255,255,255,0.08); }
+        .clan-member-avatar { font-size: 26px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+        .clan-member-avatar img { width: 100%; height: 100%; object-fit: contain; }
+        .clan-member-name { font-weight: bold; font-size: 15px; color: white; flex-grow: 1; }
+        .clan-member-badge { font-size: 11px; background: rgba(255,215,0,0.18); color: #FFD700; border-radius: 6px; padding: 2px 8px; font-weight: bold; margin-left: 6px; }
+        .clan-kick-btn { font-size: 12px; padding: 5px 12px; border: none; border-radius: 7px; cursor: pointer; background: rgba(231,76,60,0.2); color: #e74c3c; font-weight: bold; transition: background 0.15s; }
+        .clan-kick-btn:hover { background: rgba(231,76,60,0.4); }
+        .clan-form-box { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .clan-form-box h3 { margin: 0 0 16px; color: white; font-size: 17px; }
+        .clan-input { width: 100%; box-sizing: border-box; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.1); color: white; font-size: 14px; margin-bottom: 10px; outline: none; transition: border-color 0.15s; }
+        .clan-input::placeholder { color: rgba(255,255,255,0.35); }
+        .clan-input:focus { border-color: #FFD700; }
+        .clan-status { font-size: 13px; min-height: 18px; margin-bottom: 8px; }
+        .clan-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; }
+        .clan-divider hr { flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.1); }
+        .clan-divider span { color: rgba(255,255,255,0.35); font-size: 13px; }
+        .clan-browse-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 12px; }
+        .clan-browse-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: all 0.18s; }
+        .clan-browse-card:hover { border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.08); transform: translateY(-2px); }
+        .clan-browse-card .cb-tag { font-size: 11px; font-weight: bold; color: #FFD700; margin-bottom: 4px; }
+        .clan-browse-card .cb-name { font-size: 15px; font-weight: bold; color: white; }
+        .clan-browse-card .cb-meta { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+        .clan-banner-upload { display: none; }
+        #clan-status-msg { font-size: 13px; min-height: 18px; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -504,6 +550,7 @@
     <div class="nav-item"           data-page="chat-page"     onclick="showPage('chat-page')">💬 Chat</div>
     <div class="nav-item"           data-page="leaderboard-page" onclick="showPage('leaderboard-page')">🏆 Leaderboard</div>
     <div class="nav-item"           data-page="bazaar-page"    onclick="showPage('bazaar-page')">🛍️ Bazaar</div>
+    <div class="nav-item"           data-page="clans-page"    onclick="showPage('clans-page');renderClanPage()">⚔️ Clans</div>
     <div class="nav-item"           data-page="credits-page"  onclick="showPage('credits-page')">⭐ Credits</div>
     <div class="nav-item" onclick="logoutUser()" style="margin-top:20px;font-size:14px;color:rgba(255,255,255,0.4);border-left-color:transparent;">↩ Logout</div>
 </div>
@@ -810,6 +857,16 @@
             <button id="chat-send" onclick="sendMessage()">Send</button>
         </div>
     </div>
+
+    <!-- CLANS PAGE -->
+    <div id="clans-page" class="page">
+        <div class="clan-page-wrap">
+            <h2 style="margin-top:0;color:white;">⚔️ Clans</h2>
+            <div id="clan-page-inner">
+                <p style="color:rgba(255,255,255,0.5);">Loading...</p>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- DAILY MODAL -->
@@ -879,6 +936,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <script>
     // ─── FIREBASE SETUP ───────────────────────────────────────────────────────
@@ -895,6 +953,7 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const rtdb = firebase.database();
+    const storage = firebase.storage();
 
     // ─── GAME STATE ───────────────────────────────────────────────────────────
     let currentUid = null;
@@ -2907,6 +2966,272 @@
             updateHedges();
             showToast('❌ ' + e.message);
         }
+    }
+
+    // ─── CLANS ───────────────────────────────────────────────────────────────────
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    let currentClanData = null;
+
+    async function renderClanPage() {
+        const inner = document.getElementById('clan-page-inner');
+        if (!currentUid) { inner.innerHTML = '<p style="color:rgba(255,255,255,0.5);">Please log in first.</p>'; return; }
+        inner.innerHTML = '<p style="color:rgba(255,255,255,0.5);">Loading...</p>';
+        try {
+            const userSnap = await db.collection('users').doc(currentUid).get();
+            const uData = userSnap.data() || {};
+            const clanId = uData.clanId || null;
+            if (clanId) {
+                const clanSnap = await db.collection('clans').doc(clanId).get();
+                if (!clanSnap.exists) {
+                    await db.collection('users').doc(currentUid).update({ clanId: firebase.firestore.FieldValue.delete() });
+                    renderClanPage(); return;
+                }
+                currentClanData = { id: clanId, ...clanSnap.data() };
+                renderMyClan(inner, currentClanData);
+            } else {
+                currentClanData = null;
+                renderNoClan(inner);
+            }
+        } catch (e) {
+            inner.innerHTML = `<p style="color:#e74c3c;">Error: ${escHtml(e.message)}</p>`;
+        }
+    }
+
+    function renderMyClan(inner, clan) {
+        const isOwner = clan.ownerId === currentUid;
+        const members = clan.members || {};
+        const memberCount = Object.keys(members).length;
+
+        const bannerHtml = clan.bannerUrl
+            ? `<img class="clan-banner-img" src="${escHtml(clan.bannerUrl)}" alt="Clan Banner">`
+            : `<div class="clan-banner-placeholder">⚔️</div>`;
+
+        const memberRows = Object.entries(members).map(([uid, uname]) => {
+            const isThisOwner = uid === clan.ownerId;
+            const badge = isThisOwner ? `<span class="clan-member-badge">Owner</span>` : '';
+            const kickBtn = isOwner && !isThisOwner
+                ? `<button class="clan-kick-btn" onclick="kickClanMember('${uid}','${escHtml(uname)}')">Kick</button>`
+                : '';
+            return `<div class="clan-member-row">
+                <div class="clan-member-avatar">🦔</div>
+                <span class="clan-member-name">${escHtml(uname)}${badge}</span>
+                ${kickBtn}
+            </div>`;
+        }).join('');
+
+        const ownerActions = isOwner
+            ? `<button class="clan-btn primary" onclick="document.getElementById('clan-banner-input').click()">🖼️ Change Banner</button>
+               <input type="file" id="clan-banner-input" class="clan-banner-upload" accept="image/*" onchange="uploadClanBanner(this)">
+               <button class="clan-btn danger" onclick="disbandClan()">💀 Disband</button>`
+            : `<button class="clan-btn danger" onclick="leaveClan()">🚪 Leave Clan</button>`;
+
+        inner.innerHTML = `
+            <div class="clan-hero">
+                ${bannerHtml}
+                <div class="clan-hero-body">
+                    <div class="clan-hero-top">
+                        <span class="clan-tag-badge">[${escHtml(clan.tag)}]</span>
+                        <span class="clan-hero-name">${escHtml(clan.name)}</span>
+                    </div>
+                    ${clan.description ? `<div class="clan-hero-desc">${escHtml(clan.description)}</div>` : ''}
+                    <div class="clan-hero-meta">👥 ${memberCount} member${memberCount !== 1 ? 's' : ''} &nbsp;·&nbsp; Owner: ${escHtml(clan.ownerName)}</div>
+                    <div class="clan-actions">${ownerActions}</div>
+                    <div id="clan-status-msg"></div>
+                </div>
+            </div>
+            <div class="clan-section-label">Members</div>
+            <div class="clan-members-grid">${memberRows || '<p style="color:rgba(255,255,255,0.4);font-size:13px;">No members yet.</p>'}</div>
+            <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,0.3);">Clan ID: ${escHtml(clan.id)}</div>`;
+    }
+
+    function renderNoClan(inner) {
+        inner.innerHTML = `
+            <div class="clan-form-box">
+                <h3>🛡️ Create a Clan</h3>
+                <input class="clan-input" id="clan-create-name" type="text" maxlength="32" placeholder="Clan name (e.g. Spiky Squad)">
+                <input class="clan-input" id="clan-create-tag" type="text" maxlength="5" placeholder="Tag (e.g. SPKY) — max 5 chars">
+                <input class="clan-input" id="clan-create-desc" type="text" maxlength="120" placeholder="Description (optional)">
+                <div class="clan-status" id="clan-create-status" style="color:#e74c3c;"></div>
+                <button class="clan-btn primary" onclick="createClan()" style="width:100%;">Create Clan</button>
+            </div>
+            <div class="clan-divider"><hr><span>or</span><hr></div>
+            <div class="clan-form-box">
+                <h3>🔑 Join a Clan</h3>
+                <input class="clan-input" id="clan-join-id" type="text" placeholder="Paste a Clan ID here...">
+                <div class="clan-status" id="clan-join-status" style="color:#e74c3c;"></div>
+                <button class="clan-btn primary" onclick="joinClanById()" style="width:100%;">Join</button>
+            </div>
+            <div class="clan-divider"><hr><span>Browse Clans</span><hr></div>
+            <div class="clan-browse-grid" id="clan-browse-grid">
+                <p style="color:rgba(255,255,255,0.4);font-size:13px;">Loading...</p>
+            </div>`;
+        loadBrowseClans();
+    }
+
+    async function createClan() {
+        const name = document.getElementById('clan-create-name')?.value.trim();
+        const rawTag = document.getElementById('clan-create-tag')?.value.trim().toUpperCase();
+        const desc = document.getElementById('clan-create-desc')?.value.trim();
+        const statusEl = document.getElementById('clan-create-status');
+
+        if (!name) { statusEl.textContent = 'Clan name is required.'; return; }
+        if (!rawTag || rawTag.length < 2) { statusEl.textContent = 'Tag must be 2–5 characters.'; return; }
+        if (!/^[A-Z0-9]+$/.test(rawTag)) { statusEl.textContent = 'Tag: letters and numbers only.'; return; }
+
+        statusEl.style.color = '#FFD700';
+        statusEl.textContent = 'Creating...';
+        try {
+            const existing = await db.collection('clans').where('name', '==', name).limit(1).get();
+            if (!existing.empty) { statusEl.style.color = '#e74c3c'; statusEl.textContent = 'That clan name is already taken.'; return; }
+
+            const userSnap = await db.collection('users').doc(currentUid).get();
+            const myUsername = userSnap.data()?.username || 'Unknown';
+
+            const clanRef = db.collection('clans').doc();
+            const batch = db.batch();
+            batch.set(clanRef, {
+                name, tag: rawTag, description: desc || '',
+                ownerId: currentUid, ownerName: myUsername,
+                bannerUrl: '',
+                members: { [currentUid]: myUsername },
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+            batch.update(db.collection('users').doc(currentUid), { clanId: clanRef.id });
+            await batch.commit();
+            showToast('🛡️ Clan created!');
+            renderClanPage();
+        } catch (e) {
+            statusEl.style.color = '#e74c3c';
+            statusEl.textContent = '❌ ' + e.message;
+        }
+    }
+
+    async function joinClanById() {
+        const clanId = document.getElementById('clan-join-id')?.value.trim();
+        const statusEl = document.getElementById('clan-join-status');
+        if (!clanId) { statusEl.textContent = 'Please enter a Clan ID.'; return; }
+
+        statusEl.style.color = '#FFD700';
+        statusEl.textContent = 'Joining...';
+        try {
+            const clanSnap = await db.collection('clans').doc(clanId).get();
+            if (!clanSnap.exists) { statusEl.style.color = '#e74c3c'; statusEl.textContent = '❌ Clan not found.'; return; }
+
+            const userSnap = await db.collection('users').doc(currentUid).get();
+            const myUsername = userSnap.data()?.username || 'Unknown';
+
+            const batch = db.batch();
+            batch.update(db.collection('clans').doc(clanId), { [`members.${currentUid}`]: myUsername });
+            batch.update(db.collection('users').doc(currentUid), { clanId });
+            await batch.commit();
+            showToast('⚔️ Joined the clan!');
+            renderClanPage();
+        } catch (e) {
+            statusEl.style.color = '#e74c3c';
+            statusEl.textContent = '❌ ' + e.message;
+        }
+    }
+
+    async function leaveClan() {
+        if (!currentClanData) return;
+        if (!confirm('Are you sure you want to leave this clan?')) return;
+        try {
+            const batch = db.batch();
+            batch.update(db.collection('clans').doc(currentClanData.id), {
+                [`members.${currentUid}`]: firebase.firestore.FieldValue.delete()
+            });
+            batch.update(db.collection('users').doc(currentUid), {
+                clanId: firebase.firestore.FieldValue.delete()
+            });
+            await batch.commit();
+            showToast('🚪 Left the clan.');
+            currentClanData = null;
+            renderClanPage();
+        } catch (e) { showToast('❌ ' + e.message); }
+    }
+
+    async function kickClanMember(uid, uname) {
+        if (!currentClanData || currentClanData.ownerId !== currentUid) return;
+        if (!confirm(`Kick ${uname} from the clan?`)) return;
+        try {
+            const batch = db.batch();
+            batch.update(db.collection('clans').doc(currentClanData.id), {
+                [`members.${uid}`]: firebase.firestore.FieldValue.delete()
+            });
+            batch.update(db.collection('users').doc(uid), {
+                clanId: firebase.firestore.FieldValue.delete()
+            });
+            await batch.commit();
+            showToast(`Kicked ${uname}.`);
+            renderClanPage();
+        } catch (e) { showToast('❌ ' + e.message); }
+    }
+
+    async function disbandClan() {
+        if (!currentClanData || currentClanData.ownerId !== currentUid) return;
+        if (!confirm('Disband the clan? This cannot be undone.')) return;
+        try {
+            const members = Object.keys(currentClanData.members || {});
+            const batch = db.batch();
+            for (const uid of members) {
+                batch.update(db.collection('users').doc(uid), {
+                    clanId: firebase.firestore.FieldValue.delete()
+                });
+            }
+            batch.delete(db.collection('clans').doc(currentClanData.id));
+            await batch.commit();
+            showToast('💀 Clan disbanded.');
+            currentClanData = null;
+            renderClanPage();
+        } catch (e) { showToast('❌ ' + e.message); }
+    }
+
+    async function uploadClanBanner(input) {
+        if (!input.files || !input.files[0] || !currentClanData || currentClanData.ownerId !== currentUid) return;
+        const file = input.files[0];
+        if (!file.type.startsWith('image/')) { showToast('❌ Select an image file.'); return; }
+        if (file.size > 5 * 1024 * 1024) { showToast('❌ Image must be under 5 MB.'); return; }
+        const statusEl = document.getElementById('clan-status-msg');
+        if (statusEl) { statusEl.style.color = '#FFD700'; statusEl.textContent = '⏳ Uploading banner...'; }
+        try {
+            const ref = storage.ref(`clan-banners/${currentClanData.id}`);
+            await ref.put(file);
+            const url = await ref.getDownloadURL();
+            await db.collection('clans').doc(currentClanData.id).update({ bannerUrl: url });
+            if (statusEl) statusEl.textContent = '';
+            showToast('🖼️ Banner updated!');
+            renderClanPage();
+        } catch (e) {
+            if (statusEl) { statusEl.style.color = '#e74c3c'; statusEl.textContent = '❌ Upload failed: ' + e.message; }
+        }
+    }
+
+    async function loadBrowseClans() {
+        const grid = document.getElementById('clan-browse-grid');
+        if (!grid) return;
+        try {
+            const snap = await db.collection('clans').orderBy('createdAt', 'desc').limit(12).get();
+            if (snap.empty) { grid.innerHTML = '<p style="color:rgba(255,255,255,0.4);font-size:13px;">No clans yet — be the first!</p>'; return; }
+            grid.innerHTML = snap.docs.map(doc => {
+                const c = doc.data();
+                const count = Object.keys(c.members || {}).length;
+                return `<div class="clan-browse-card" onclick="prefillJoinClan('${doc.id}')">
+                    <div class="cb-tag">[${escHtml(c.tag)}]</div>
+                    <div class="cb-name">${escHtml(c.name)}</div>
+                    <div class="cb-meta">👥 ${count} member${count !== 1 ? 's' : ''}</div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            grid.innerHTML = '<p style="color:rgba(255,255,255,0.4);font-size:13px;">Could not load clans.</p>';
+        }
+    }
+
+    function prefillJoinClan(clanId) {
+        const input = document.getElementById('clan-join-id');
+        if (input) { input.value = clanId; input.focus(); }
     }
 </script>
 
