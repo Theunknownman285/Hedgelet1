@@ -121,6 +121,21 @@
         .stat-label { font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 26px; font-weight: bold; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
 
+        /* ── FNAF JUMPSCARE ── */
+        @keyframes js-shake {
+            0%,100% { transform: translate(0,0) scale(1); }
+            10%  { transform: translate(-20px, 12px) scale(1.08); }
+            20%  { transform: translate(18px, -14px) scale(1.05); }
+            30%  { transform: translate(-12px, 18px) scale(1.1); }
+            40%  { transform: translate(16px, -8px)  scale(1.06); }
+            50%  { transform: translate(-18px, 10px) scale(1.09); }
+            60%  { transform: translate(14px, -16px) scale(1.07); }
+            70%  { transform: translate(-10px, 14px) scale(1.04); }
+            80%  { transform: translate(12px, -10px) scale(1.08); }
+            90%  { transform: translate(-14px, 8px)  scale(1.05); }
+        }
+        @keyframes js-fadein { from { opacity:0; } to { opacity:1; } }
+
         /* ── LEADERBOARD ── */
         .lb-row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); transition:background 0.15s; }
         .lb-row:hover { background:rgba(255,255,255,0.12); }
@@ -474,6 +489,15 @@
                 <div class="pack-btns" onclick="event.stopPropagation()">
                     <button class="pack-btn" style="color:#333;" onclick="instantOpen(openEmojiPack)">⚡ Instant</button>
                     <button class="pack-btn" style="color:#333;" onclick="showAutoOpen('Emoji Pack',rollEmojiPack,20)">🔄 Auto</button>
+                </div>
+            </div>
+            <div class="pack-card" onclick="openFnafPack()" style="background:linear-gradient(135deg,#1a0033,#3a0a00);color:white;border:2px solid #8b0000;box-shadow:0 0 18px rgba(180,0,0,0.4);">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f43b.svg" style="width:70px;height:70px;filter:drop-shadow(0 0 8px #ff0000);">
+                <b style="color:#ff4444;">FNAF Pack</b><br><span style="font-size:12px;">30 Tokens</span>
+                <div style="font-size:10px;color:#ff9999;margin-top:2px;">⚠️ Freddy is watching...</div>
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openFnafPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('FNAF Pack',rollFnafPack,30)">🔄 Auto</button>
                 </div>
             </div>
         </div>
@@ -830,14 +854,14 @@
         // ── Staff-Only ──
         36: { name: "Day 1 Hedgehog", emoji: "/day1-hedgehog.png", rarity: "mythical" },
         // ── Emoji Pack ──
-        37: { name: "Money Mouth",    emoji: TW+'1f911.svg', rarity: "rare",      pack: "emoji" },
+        37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
         38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
         39: { name: "Angry",          emoji: TW+'1f620.svg', pack: "emoji" },
         40: { name: "Nerd",           emoji: TW+'1f913.svg', pack: "emoji" },
-        41: { name: "Cool",           emoji: TW+'1f60e.svg', rarity: "legendary", pack: "emoji" },
-        42: { name: "Clown",          emoji: TW+'1f921.svg', rarity: "rare",      pack: "emoji" },
+        41: { name: "Cool",           emoji: TW+'1f60e.svg', rarity: "uncommon", pack: "emoji" },
+        42: { name: "Clown",          emoji: TW+'1f921.svg', rarity: "uncommon", pack: "emoji" },
         43: { name: "Sob",            emoji: TW+'1f62d.svg', rarity: "chroma",   pack: "emoji" },
-        44: { name: "Heart Eyes",     emoji: TW+'1f60d.svg', rarity: "rare",     pack: "emoji" },
+        44: { name: "Heart Eyes",     emoji: TW+'1f60d.svg', rarity: "uncommon", pack: "emoji" },
         45: { name: "Cold Face",      emoji: TW+'1f976.svg', rarity: "rare",     pack: "emoji" },
         46: { name: "Expressionless", emoji: TW+'1f611.svg', pack: "emoji" },
         47: { name: "Smirk",          emoji: TW+'1f60f.svg', rarity: "epic",     pack: "emoji" },
@@ -845,10 +869,21 @@
         49: { name: "Zany",           emoji: TW+'1f92a.svg', rarity: "uncommon", pack: "emoji" },
         50: { name: "Shushing",       emoji: TW+'1f92b.svg', rarity: "rare",     pack: "emoji" },
         51: { name: "Sleeping",       emoji: TW+'1f634.svg', rarity: "uncommon", pack: "emoji" },
-        52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" }
+        52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" },
+        // ── FNAF Pack ──
+        53: { name: "Bonnie",         emoji: TW+'1f430.svg', pack: "fnaf" },
+        54: { name: "Chica",          emoji: TW+'1f424.svg', pack: "fnaf" },
+        55: { name: "Balloon Boy",    emoji: TW+'1f388.svg', pack: "fnaf" },
+        56: { name: "Foxy",           emoji: TW+'1f98a.svg', rarity: "uncommon", pack: "fnaf" },
+        57: { name: "Mangle",         emoji: TW+'1f578.svg', rarity: "uncommon", pack: "fnaf" },
+        58: { name: "The Puppet",     emoji: TW+'1f3ad.svg', rarity: "rare",     pack: "fnaf" },
+        59: { name: "Toy Freddy",     emoji: TW+'1f9f8.svg', rarity: "epic",     pack: "fnaf" },
+        60: { name: "Springtrap",     emoji: TW+'1f480.svg', rarity: "legendary",pack: "fnaf" },
+        61: { name: "Golden Freddy",  emoji: TW+'2b50.svg',  rarity: "chroma",   pack: "fnaf" },
+        62: { name: "Freddy Fazbear", emoji: TW+'1f43b.svg', rarity: "mythical", pack: "fnaf" }
     };
 
-    const TOTAL_BLOOKS = 52;
+    const TOTAL_BLOOKS = 62;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
     const isImg = e => e && (e.startsWith('http') || e.startsWith('/'));
 
@@ -1502,17 +1537,27 @@
         if (r < 0.995) return 28; return 29;
     }
     function rollEmojiPack() {
-        // common (~56%): Beaming, Angry, Nerd, Expressionless
-        // uncommon (~30%): Relieved, Zany, Sleeping, Yum
-        // rare (~10%): Money Mouth, Clown, Heart Eyes, Cold Face, Shushing
-        // epic (3%): Smirk | legendary (0.7%): Cool | chroma (0.3%): Sob
         const r = Math.random();
-        if (r < 0.14) return 38; if (r < 0.28) return 39; if (r < 0.42) return 40;
-        if (r < 0.56) return 46; if (r < 0.635) return 48; if (r < 0.71) return 49;
-        if (r < 0.785) return 51; if (r < 0.86) return 52; if (r < 0.88) return 37;
-        if (r < 0.90) return 42; if (r < 0.92) return 44; if (r < 0.94) return 45;
-        if (r < 0.96) return 50; if (r < 0.99) return 47; if (r < 0.997) return 41;
+        if (r < 0.12) return 37; if (r < 0.24) return 38; if (r < 0.36) return 39;
+        if (r < 0.46) return 40; if (r < 0.55) return 46; if (r < 0.60) return 41;
+        if (r < 0.65) return 42; if (r < 0.70) return 44; if (r < 0.75) return 48;
+        if (r < 0.79) return 49; if (r < 0.825) return 51; if (r < 0.85) return 52;
+        if (r < 0.91) return 45; if (r < 0.95) return 50; if (r < 0.997) return 47;
         return 43;
+    }
+    function rollFnafPack() {
+        // common: Bonnie 53 (20%), Chica 54 (20%), Balloon Boy 55 (16%)
+        // uncommon: Foxy 56 (17%), Mangle 57 (14%)
+        // rare: Puppet 58 (6%)
+        // epic: Toy Freddy 59 (4%)
+        // legendary: Springtrap 60 (2%)
+        // chroma: Golden Freddy 61 (0.6%)
+        // mythical: Freddy 62 (0.4%)
+        const r = Math.random();
+        if (r < 0.20) return 53; if (r < 0.40) return 54; if (r < 0.56) return 55;
+        if (r < 0.73) return 56; if (r < 0.87) return 57; if (r < 0.93) return 58;
+        if (r < 0.97) return 59; if (r < 0.99) return 60; if (r < 0.996) return 61;
+        return 62;
     }
 
     // ─── PACK OPEN FUNCTIONS ─────────────────────────────────────────────────────
@@ -1542,7 +1587,11 @@
         tokens -= 20; opened++; updateStats(); savePlayerData();
         pendingBlook = bestRoll(rollEmojiPack); showReveal();
     }
-
+    function openFnafPack() {
+        if (tokens < 30) { alert('Not enough tokens! You need 30 tokens.'); return; }
+        tokens -= 30; opened++; updateStats(); savePlayerData();
+        pendingBlook = bestRoll(rollFnafPack); showReveal();
+    }
 
     function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
 
@@ -1605,6 +1654,48 @@
         document.getElementById('auto-summary-modal').style.display = 'flex';
     }
     function closeAutoSummary() { document.getElementById('auto-summary-modal').style.display = 'none'; }
+
+    // ─── FREDDY JUMPSCARE ─────────────────────────────────────────────────────
+    function triggerFreddyJumpscare() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = [
+            'position:fixed;inset:0;z-index:9999999;',
+            'display:flex;align-items:center;justify-content:center;',
+            'background:#0d0000;animation:js-fadein 0.05s ease;',
+            'cursor:pointer;'
+        ].join('');
+
+        const face = document.createElement('div');
+        face.style.cssText = [
+            'font-size:280px;line-height:1;',
+            'animation:js-shake 0.12s infinite;',
+            'filter:drop-shadow(0 0 60px #ff0000) drop-shadow(0 0 120px #ff0000);',
+            'user-select:none;'
+        ].join('');
+        face.innerText = '🐻';
+
+        const txt = document.createElement('div');
+        txt.style.cssText = [
+            'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);',
+            'font-size:36px;font-weight:900;letter-spacing:4px;',
+            'color:#ff2222;text-shadow:0 0 20px #ff0000;',
+            'font-family:monospace;white-space:nowrap;'
+        ].join('');
+        txt.innerText = 'IT\'S ME';
+
+        overlay.appendChild(face);
+        overlay.appendChild(txt);
+        document.body.appendChild(overlay);
+
+        // Dismiss on click or after 2s
+        const dismiss = () => {
+            overlay.style.transition = 'opacity 0.4s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 420);
+        };
+        overlay.addEventListener('click', dismiss);
+        setTimeout(dismiss, 2000);
+    }
 
     // ─── SOB FLOOD ANIMATION ──────────────────────────────────────────────────
     function triggerSobFlood() {
@@ -1684,6 +1775,7 @@
         }
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
+        if (pendingBlook === 62) setTimeout(triggerFreddyJumpscare, 300); // Freddy jumpscares you!
 
         // Announce legendary / chroma pulls to Discord
         if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {
@@ -1772,7 +1864,7 @@
             { name: 'Fast Food Pack', ids: [30,31,32,33,11,12,34,13,14,35] },
             { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
             { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] },
-            { name: '😄 Emoji Pack',   ids: [38,39,40,46, 48,49,51,52, 37,42,44,45,50, 47, 41, 43] },
+            { name: '😄 Emoji Pack',   ids: [37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52] },
             { name: '✨ Special',      ids: [36] }
         ];
         packs.forEach(pack => {
