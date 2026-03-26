@@ -2387,6 +2387,15 @@
     let bazaarListings = [];          // all fetched listings (browse tab)
     let bazaarListingBlookId = null;  // selected blook id in list modal
 
+    // Render a blook as an <img> (all emoji values are URLs, never raw emoji)
+    function blookIcon(id, size) {
+        const bd = blookData[id];
+        if (!bd) return '❓';
+        const src = bd.emoji;
+        const blend = src && src.startsWith('/') ? 'mix-blend-mode:screen;' : '';
+        return `<img src="${src}" style="width:${size}px;height:${size}px;object-fit:contain;${blend}">`;
+    }
+
     function showBazaarTab(tab) {
         const isBrowse = tab === 'browse';
         document.getElementById('bzr-browse-tab').style.display = isBrowse ? '' : 'none';
@@ -2426,14 +2435,13 @@
 
         grid.innerHTML = list.map(l => {
             const bd      = blookData[l.blookId];
-            const emoji   = bd?.emoji || '❓';
             const name    = bd?.name  || `Blook #${l.blookId}`;
             const rarity  = bd?.rarity || 'common';
             const mine    = l.sellerUid === currentUid;
             const canBuy  = !mine && tokens >= l.price;
             const rarClass = `rarity-${rarity}`;
             return `<div class="bazaar-card">
-                <div class="bazaar-blook-emoji blook-card ${rarClass}" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:12px;">${emoji}</div>
+                <div class="blook-card ${rarClass}" style="width:70px;height:70px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0;">${blookIcon(l.blookId, 54)}</div>
                 <div class="bazaar-blook-name">${name}</div>
                 <div class="bazaar-seller">by ${l.sellerUsername || 'Unknown'}${mine ? ' <span style="color:#FFD700;">(you)</span>' : ''}</div>
                 <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
@@ -2454,12 +2462,11 @@
             if (!list.length) { grid.innerHTML = '<p class="bazaar-empty">No active listings. List a blook to get started!</p>'; return; }
             grid.innerHTML = list.map(l => {
                 const bd    = blookData[l.blookId];
-                const emoji = bd?.emoji || '❓';
                 const name  = bd?.name  || `Blook #${l.blookId}`;
                 const rarity = bd?.rarity || 'common';
                 const rarClass = `rarity-${rarity}`;
                 return `<div class="bazaar-card">
-                    <div class="bazaar-blook-emoji blook-card ${rarClass}" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:12px;">${emoji}</div>
+                    <div class="blook-card ${rarClass}" style="width:70px;height:70px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0;">${blookIcon(l.blookId, 54)}</div>
                     <div class="bazaar-blook-name">${name}</div>
                     <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
                     <div class="bazaar-seller" style="font-size:11px;opacity:0.5;">Listed ${new Date(l.listedAt).toLocaleDateString()}</div>
@@ -2537,7 +2544,7 @@
             grid.innerHTML = owned.map(([id, cnt]) => {
                 const bd = blookData[id];
                 return `<div class="bazaar-select-card" id="bsc-${id}" onclick="selectListBlook(${id})">
-                    <span class="sc-emoji">${bd.emoji}</span>
+                    ${blookIcon(id, 36)}
                     <span style="font-size:10px;text-align:center;line-height:1.2;">${bd.name}</span>
                     <span class="sc-count">×${cnt}</span>
                 </div>`;
@@ -2584,7 +2591,7 @@
         try {
             await apiCall('/api/bazaar/list', { blookId, price });
             savePlayerData();
-            showToast(`${blookData[blookId]?.emoji || '🦔'} Listed for 🪙 ${price.toLocaleString()}!`);
+            showToast(`Listed ${blookData[blookId]?.name || 'blook'} for 🪙 ${price.toLocaleString()}!`);
             loadBazaarListings();
         } catch (e) {
             // Revert
