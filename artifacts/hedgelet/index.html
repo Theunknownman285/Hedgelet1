@@ -975,7 +975,15 @@
             currentUid = user.uid;
             loadPlayerData(user.uid);
             // Fire-and-forget IP tracking for alt detection
-            apiCall('/api/track', {}).catch(() => {});
+            // Use user.getIdToken() directly to avoid currentUser timing issues
+            user.getIdToken().then(token =>
+                fetch('/api/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({})
+                })
+            ).then(r => { if (!r.ok) console.warn('[track] IP record failed:', r.status); })
+             .catch(e => console.warn('[track] IP record error:', e));
         } else {
             currentUid = null;
             // Always restore login screen when signed out
