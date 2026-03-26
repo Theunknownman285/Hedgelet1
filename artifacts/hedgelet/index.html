@@ -1208,16 +1208,29 @@
         if (user) {
             currentUid = user.uid;
             loadPlayerData(user.uid);
-            // Fire-and-forget IP tracking for alt detection
-            // Use user.getIdToken() directly to avoid currentUser timing issues
-            user.getIdToken().then(token =>
-                fetch('/api/track', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({})
-                })
-            ).then(r => { if (!r.ok) console.warn('[track] IP record failed:', r.status); })
-             .catch(e => console.warn('[track] IP record error:', e));
+            // IP tracking — also enforces IP bans
+            user.getIdToken().then(async token => {
+                try {
+                    const r = await fetch('/api/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({})
+                    });
+                    if (r.status === 403) {
+                        const body = await r.json().catch(() => ({}));
+                        if (body.ipBanned) {
+                            const msg = '🚫 IP Banned: ' + (body.reason || 'Contact staff for more info.');
+                            await auth.signOut();
+                            // auth.signOut() fires onAuthStateChanged which shows login-screen
+                            // Set the status message after a short tick so it lands after the screen is shown
+                            setTimeout(() => {
+                                const el = document.getElementById('login-status');
+                                if (el) { el.textContent = msg; el.style.color = '#e74c3c'; }
+                            }, 100);
+                        }
+                    }
+                } catch (e) { console.warn('[track] error:', e); }
+            });
         } else {
             currentUid = null;
             // Always restore login screen when signed out

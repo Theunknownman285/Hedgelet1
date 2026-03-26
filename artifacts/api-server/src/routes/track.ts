@@ -12,14 +12,28 @@ router.post("/track", requireAuth, async (req, res) => {
     "unknown";
 
   try {
+    // Check if this IP is banned
+    const docId = ip.replace(/[./]/g, "_");
+    const ipBanSnap = await firestore.collection("ipBans").doc(docId).get();
+    if (ipBanSnap.exists) {
+      const banData = ipBanSnap.data();
+      return res.status(403).json({
+        ok: false,
+        ipBanned: true,
+        reason: banData?.reason ?? "You have been IP banned.",
+      });
+    }
+
+    // Record IP normally
     await firestore.collection("users").doc(uid).update({
       lastIp: ip,
       knownIps: FieldValue.arrayUnion(ip),
       lastSeen: Date.now(),
     });
-    res.json({ ok: true });
+
+    return res.json({ ok: true });
   } catch (e: any) {
-    res.status(500).json({ error: e.message });
+    return res.status(500).json({ error: e.message });
   }
 });
 

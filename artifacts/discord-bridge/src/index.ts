@@ -198,6 +198,14 @@ const commands = [
       o.setName("username").setDescription("Hedgelet username to check").setRequired(true)),
 
   new SlashCommandBuilder()
+    .setName("ipban")
+    .setDescription("IP ban a player — blocks all their known IPs from logging in (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username to IP ban").setRequired(true))
+    .addStringOption(o =>
+      o.setName("reason").setDescription("Reason for the ban").setRequired(false)),
+
+  new SlashCommandBuilder()
     .setName("blook")
     .setDescription("See how many of a blook exist and what it's worth")
     .addStringOption(o =>
@@ -738,6 +746,73 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.editReply({
       ...(staffMentions.length > 0 ? { content: staffMentions.join(" ") } : {}),
       embeds: [altEmbed],
+    });
+  }
+
+  // ── /ipban ────────────────────────────────────────────────────────────────
+  if (commandName === "ipban") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can IP ban players.");
+      return;
+    }
+    await interaction.deferReply();
+
+    const target = await findUserByUsername(username);
+    if (!target) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    const knownIps: string[] = Array.isArray(target.data.knownIps) ? target.data.knownIps : [];
+    const reason = interaction.options.getString("reason") ?? "No reason provided";
+    const mod = interaction.user.username;
+    const now = Date.now();
+
+    if (knownIps.length === 0) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Yellow).setTitle("⚠️ No IP Data")
+          .setDescription(`**${username}** has no IP data on record. Their account has been banned but no IPs could be blocked.\nTell them to log in first, then run this command again.`)],
+      });
+    }
+
+    // Write ipBan docs for each known IP
+    const banWrites = knownIps.map(ip =>
+      firestore.collection("ipBans").doc(ip.replace(/[./]/g, "_")).set({
+        ip,
+        username,
+        uid: target.uid,
+        bannedBy: mod,
+        reason,
+        bannedAt: now,
+      })
+    );
+
+    // Also mark account as banned
+    const accountBan = firestore.collection("users").doc(target.uid).update({
+      banned: true,
+      banReason: reason,
+      bannedBy: mod,
+      bannedAt: now,
+    });
+
+    await Promise.all([...banWrites, accountBan]);
+
+    console.log(`[IPBAN] ${mod} IP-banned ${username} (${target.uid}) — ${knownIps.length} IP(s) blocked. Reason: ${reason}`);
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Red)
+        .setTitle("🚫 IP Ban Applied")
+        .setDescription(
+          `**${username}** has been IP banned.\n\n` +
+          `**IPs blocked:** ${knownIps.length}\n` +
+          `**Reason:** ${reason}`
+        )
+        .setFooter({ text: `Banned by ${mod}` })
+        .setTimestamp()],
     });
   }
 
