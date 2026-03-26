@@ -202,6 +202,18 @@ const commands = [
     .setDescription("See how many of a blook exist and what it's worth")
     .addStringOption(o =>
       o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true)),
+
+  new SlashCommandBuilder()
+    .setName("forcelogout")
+    .setDescription("Force a player to be logged out immediately (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName("reset")
+    .setDescription("Wipe a player's account — removes all blooks, tokens and progress (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -774,6 +786,90 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.editReply({ embeds: [embed] });
   }
 
+  // ── /forcelogout ──────────────────────────────────────────────────────────
+  if (commandName === "forcelogout") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can force-logout players.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const found = await findUserByUsername(username);
+    if (!found) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    // Set forceLogout flag — the frontend listener will pick it up and sign them out
+    await firestore.collection("users").doc(found.uid).update({ forceLogout: true });
+
+    // Revoke Firebase auth refresh tokens to invalidate all open sessions
+    try { await getAuth().revokeRefreshTokens(found.uid); } catch { /* non-fatal */ }
+
+    console.log(`[FORCELOGOUT] ${interaction.user.username} force-logged out ${username} (${found.uid})`);
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Orange)
+        .setTitle("🔒 Player Force-Logged Out")
+        .setDescription(`**${username}** has been logged out. They will need to log back in.`)
+        .setFooter({ text: `Done by ${interaction.user.username}` })
+        .setTimestamp()],
+    });
+  }
+
+  // ── /reset ────────────────────────────────────────────────────────────────
+  if (commandName === "reset") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can reset accounts.");
+      return;
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const found = await findUserByUsername(username);
+    if (!found) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    const uid = found.uid;
+    const col = found.data.collection ?? {};
+    const totalBlooks = Object.values(col).reduce((s: number, v) => s + Number(v), 0);
+    const tokens      = found.data.tokens ?? 0;
+
+    const confirmRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`resetconfirm_${uid}`)
+        .setLabel("⚠️ Yes, wipe everything")
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId(`resetcancel_${uid}`)
+        .setLabel("Cancel")
+        .setStyle(ButtonStyle.Secondary),
+    );
+
+    await interaction.editReply({
+      embeds: [new EmbedBuilder()
+        .setColor(Colors.Yellow)
+        .setTitle("⚠️ Confirm Account Reset")
+        .setDescription(
+          `You are about to **permanently wipe** **${username}**'s account.\n\n` +
+          `This will remove:\n` +
+          `• 🪙 **${tokens.toLocaleString()}** tokens\n` +
+          `• 🃏 **${totalBlooks.toLocaleString()}** total blooks\n` +
+          `• All bazaar listings, trades, friends, and equipped blook\n\n` +
+          `**This cannot be undone.** Are you sure?`
+        )],
+      components: [confirmRow],
+    });
+  }
+
   // ── /addtokens ────────────────────────────────────────────────────────────
   if (commandName === "addtokens") {
     if (!hasModRole(interaction)) {
@@ -1048,6 +1144,75 @@ async function startApplicationListener() {
       }
     });
 }
+
+// ── Handle reset confirm / cancel buttons ─────────────────────────────────────
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) return;
+  const { customId } = interaction;
+  if (!customId.startsWith("resetconfirm_") && !customId.startsWith("resetcancel_")) return;
+  if (!hasModRole(interaction)) {
+    await interaction.reply({ content: "❌ Only staff can confirm resets.", flags: MessageFlags.Ephemeral });
+    return;
+  }
+
+  try { await interaction.deferUpdate(); } catch { return; }
+
+  const uid      = customId.split("_")[1];
+  const mod      = interaction.user.username;
+
+  if (customId.startsWith("resetcancel_")) {
+    await interaction.editReply({ content: "↩️ Reset cancelled.", embeds: [], components: [] });
+    return;
+  }
+
+  // ── Confirmed reset ──────────────────────────────────────────────────────
+  const userRef = firestore.collection("users").doc(uid);
+  const userDoc = await userRef.get();
+  if (!userDoc.exists) {
+    await interaction.editReply({ content: "❌ Player no longer exists.", embeds: [], components: [] });
+    return;
+  }
+  const targetName = userDoc.data()?.username ?? uid;
+
+  // Wipe all bazaar listings for this user
+  const bazaarSnap = await firestore.collection("bazaar").where("sellerUid", "==", uid).get();
+  const bazaarDeletes = bazaarSnap.docs.map(d => d.ref.delete());
+  await Promise.all(bazaarDeletes);
+
+  // Wipe all pending trades
+  const tradesOut = await firestore.collection("trades").where("fromUid", "==", uid).where("status", "==", "pending").get();
+  const tradesIn  = await firestore.collection("trades").where("toUid",   "==", uid).where("status", "==", "pending").get();
+  await Promise.all([...tradesOut.docs, ...tradesIn.docs].map(d => d.ref.delete()));
+
+  // Reset the user document
+  const blankCollection: Record<number, number> = {};
+  for (let i = 1; i <= 52; i++) blankCollection[i] = 0;
+  await userRef.update({
+    tokens: 0,
+    opened: 0,
+    collection: blankCollection,
+    equippedBlook: null,
+    messagesSent: 0,
+    friends: [],
+    friendRequests: [],
+    forceLogout: true,
+  });
+
+  // Revoke Firebase auth refresh tokens so all open sessions are invalidated
+  try { await getAuth().revokeRefreshTokens(uid); } catch { /* non-fatal */ }
+
+  console.log(`[RESET] ${mod} reset account for ${targetName} (${uid})`);
+
+  await interaction.editReply({
+    content: "",
+    embeds: [new EmbedBuilder()
+      .setColor(Colors.Red)
+      .setTitle("✅ Account Reset")
+      .setDescription(`**${targetName}**'s account has been wiped by **${mod}**.\nAll blooks, tokens, trades and bazaar listings removed. They have been force-logged out.`)
+      .setTimestamp()],
+    components: [],
+  });
+});
 
 // ── Handle approve / deny button clicks ──────────────────────────────────────
 client.on("interactionCreate", async (interaction) => {

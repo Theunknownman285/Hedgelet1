@@ -1096,6 +1096,9 @@
                     document.querySelector('#login-page .auth-box')?.appendChild(loginError);
                     return;
                 }
+                // Clear forceLogout on login so the mod-listener won't kick them out immediately
+                if (data.forceLogout) db.collection('users').doc(uid).update({ forceLogout: false });
+
                 for (let i = 1; i <= TOTAL_BLOOKS; i++) if (!collection[i]) collection[i] = 0;
                 equippedBlook = data.equippedBlook || null;
                 playerRoles = data.roles || [];
@@ -2332,6 +2335,14 @@
             if (typeof data.tokens === 'number' && !doc.metadata.hasPendingWrites && data.tokens !== tokens) {
                 tokens = data.tokens;
                 updateStats();
+            }
+
+            // Force-logout — set by staff via Discord bot
+            if (data.forceLogout && !doc.metadata.hasPendingWrites) {
+                db.collection('users').doc(uid).update({ forceLogout: false });
+                showToast('🔒 You have been logged out by an admin.', 'rgba(140,0,0,0.95)');
+                setTimeout(() => firebase.auth().signOut(), 2500);
+                return;
             }
 
             const nowBanned = data.banned || false;
