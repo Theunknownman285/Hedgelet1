@@ -539,7 +539,9 @@ client.on("interactionCreate", async (interaction) => {
   } else if (commandName === "addrole" || commandName === "removerole") {
     const role = interaction.options.getString("role", true);
     const snap = await ref.get();
-    const current: string[] = snap.exists ? (snap.data()?.roles ?? []) : [];
+    const rawRoles = snap.exists ? snap.data()?.roles : undefined;
+    const current: string[] = Array.isArray(rawRoles) ? rawRoles.map(String) : [];
+    console.log(`[ROLE] ${commandName} by ${mod} on ${username} (uid:${user.uid}) role="${role}" current=${JSON.stringify(current)}`);
 
     if (commandName === "addrole") {
       if (current.includes(role)) {
@@ -551,7 +553,7 @@ client.on("interactionCreate", async (interaction) => {
       }
       const updated = [...current, role];
       await ref.update({ roles: updated });
-      console.log(`[ROLE] ${mod} added ${role} to ${username}`);
+      console.log(`[ROLE] ${mod} added ${role} to ${username} → ${JSON.stringify(updated)}`);
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(0x4caf50).setTitle("✅ Role Added")
           .setDescription(`**${ROLE_LABELS[role] ?? role}** has been added to **${username}**.`)],
@@ -565,13 +567,13 @@ client.on("interactionCreate", async (interaction) => {
       if (!current.includes(role)) {
         await interaction.editReply({
           embeds: [new EmbedBuilder().setColor(Colors.Yellow)
-            .setDescription(`⚠️ **${username}** does not have the **${ROLE_LABELS[role] ?? role}** role.`)],
+            .setDescription(`⚠️ **${username}** does not have the **${ROLE_LABELS[role] ?? role}** role.\n*(Stored roles: ${current.length ? current.join(", ") : "none"})*`)],
         });
         return;
       }
       const updated = current.filter(r => r !== role);
       await ref.update({ roles: updated });
-      console.log(`[ROLE] ${mod} removed ${role} from ${username}`);
+      console.log(`[ROLE] ${mod} removed ${role} from ${username} → ${JSON.stringify(updated)}`);
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Orange).setTitle("🗑️ Role Removed")
           .setDescription(`**${ROLE_LABELS[role] ?? role}** has been removed from **${username}**.`)],
