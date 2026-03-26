@@ -974,6 +974,8 @@
         if (user) {
             currentUid = user.uid;
             loadPlayerData(user.uid);
+            // Fire-and-forget IP tracking for alt detection
+            apiCall('/api/track', {}).catch(() => {});
         } else {
             currentUid = null;
             // Always restore login screen when signed out

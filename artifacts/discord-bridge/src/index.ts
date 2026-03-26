@@ -190,6 +190,12 @@ const commands = [
           { name: "5x Luck",                value: 5 },
           { name: "10x Luck",               value: 10 },
         )),
+
+  new SlashCommandBuilder()
+    .setName("alt")
+    .setDescription("Check if a player has alt accounts linked by IP (Staff only)")
+    .addStringOption(o =>
+      o.setName("username").setDescription("Hedgelet username to check").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -585,6 +591,95 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
   } // end mod commands block
+
+  // ── /alt ─────────────────────────────────────────────────────────────────
+  if (commandName === "alt") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can use the alt checker.");
+      return;
+    }
+    await interaction.deferReply();
+
+    const target = await findUserByUsername(username);
+    if (!target) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
+          .setDescription(`No Hedgelet player named **${username}**.`)],
+      });
+      return;
+    }
+
+    const knownIps: string[] = Array.isArray(target.data.knownIps) ? target.data.knownIps : [];
+    if (knownIps.length === 0) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(0x888888).setTitle("🔍 No IP Data")
+          .setDescription(`**${username}** has no IP data on record yet. They need to log in after this update is deployed.`)],
+      });
+      return;
+    }
+
+    // Query for all other users who share any known IP (one query per IP)
+    const altMap = new Map<string, { username: string; ips: string[] }>();
+    await Promise.all(knownIps.map(async (ip) => {
+      const snap = await firestore.collection("users")
+        .where("knownIps", "array-contains", ip)
+        .get();
+      for (const doc of snap.docs) {
+        if (doc.id === target.uid) continue;
+        const d = doc.data();
+        const uname = d.username ?? doc.id;
+        if (!altMap.has(doc.id)) {
+          altMap.set(doc.id, { username: uname, ips: [ip] });
+        } else {
+          altMap.get(doc.id)!.ips.push(ip);
+        }
+      }
+    }));
+
+    const mod = interaction.user.username;
+    console.log(`[ALT] ${mod} checked alts for ${username} (${target.uid}) — ${altMap.size} match(es)`);
+
+    if (altMap.size === 0) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("✅ No Alts Detected")
+          .setDescription(`**${username}** has no other accounts linked by IP address.`)
+          .setFooter({ text: `IPs checked: ${knownIps.length}` })],
+      });
+      return;
+    }
+
+    // Build alt list
+    const altLines = [...altMap.values()].map(a =>
+      `• **${a.username}** *(${a.ips.length} shared IP${a.ips.length > 1 ? "s" : ""})*`
+    );
+
+    // Find staff role mentions in the guild
+    const guild = interaction.guild;
+    const staffMentions: string[] = [];
+    if (guild) {
+      const staffRoleNames = ["owner", "co-owner", "co owner", "admin", "administrator"];
+      for (const [, role] of guild.roles.cache) {
+        if (staffRoleNames.includes(role.name.toLowerCase())) {
+          staffMentions.push(`<@&${role.id}>`);
+        }
+      }
+    }
+
+    const altEmbed = new EmbedBuilder()
+      .setColor(Colors.Red)
+      .setTitle("⚠️ Alts Detected")
+      .setDescription(
+        `**${username}** appears to share IP addresses with ${altMap.size} other account${altMap.size > 1 ? "s" : ""}:\n\n` +
+        altLines.join("\n")
+      )
+      .setFooter({ text: `Checked by ${mod} · IPs on record: ${knownIps.length}` })
+      .setTimestamp();
+
+    await interaction.editReply({
+      ...(staffMentions.length > 0 ? { content: staffMentions.join(" ") } : {}),
+      embeds: [altEmbed],
+    });
+  }
 
   // ── /addtokens ────────────────────────────────────────────────────────────
   if (commandName === "addtokens") {
