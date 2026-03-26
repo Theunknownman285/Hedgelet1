@@ -196,6 +196,12 @@ const commands = [
     .setDescription("Check if a player has alt accounts linked by IP (Staff only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username to check").setRequired(true)),
+
+  new SlashCommandBuilder()
+    .setName("blook")
+    .setDescription("See how many of a blook exist and what it's worth")
+    .addStringOption(o =>
+      o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -366,10 +372,15 @@ function generatePartnerCode(): string {
   return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
 }
 
-// ── Autocomplete: /give blook field ──────────────────────────────────────────
+// ── Sell prices (mirrors frontend SELL_PRICES) ────────────────────────────────
+const SELL_PRICES: Record<string, number> = {
+  common: 5, uncommon: 8, rare: 15, epic: 35, legendary: 75, chroma: 200, mythical: 0,
+};
+
+// ── Autocomplete: /give and /blook blook field ────────────────────────────────
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isAutocomplete()) return;
-  if (interaction.commandName !== "give") return;
+  if (interaction.commandName !== "give" && interaction.commandName !== "blook") return;
   const focused = interaction.options.getFocused().toLowerCase();
   const choices = Object.entries(BLOOK_DATA)
     .filter(([, b]) => b.name.toLowerCase().includes(focused))
@@ -679,6 +690,88 @@ client.on("interactionCreate", async (interaction) => {
       ...(staffMentions.length > 0 ? { content: staffMentions.join(" ") } : {}),
       embeds: [altEmbed],
     });
+  }
+
+  // ── /blook ────────────────────────────────────────────────────────────────
+  if (commandName === "blook") {
+    await interaction.deferReply();
+
+    const blookIdStr = interaction.options.getString("blook", true);
+    const blookId    = parseInt(blookIdStr, 10);
+    const blookInfo  = BLOOK_DATA[blookId];
+
+    if (!blookInfo) {
+      await interaction.editReply({
+        embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Unknown Blook")
+          .setDescription("That blook wasn't found. Use autocomplete to pick one.")],
+      });
+      return;
+    }
+
+    // Count total quantity and unique holders across all players
+    const allUsersSnap = await firestore.collection("users").get();
+    let totalQty    = 0;
+    let holderCount = 0;
+    const topHolders: { username: string; count: number }[] = [];
+
+    for (const doc of allUsersSnap.docs) {
+      const data = doc.data();
+      const col  = data.collection ?? {};
+      const cnt  = Number(col[blookId] ?? col[String(blookId)] ?? 0);
+      if (cnt > 0) {
+        totalQty    += cnt;
+        holderCount += 1;
+        topHolders.push({ username: data.username ?? doc.id, count: cnt });
+      }
+    }
+
+    // Sort top holders descending and take top 5
+    topHolders.sort((a, b) => b.count - a.count);
+    const top5 = topHolders.slice(0, 5);
+
+    // Check current bazaar listings for this blook
+    const bazaarSnap = await firestore.collection("bazaar")
+      .where("blookId", "==", blookId)
+      .get();
+    const bazaarListings = bazaarSnap.docs.map(d => d.data());
+    bazaarListings.sort((a, b) => a.price - b.price);
+    const cheapestListing = bazaarListings[0] ?? null;
+
+    const rarity    = blookInfo.rarity || "common";
+    const sellPrice = SELL_PRICES[rarity] ?? 0;
+    const icon      = blookInfo.emoji || "🃏";
+    const color     = RARITY_COLORS[rarity] ?? 0x888888;
+    const rarLabel  = RARITY_LABELS[rarity] ?? rarity;
+
+    const embed = new EmbedBuilder()
+      .setColor(color)
+      .setTitle(`${icon} ${blookInfo.name}`)
+      .addFields(
+        { name: "Rarity",          value: rarLabel,                                 inline: true  },
+        { name: "Sell Price",      value: sellPrice > 0 ? `🪙 ${sellPrice}` : `Not sellable`, inline: true },
+        { name: "Total in Game",   value: totalQty.toLocaleString(),                inline: true  },
+        { name: "Unique Holders",  value: holderCount.toLocaleString(),             inline: true  },
+        {
+          name:  "Current Bazaar Listings",
+          value: bazaarListings.length > 0
+            ? `${bazaarListings.length} listing${bazaarListings.length !== 1 ? "s" : ""} · Cheapest: 🪙 **${cheapestListing!.price.toLocaleString()}** by **${cheapestListing!.sellerUsername ?? "?"}**`
+            : "None listed right now",
+          inline: false,
+        },
+        {
+          name:  "Top Holders",
+          value: top5.length > 0
+            ? top5.map((h, i) => `${i + 1}. **${h.username}** — ×${h.count}`).join("\n")
+            : "Nobody owns this blook yet",
+          inline: false,
+        },
+      )
+      .setFooter({ text: "Hedgelet Blook Database" })
+      .setTimestamp();
+
+    if (blookInfo.imageUrl) embed.setThumbnail(blookInfo.imageUrl);
+
+    await interaction.editReply({ embeds: [embed] });
   }
 
   // ── /addtokens ────────────────────────────────────────────────────────────
