@@ -3044,7 +3044,12 @@
             </div>
             <div class="clan-section-label">Members</div>
             <div class="clan-members-grid">${memberRows || '<p style="color:rgba(255,255,255,0.4);font-size:13px;">No members yet.</p>'}</div>
-            <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,0.3);">Clan ID: ${escHtml(clan.id)}</div>`;
+            <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:32px;">Clan ID: ${escHtml(clan.id)}</div>
+            <div class="clan-divider"><hr><span>Browse Other Clans</span><hr></div>
+            <div class="clan-browse-grid" id="clan-browse-grid">
+                <p style="color:rgba(255,255,255,0.4);font-size:13px;">Loading...</p>
+            </div>`;
+        loadBrowseClans();
     }
 
     function renderNoClan(inner) {
@@ -3197,11 +3202,19 @@
         const statusEl = document.getElementById('clan-status-msg');
         if (statusEl) { statusEl.style.color = '#FFD700'; statusEl.textContent = '⏳ Uploading banner...'; }
         try {
-            const ref = storage.ref(`clan-banners/${currentClanData.id}`);
-            await ref.put(file);
-            const url = await ref.getDownloadURL();
-            await db.collection('clans').doc(currentClanData.id).update({ bannerUrl: url });
+            const imageBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            const result = await apiCall('/api/clans/upload-banner', {
+                clanId: currentClanData.id,
+                imageBase64,
+                mimeType: file.type,
+            });
             if (statusEl) statusEl.textContent = '';
+            currentClanData.bannerUrl = result.url;
             showToast('🖼️ Banner updated!');
             renderClanPage();
         } catch (e) {
