@@ -390,17 +390,34 @@ const SELL_PRICES: Record<string, number> = {
 };
 
 // ── Autocomplete: /give and /blook blook field ────────────────────────────────
+const RARITY_SORT_ORDER: Record<string, number> = {
+  mythical: 0, chroma: 1, legendary: 2, epic: 3, rare: 4, uncommon: 5, common: 6,
+};
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isAutocomplete()) return;
   if (interaction.commandName !== "give" && interaction.commandName !== "blook") return;
-  const focused = interaction.options.getFocused().toLowerCase();
-  const choices = Object.entries(BLOOK_DATA)
-    .filter(([, b]) => b.name.toLowerCase().includes(focused))
-    .slice(0, 25)
-    .map(([id, b]) => ({
-      name: `${b.emoji || "🃏"} ${b.name} — ${RARITY_LABELS[b.rarity] || b.rarity}`,
-      value: id,
-    }));
+  const focused = interaction.options.getFocused().toLowerCase().trim();
+
+  const allEntries = Object.entries(BLOOK_DATA);
+
+  // Filter: match by name OR by blook ID number
+  const filtered = focused === ""
+    ? allEntries  // no filter — show all, sorted by rarity
+    : allEntries.filter(([id, b]) =>
+        b.name.toLowerCase().includes(focused) || id === focused
+      );
+
+  // Sort: rarer blooks first so they appear at the top of the default list
+  filtered.sort(([, a], [, b]) =>
+    (RARITY_SORT_ORDER[a.rarity] ?? 7) - (RARITY_SORT_ORDER[b.rarity] ?? 7)
+  );
+
+  const choices = filtered.slice(0, 25).map(([id, b]) => ({
+    name: `${b.emoji || "🃏"} ${b.name} — ${RARITY_LABELS[b.rarity] || b.rarity}`,
+    value: id,
+  }));
+
   await interaction.respond(choices);
 });
 
@@ -467,7 +484,7 @@ client.on("interactionCreate", async (interaction) => {
         { name: "🪙 Tokens",           value: tokens,            inline: true  },
         { name: "📦 Packs Opened",     value: opened,            inline: true  },
         { name: "💬 Messages Sent",    value: msgs,              inline: true  },
-        { name: "✨ Blooks Unlocked",  value: `${unlocked} / 35`,inline: true  },
+        { name: "✨ Blooks Unlocked",  value: `${unlocked} / ${Object.keys(BLOOK_DATA).length}`,inline: true  },
         { name: "👥 Friends",          value: String(friends),   inline: true  },
         { name: "📅 Joined",           value: joinedStr,         inline: true  },
         { name: "🏷️ Roles",            value: rolesStr,          inline: false },
