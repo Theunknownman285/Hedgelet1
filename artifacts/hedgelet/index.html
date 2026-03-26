@@ -49,6 +49,11 @@
         .qty-btn.selected { background:#8e44ad; border-color:#8e44ad; }
         .summary-grid { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:16px 0; }
         .summary-blook { width:64px; text-align:center; font-size:10px; color:rgba(255,255,255,0.85); }
+        @keyframes luck-pop { 0%{transform:scale(0.5);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+        @keyframes luck-fade { 0%{opacity:1} 100%{opacity:0} }
+        .luck-banner { position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px); }
+        .luck-inner { text-align:center;animation:luck-pop 0.5s cubic-bezier(.34,1.56,.64,1) forwards; }
+        .luck-active-badge { position:fixed;top:12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#27ae60,#2ecc71);color:white;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:bold;z-index:9999;box-shadow:0 2px 12px rgba(46,204,113,0.5);pointer-events:none; }
         @keyframes pack-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .pack-card:hover { animation: none; transform: translateY(-14px) scale(1.07); box-shadow: 0 22px 44px rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.45); }
         .pack-card::after { content:''; position:absolute; top:-50%; left:-70%; width:40%; height:200%; background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.35) 50%,transparent 60%); transform:skewX(-15deg); transition:left 0.55s ease; }
@@ -1371,6 +1376,58 @@
     }
 
     // ─── PACK OPENING ─────────────────────────────────────────────────────────
+    // ─── LUCK SYSTEM ─────────────────────────────────────────────────────────────
+    let luckMultiplier = 1;
+    let luckBadgeEl = null;
+
+    function showLuckAnnouncement(mult, by) {
+        const banner = document.createElement('div');
+        banner.className = 'luck-banner';
+        banner.innerHTML = `
+            <div class="luck-inner">
+                <div style="font-size:90px;line-height:1;">🍀</div>
+                <div style="font-size:52px;font-weight:900;color:#2ecc71;text-shadow:0 0 30px #2ecc71;margin:8px 0;">${mult}x LUCK!</div>
+                <div style="font-size:18px;color:rgba(255,255,255,0.85);margin-bottom:6px;">Pack odds boosted for everyone!</div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.55);">Activated by ${by}</div>
+            </div>`;
+        banner.onclick = () => banner.remove();
+        document.body.appendChild(banner);
+        setTimeout(() => { banner.style.animation = 'luck-fade 0.6s ease forwards'; setTimeout(() => banner.remove(), 600); }, 5000);
+    }
+
+    function updateLuckBadge() {
+        if (luckBadgeEl) { luckBadgeEl.remove(); luckBadgeEl = null; }
+        if (luckMultiplier > 1) {
+            luckBadgeEl = document.createElement('div');
+            luckBadgeEl.className = 'luck-active-badge';
+            luckBadgeEl.innerText = `🍀 ${luckMultiplier}x Luck Active`;
+            document.body.appendChild(luckBadgeEl);
+        }
+    }
+
+    // Listen to Firebase Realtime Database for global luck changes
+    rtdb.ref('globalLuck').on('value', snap => {
+        const data = snap.val();
+        const newMult = data?.multiplier || 1;
+        const prev = luckMultiplier;
+        luckMultiplier = newMult;
+        if (newMult > 1 && newMult !== prev) showLuckAnnouncement(newMult, data?.activatedBy || 'Staff');
+        updateLuckBadge();
+    });
+
+    const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','chroma','mythical'];
+    function bestRoll(rollFn) {
+        if (luckMultiplier <= 1) return rollFn();
+        let best = rollFn();
+        for (let i = 1; i < luckMultiplier; i++) {
+            const candidate = rollFn();
+            const br = blookData[best]?.rarity || 'common';
+            const cr = blookData[candidate]?.rarity || 'common';
+            if (RARITY_ORDER.indexOf(cr) > RARITY_ORDER.indexOf(br)) best = candidate;
+        }
+        return best;
+    }
+
     // ─── BLOOK ROLL FUNCTIONS ────────────────────────────────────────────────────
     function rollHedgehogPack() { return Math.floor(Math.random() * 10) + 1; }
     function rollFastFoodPack() {
@@ -1407,27 +1464,27 @@
     function startOpening() {
         if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
         tokens -= 25; opened++; updateStats(); savePlayerData();
-        pendingBlook = rollHedgehogPack(); showReveal();
+        pendingBlook = bestRoll(rollHedgehogPack); showReveal();
     }
     function openFastFoodPack() {
         if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
         tokens -= 20; opened++; updateStats(); savePlayerData();
-        pendingBlook = rollFastFoodPack(); showReveal();
+        pendingBlook = bestRoll(rollFastFoodPack); showReveal();
     }
     function openBreakfastPack() {
         if (tokens < 22) { alert('Not enough tokens! You need 22 tokens.'); return; }
         tokens -= 22; opened++; updateStats(); savePlayerData();
-        pendingBlook = rollBreakfastPack(); showReveal();
+        pendingBlook = bestRoll(rollBreakfastPack); showReveal();
     }
     function openFruitPack() {
         if (tokens < 18) { alert('Not enough tokens! You need 18 tokens.'); return; }
         tokens -= 18; opened++; updateStats(); savePlayerData();
-        pendingBlook = rollFruitPack(); showReveal();
+        pendingBlook = bestRoll(rollFruitPack); showReveal();
     }
     function openEmojiPack() {
         if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
         tokens -= 20; opened++; updateStats(); savePlayerData();
-        pendingBlook = rollEmojiPack(); showReveal();
+        pendingBlook = bestRoll(rollEmojiPack); showReveal();
     }
 
     function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
@@ -1463,7 +1520,7 @@
         const results = [];
         for (let i = 0; i < count; i++) {
             tokens -= autoOpenCost; opened++;
-            const id = autoOpenRollFn();
+            const id = bestRoll(autoOpenRollFn);
             collection[id] = (collection[id] || 0) + 1;
             results.push(id);
         }

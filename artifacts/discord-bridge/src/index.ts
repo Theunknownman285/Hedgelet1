@@ -176,6 +176,20 @@ const commands = [
       o.setName("username").setDescription("Hedgelet username to create the code for").setRequired(true))
     .addStringOption(o =>
       o.setName("code").setDescription("Custom code (auto-generated if blank)").setRequired(false)),
+
+  new SlashCommandBuilder()
+    .setName("setluck")
+    .setDescription("Set global pack-opening luck for all players (Staff only)")
+    .addIntegerOption(o =>
+      o.setName("multiplier")
+        .setDescription("Luck multiplier")
+        .setRequired(true)
+        .addChoices(
+          { name: "Off (1x — normal odds)", value: 1 },
+          { name: "3x Luck",                value: 3 },
+          { name: "5x Luck",                value: 5 },
+          { name: "10x Luck",               value: 10 },
+        )),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -668,6 +682,40 @@ client.on("interactionCreate", async (interaction) => {
         .setDescription(`Partner code **\`${code}\`** created for **${found.data.username}**.\nEvery time a player redeems it, they earn **+5 🪙**.`)
         .setFooter({ text: `Created by ${mod}` })],
     });
+  }
+
+  // ── /setluck ─────────────────────────────────────────────────────────────
+  if (commandName === "setluck") {
+    if (!hasModRole(interaction)) {
+      await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can set luck.");
+      return;
+    }
+    const multiplier = interaction.options.getInteger("multiplier", true);
+    const mod = interaction.user.username;
+    await rtdb.ref("globalLuck").set({
+      multiplier,
+      activatedBy: mod,
+      activatedAt: Date.now(),
+    });
+    if (multiplier === 1) {
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setColor(Colors.Grey)
+          .setTitle("🎲 Luck Reset")
+          .setDescription("Pack odds are back to **normal** for all players.")
+          .setFooter({ text: `Reset by ${mod}` })],
+      });
+      console.log(`[LUCK] ${mod} reset luck to 1x`);
+    } else {
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setColor(Colors.Green)
+          .setTitle(`🍀 ${multiplier}x Luck Activated!`)
+          .setDescription(`All players now have **${multiplier}x luck** when opening packs!\nOdds of rare+ blooks are multiplied — announced on all screens.`)
+          .setFooter({ text: `Activated by ${mod}` })],
+      });
+      console.log(`[LUCK] ${mod} set luck to ${multiplier}x`);
+    }
   }
 
   // ── /give ──────────────────────────────────────────────────────────────────
