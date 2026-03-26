@@ -1980,15 +1980,16 @@
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
         if (pendingBlook === 65) setTimeout(triggerCoolHedgehogAnim, 800); // Cool Hedgehog drives off!
-        // Announce legendary / chroma pulls to Discord
+        // Announce legendary / chroma / mythical pulls to Discord
         if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {
             const myName = document.getElementById('profile-username')?.innerText || 'Someone';
             apiCall('/api/drops/announce', {
-                blookName:  data.name,
-                blookEmoji: typeof data.emoji === 'string' && !data.emoji.startsWith('http') && !data.emoji.startsWith('/') ? data.emoji : '',
-                rarity:     data.rarity,
-                username:   myName,
-            }).catch(() => {}); // fire-and-forget, don't block the reveal
+                blookName:     data.name,
+                blookImageUrl: isImg(data.emoji) ? data.emoji : '',
+                rarity:        data.rarity,
+                username:      myName,
+                luckActive:    luckMultiplier > 1 ? luckMultiplier : 0,
+            }).catch(() => {}); // fire-and-forget
         }
 
         updateStats(); // refresh stat counters

@@ -4,11 +4,12 @@ import { requireAuth } from "../middlewares/auth.js";
 const router = Router();
 
 router.post("/drops/announce", requireAuth, async (req: Request, res: Response) => {
-  const { blookName, blookEmoji, rarity, username } = req.body as {
+  const { blookName, blookImageUrl, rarity, username, luckActive } = req.body as {
     blookName?: string;
-    blookEmoji?: string;
+    blookImageUrl?: string;
     rarity?: string;
     username?: string;
+    luckActive?: number;
   };
 
   const botToken  = process.env.DISCORD_BOT_TOKEN;
@@ -36,20 +37,22 @@ router.post("/drops/announce", requireAuth, async (req: Request, res: Response) 
 
   const color = rarityColors[rarity] ?? 0xFFD700;
   const label = rarityLabels[rarity] ?? rarity.toUpperCase();
-  const displayEmoji = blookEmoji && !blookEmoji.startsWith("http") && !blookEmoji.startsWith("/") ? blookEmoji : "";
-  const blookDisplay = displayEmoji ? `${displayEmoji} **${blookName}**` : `**${blookName}**`;
 
-  const payload = {
-    embeds: [
-      {
-        title: `${label} Pull!`,
-        description: `**${username}** just pulled ${blookDisplay}!`,
-        color,
-        footer: { text: "Hedgelet" },
-        timestamp: new Date().toISOString(),
-      },
-    ],
+  const footerParts = ["Hedgelet"];
+  if (luckActive && luckActive > 1) footerParts.push(`🍀 ${luckActive}x Luck was active`);
+
+  type EmbedField = { title: string; description: string; color: number; thumbnail?: { url: string }; footer: { text: string }; timestamp: string };
+  const embed: EmbedField = {
+    title: `${label} Pull!`,
+    description: `**${username}** just pulled **${blookName}**!`,
+    color,
+    footer: { text: footerParts.join(" · ") },
+    timestamp: new Date().toISOString(),
   };
+
+  if (blookImageUrl && blookImageUrl.startsWith("http")) {
+    embed.thumbnail = { url: blookImageUrl };
+  }
 
   try {
     const r = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
@@ -58,7 +61,7 @@ router.post("/drops/announce", requireAuth, async (req: Request, res: Response) 
         "Content-Type": "application/json",
         "Authorization": `Bot ${botToken}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ embeds: [embed] }),
     });
     if (!r.ok) {
       const text = await r.text();
