@@ -121,6 +121,21 @@
         .stat-label { font-size: 11px; font-weight: bold; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 26px; font-weight: bold; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.35); }
 
+        /* ── FNAF JUMPSCARE ── */
+        @keyframes js-shake {
+            0%,100% { transform: translate(0,0) scale(1); }
+            10%  { transform: translate(-20px, 12px) scale(1.08); }
+            20%  { transform: translate(18px, -14px) scale(1.05); }
+            30%  { transform: translate(-12px, 18px) scale(1.1); }
+            40%  { transform: translate(16px, -8px)  scale(1.06); }
+            50%  { transform: translate(-18px, 10px) scale(1.09); }
+            60%  { transform: translate(14px, -16px) scale(1.07); }
+            70%  { transform: translate(-10px, 14px) scale(1.04); }
+            80%  { transform: translate(12px, -10px) scale(1.08); }
+            90%  { transform: translate(-14px, 8px)  scale(1.05); }
+        }
+        @keyframes js-fadein { from { opacity:0; } to { opacity:1; } }
+
         /* ── LEADERBOARD ── */
         .lb-row { display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:12px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.08); transition:background 0.15s; }
         .lb-row:hover { background:rgba(255,255,255,0.12); }
@@ -474,6 +489,15 @@
                 <div class="pack-btns" onclick="event.stopPropagation()">
                     <button class="pack-btn" style="color:#333;" onclick="instantOpen(openEmojiPack)">⚡ Instant</button>
                     <button class="pack-btn" style="color:#333;" onclick="showAutoOpen('Emoji Pack',rollEmojiPack,20)">🔄 Auto</button>
+                </div>
+            </div>
+            <div class="pack-card" onclick="openFnafPack()" style="background:linear-gradient(135deg,#1a0033,#3a0a00);color:white;border:2px solid #8b0000;box-shadow:0 0 18px rgba(180,0,0,0.4);">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f43b.svg" style="width:70px;height:70px;filter:drop-shadow(0 0 8px #ff0000);">
+                <b style="color:#ff4444;">FNAF Pack</b><br><span style="font-size:12px;">30 Tokens</span>
+                <div style="font-size:10px;color:#ff9999;margin-top:2px;">⚠️ Freddy is watching...</div>
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openFnafPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('FNAF Pack',rollFnafPack,30)">🔄 Auto</button>
                 </div>
             </div>
         </div>
@@ -845,10 +869,21 @@
         49: { name: "Zany",           emoji: TW+'1f92a.svg', rarity: "uncommon", pack: "emoji" },
         50: { name: "Shushing",       emoji: TW+'1f92b.svg', rarity: "rare",     pack: "emoji" },
         51: { name: "Sleeping",       emoji: TW+'1f634.svg', rarity: "uncommon", pack: "emoji" },
-        52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" }
+        52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" },
+        // ── FNAF Pack ──
+        53: { name: "Bonnie",         emoji: TW+'1f430.svg', pack: "fnaf" },
+        54: { name: "Chica",          emoji: TW+'1f424.svg', pack: "fnaf" },
+        55: { name: "Balloon Boy",    emoji: TW+'1f388.svg', pack: "fnaf" },
+        56: { name: "Foxy",           emoji: TW+'1f98a.svg', rarity: "uncommon", pack: "fnaf" },
+        57: { name: "Mangle",         emoji: TW+'1f578.svg', rarity: "uncommon", pack: "fnaf" },
+        58: { name: "The Puppet",     emoji: TW+'1f3ad.svg', rarity: "rare",     pack: "fnaf" },
+        59: { name: "Toy Freddy",     emoji: TW+'1f9f8.svg', rarity: "epic",     pack: "fnaf" },
+        60: { name: "Springtrap",     emoji: TW+'1f480.svg', rarity: "legendary",pack: "fnaf" },
+        61: { name: "Golden Freddy",  emoji: TW+'2b50.svg',  rarity: "chroma",   pack: "fnaf" },
+        62: { name: "Freddy Fazbear", emoji: TW+'1f43b.svg', rarity: "mythical", pack: "fnaf" }
     };
 
-    const TOTAL_BLOOKS = 52;
+    const TOTAL_BLOOKS = 62;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
     const isImg = e => e && (e.startsWith('http') || e.startsWith('/'));
 
@@ -1510,6 +1545,20 @@
         if (r < 0.91) return 45; if (r < 0.95) return 50; if (r < 0.997) return 47;
         return 43;
     }
+    function rollFnafPack() {
+        // common: Bonnie 53 (20%), Chica 54 (20%), Balloon Boy 55 (16%)
+        // uncommon: Foxy 56 (17%), Mangle 57 (14%)
+        // rare: Puppet 58 (6%)
+        // epic: Toy Freddy 59 (4%)
+        // legendary: Springtrap 60 (2%)
+        // chroma: Golden Freddy 61 (0.6%)
+        // mythical: Freddy 62 (0.4%)
+        const r = Math.random();
+        if (r < 0.20) return 53; if (r < 0.40) return 54; if (r < 0.56) return 55;
+        if (r < 0.73) return 56; if (r < 0.87) return 57; if (r < 0.93) return 58;
+        if (r < 0.97) return 59; if (r < 0.99) return 60; if (r < 0.996) return 61;
+        return 62;
+    }
 
     // ─── PACK OPEN FUNCTIONS ─────────────────────────────────────────────────────
     let instantMode = false;
@@ -1537,6 +1586,11 @@
         if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
         tokens -= 20; opened++; updateStats(); savePlayerData();
         pendingBlook = bestRoll(rollEmojiPack); showReveal();
+    }
+    function openFnafPack() {
+        if (tokens < 30) { alert('Not enough tokens! You need 30 tokens.'); return; }
+        tokens -= 30; opened++; updateStats(); savePlayerData();
+        pendingBlook = bestRoll(rollFnafPack); showReveal();
     }
 
     function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
@@ -1600,6 +1654,48 @@
         document.getElementById('auto-summary-modal').style.display = 'flex';
     }
     function closeAutoSummary() { document.getElementById('auto-summary-modal').style.display = 'none'; }
+
+    // ─── FREDDY JUMPSCARE ─────────────────────────────────────────────────────
+    function triggerFreddyJumpscare() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = [
+            'position:fixed;inset:0;z-index:9999999;',
+            'display:flex;align-items:center;justify-content:center;',
+            'background:#0d0000;animation:js-fadein 0.05s ease;',
+            'cursor:pointer;'
+        ].join('');
+
+        const face = document.createElement('div');
+        face.style.cssText = [
+            'font-size:280px;line-height:1;',
+            'animation:js-shake 0.12s infinite;',
+            'filter:drop-shadow(0 0 60px #ff0000) drop-shadow(0 0 120px #ff0000);',
+            'user-select:none;'
+        ].join('');
+        face.innerText = '🐻';
+
+        const txt = document.createElement('div');
+        txt.style.cssText = [
+            'position:absolute;bottom:18%;left:50%;transform:translateX(-50%);',
+            'font-size:36px;font-weight:900;letter-spacing:4px;',
+            'color:#ff2222;text-shadow:0 0 20px #ff0000;',
+            'font-family:monospace;white-space:nowrap;'
+        ].join('');
+        txt.innerText = 'IT\'S ME';
+
+        overlay.appendChild(face);
+        overlay.appendChild(txt);
+        document.body.appendChild(overlay);
+
+        // Dismiss on click or after 2s
+        const dismiss = () => {
+            overlay.style.transition = 'opacity 0.4s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 420);
+        };
+        overlay.addEventListener('click', dismiss);
+        setTimeout(dismiss, 2000);
+    }
 
     // ─── SOB FLOOD ANIMATION ──────────────────────────────────────────────────
     function triggerSobFlood() {
@@ -1679,6 +1775,7 @@
         }
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
+        if (pendingBlook === 62) setTimeout(triggerFreddyJumpscare, 300); // Freddy jumpscares you!
 
         // Announce legendary / chroma pulls to Discord
         if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {

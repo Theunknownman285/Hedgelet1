@@ -335,6 +335,17 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   50: { name: "Shushing",       rarity: "rare",      emoji: "🤫" },
   51: { name: "Sleeping",       rarity: "uncommon",  emoji: "😴" },
   52: { name: "Yum",            rarity: "uncommon",  emoji: "😋" },
+  // FNAF Pack
+  53: { name: "Bonnie",         rarity: "common",    emoji: "🐰" },
+  54: { name: "Chica",          rarity: "common",    emoji: "🐤" },
+  55: { name: "Balloon Boy",    rarity: "common",    emoji: "🎈" },
+  56: { name: "Foxy",           rarity: "uncommon",  emoji: "🦊" },
+  57: { name: "Mangle",         rarity: "uncommon",  emoji: "🕸️" },
+  58: { name: "The Puppet",     rarity: "rare",      emoji: "🎭" },
+  59: { name: "Toy Freddy",     rarity: "epic",      emoji: "🧸" },
+  60: { name: "Springtrap",     rarity: "legendary", emoji: "💀" },
+  61: { name: "Golden Freddy",  rarity: "chroma",    emoji: "⭐" },
+  62: { name: "Freddy Fazbear", rarity: "mythical",  emoji: "🐻" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
