@@ -1505,12 +1505,10 @@
     function buyDay1Blook() {
         const state = getDay1WindowState();
         if (!state.open) { showToast('The shop is closed right now!', '#e74c3c'); return; }
-        const boughtKey = `day1_w_${getWindowId()}_${currentUid || 'guest'}`;
-        if (localStorage.getItem(boughtKey)) { showToast('Already bought this window!', '#e74c3c'); return; }
+        if (collection[36] > 0) { showToast('You already own the Day 1 Hedgehog!', '#e74c3c'); return; }
         if (tokens < 750) { showToast('Not enough tokens! Need 750 🪙', '#e74c3c'); return; }
         tokens -= 750; opened++;
-        collection[36] = (collection[36] || 0) + 1;
-        localStorage.setItem(boughtKey, '1');
+        collection[36] = 1;
         updateStats(); savePlayerData(); updateHedges();
         showToast('🦔 Day 1 Hedgehog unlocked!', '#8e44ad');
     }
