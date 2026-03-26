@@ -178,7 +178,7 @@ const commands = [
       o.setName("code").setDescription("Custom code (auto-generated if blank)").setRequired(false)),
 
   new SlashCommandBuilder()
-    .setName("setluck")
+    .setName("luck")
     .setDescription("Set global pack-opening luck for all players (Staff only)")
     .addIntegerOption(o =>
       o.setName("multiplier")
@@ -1036,8 +1036,8 @@ client.on("interactionCreate", async (interaction) => {
     });
   }
 
-  // ── /setluck ─────────────────────────────────────────────────────────────
-  if (commandName === "setluck") {
+  // ── /luck ─────────────────────────────────────────────────────────────
+  if (commandName === "luck") {
     if (!hasModRole(interaction)) {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can set luck.");
       return;
