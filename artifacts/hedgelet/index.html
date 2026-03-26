@@ -40,7 +40,6 @@
         .pack-btns { display:flex; gap:6px; margin-top:10px; justify-content:center; }
         .pack-btn { padding:5px 10px; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; flex:1; transition:opacity 0.2s; background:rgba(255,255,255,0.22); color:white; }
         .pack-btn:hover { opacity:0.75; }
-        .lts-timer { font-size:22px; font-weight:bold; font-family:monospace; margin:8px 0; }
         #auto-open-modal, #auto-summary-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:4000; align-items:center; justify-content:center; }
         #auto-summary-modal { z-index:4001; }
         #auto-open-box, #auto-summary-box { background:#2a1a3a; border-radius:18px; padding:28px; min-width:300px; color:white; text-align:center; }
@@ -465,23 +464,6 @@
             </div>
         </div>
 
-        <!-- Limited Time Shop -->
-        <div style="margin-top:24px;">
-            <div class="section-label" style="margin-bottom:10px;">⏳ Limited Time Shop</div>
-            <div id="lts-open" style="display:none;background:linear-gradient(135deg,#4a0080,#8e44ad);border:2px solid gold;border-radius:14px;padding:20px;text-align:center;color:white;">
-                <div style="font-size:48px;margin-bottom:6px;">🦔</div>
-                <b style="font-size:16px;">Day 1 Hedgehog</b>
-                <div style="font-size:12px;color:#ddd;margin-bottom:8px;">Mythical · 750 🪙</div>
-                <div style="font-size:13px;margin-bottom:12px;">Closes in: <span id="lts-countdown" class="lts-timer">0:00</span></div>
-                <button onclick="buyDay1Blook()" style="padding:10px 26px;background:gold;color:#333;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">Buy — 750 🪙</button>
-            </div>
-            <div id="lts-closed" style="background:rgba(255,255,255,0.07);border-radius:14px;padding:20px;text-align:center;color:rgba(255,255,255,0.7);">
-                <div style="font-size:13px;margin-bottom:4px;">Next window opens in</div>
-                <div id="lts-next" class="lts-timer">–:––</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px;">Day 1 Hedgehog · Available 5 min every hour</div>
-            </div>
-        </div>
-
         <!-- Partner Code -->
         <div style="margin-top:24px;background:rgba(255,255,255,0.08);border-radius:14px;padding:18px 20px;">
             <div class="section-label" style="margin-bottom:10px;">🤝 Partner Code</div>
@@ -592,12 +574,6 @@
     <!-- TRADE PAGE -->
     <div id="trade-page" class="page">
         <h2>Trade</h2>
-        <div style="margin-top:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;">
-            <div style="font-size:52px;">🚧</div>
-            <div style="font-size:22px;font-weight:bold;">Not Available in Beta</div>
-            <div style="font-size:15px;opacity:0.7;max-width:340px;line-height:1.6;">Trading will be unlocked in a future update. Stay tuned!</div>
-        </div>
-        <div style="display:none;">
         <div class="trade-tabs">
             <button id="tab-send-btn" class="trade-tab-btn active" onclick="showTradeTab('send')">Send Trade</button>
             <button id="tab-incoming-btn" class="trade-tab-btn" onclick="showTradeTab('incoming')">Incoming Trades</button>
@@ -634,7 +610,6 @@
         <div id="trade-incoming-tab" style="display:none;">
             <button onclick="loadIncomingTrades()" style="padding:8px 18px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-bottom:15px;">↻ Refresh</button>
             <div id="incoming-trades-list"></div>
-        </div>
         </div>
     </div>
 
@@ -1174,6 +1149,19 @@
         if (msgEl) msgEl.innerText = messagesSent.toLocaleString();
     }
 
+    // ─── API HELPER ───────────────────────────────────────────────────────────
+    async function apiCall(path, body) {
+        const token = await firebase.auth().currentUser.getIdToken();
+        const res = await fetch(path, {
+            method: body ? 'POST' : 'GET',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+    }
+
     // ─── FRIENDS SYSTEM ───────────────────────────────────────────────────────
     function friendStatus(msg, color) {
         const el = document.getElementById('friend-status');
@@ -1255,16 +1243,11 @@
             const theirDoc = snap.docs[0];
             const theirUid = theirDoc.id;
             if (friends.includes(theirUid)) { friendStatus('Already friends!', '#4CAF50'); return; }
-            const theirData = theirDoc.data();
-            const theirRequests = theirData.friendRequests || [];
-            if (theirRequests.includes(currentUid)) { friendStatus('Request already sent!', '#FF9800'); return; }
-            await db.collection('users').doc(theirUid).update({
-                friendRequests: firebase.firestore.FieldValue.arrayUnion(currentUid)
-            });
+            await apiCall('/api/friend-request', { targetUid: theirUid });
             input.value = '';
-            friendStatus(`Friend request sent to ${theirData.username}!`, '#4CAF50');
+            friendStatus(`Friend request sent to ${theirDoc.data().username}!`, '#4CAF50');
         } catch (e) {
-            friendStatus('Error — check Firestore rules.', '#e53935');
+            friendStatus('❌ ' + (e.message || 'Could not send request.'), '#e53935');
         }
     }
 
@@ -1349,30 +1332,22 @@
 
     async function acceptFriendRequest(uid, username) {
         try {
-            await db.collection('users').doc(currentUid).update({
-                friends: firebase.firestore.FieldValue.arrayUnion(uid),
-                friendRequests: firebase.firestore.FieldValue.arrayRemove(uid)
-            });
-            await db.collection('users').doc(uid).update({
-                friends: firebase.firestore.FieldValue.arrayUnion(currentUid)
-            });
+            await apiCall('/api/friend-accept', { fromUid: uid });
             friends.push(uid);
             friendRequests = friendRequests.filter(x => x !== uid);
             updateRequestsBadge();
             showToast(`${username} is now your friend!`, 'rgba(30,140,70,0.95)');
             loadFriends();
-        } catch (e) { friendStatus('Error accepting — check Firestore rules.', '#e53935'); }
+        } catch (e) { friendStatus('❌ ' + (e.message || 'Error accepting.'), '#e53935'); }
     }
 
     async function declineFriendRequest(uid) {
         try {
-            await db.collection('users').doc(currentUid).update({
-                friendRequests: firebase.firestore.FieldValue.arrayRemove(uid)
-            });
+            await apiCall('/api/friend-decline', { fromUid: uid });
             friendRequests = friendRequests.filter(x => x !== uid);
             updateRequestsBadge();
             showFriendRequests();
-        } catch (e) { friendStatus('Error declining — check Firestore rules.', '#e53935'); }
+        } catch (e) { friendStatus('❌ ' + (e.message || 'Error declining.'), '#e53935'); }
     }
 
     // ─── PACK OPENING ─────────────────────────────────────────────────────────
@@ -1548,44 +1523,6 @@
         document.getElementById('auto-summary-modal').style.display = 'flex';
     }
     function closeAutoSummary() { document.getElementById('auto-summary-modal').style.display = 'none'; }
-
-    // ─── LIMITED TIME SHOP (Day 1 Hedgehog — 5 min every hour) ───────────────────
-    function getWindowId() {
-        const d = new Date();
-        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
-    }
-    function getDay1WindowState() {
-        const now = new Date(); const m = now.getMinutes(); const s = now.getSeconds();
-        if (m < 5) return { open: true, remaining: (4 - m) * 60 + (60 - s) };
-        return { open: false, nextIn: (60 - m) * 60 - s };
-    }
-    function buyDay1Blook() {
-        const state = getDay1WindowState();
-        if (!state.open) { showToast('The shop is closed right now!', '#e74c3c'); return; }
-        if (collection[36] > 0) { showToast('You already own the Day 1 Hedgehog!', '#e74c3c'); return; }
-        if (tokens < 750) { showToast('Not enough tokens! Need 750 🪙', '#e74c3c'); return; }
-        tokens -= 750; opened++;
-        collection[36] = 1;
-        updateStats(); savePlayerData(); updateHedges();
-        showToast('🦔 Day 1 Hedgehog unlocked!', '#8e44ad');
-    }
-    function updateDay1Timer() {
-        const state = getDay1WindowState();
-        const openDiv = document.getElementById('lts-open');
-        const closedDiv = document.getElementById('lts-closed');
-        if (!openDiv) return;
-        if (state.open) {
-            openDiv.style.display = 'block'; closedDiv.style.display = 'none';
-            const m = Math.floor(state.remaining / 60), s = state.remaining % 60;
-            document.getElementById('lts-countdown').innerText = `${m}:${String(s).padStart(2,'0')}`;
-        } else {
-            openDiv.style.display = 'none'; closedDiv.style.display = 'block';
-            const m = Math.floor(state.nextIn / 60), s = state.nextIn % 60;
-            document.getElementById('lts-next').innerText = `${m}:${String(s).padStart(2,'0')}`;
-        }
-    }
-    setInterval(updateDay1Timer, 1000);
-    updateDay1Timer();
 
     // ─── SOB FLOOD ANIMATION ──────────────────────────────────────────────────
     function triggerSobFlood() {
@@ -1800,6 +1737,7 @@
         document.getElementById('trade-incoming-tab').style.display = tab === 'incoming' ? 'block' : 'none';
         document.getElementById('tab-send-btn').classList.toggle('active',     tab === 'send');
         document.getElementById('tab-incoming-btn').classList.toggle('active', tab === 'incoming');
+        if (tab === 'incoming') loadIncomingTrades();
     }
 
     async function searchTradeUser() {
@@ -1870,12 +1808,10 @@
         }
         const myUsername = document.getElementById('profile-username').innerText;
         try {
-            await db.collection('trades').add({
-                fromUid: currentUid, fromUsername: myUsername,
+            await apiCall('/api/trade/send', {
                 toUid: tradeTargetUid, toUsername: tradeTargetUsername,
+                fromUsername: myUsername,
                 offerBlooks: tradeOfferIds, requestBlooks: tradeRequestIds,
-                status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             showToast(`Trade sent to ${tradeTargetUsername}!`, 'rgba(30,140,70,0.95)');
             tradeTargetUid = null;
@@ -1883,8 +1819,7 @@
             document.getElementById('trade-search-input').value = '';
             document.getElementById('trade-search-status').innerText = '';
         } catch (e) {
-            showToast('Could not send trade — Firestore rules need updating.', 'rgba(180,40,40,0.95)');
-            console.error('sendTrade error:', e);
+            showToast('❌ ' + (e.message || 'Could not send trade.'), 'rgba(180,40,40,0.95)');
         }
     }
 
@@ -1892,78 +1827,50 @@
         if (!currentUid) return;
         const list = document.getElementById('incoming-trades-list');
         list.innerHTML = '<p style="opacity:0.5;">Loading...</p>';
-        let snap;
         try {
-            snap = await db.collection('trades')
-                .where('toUid', '==', currentUid)
-                .get();
+            const { trades } = await apiCall('/api/trade/incoming');
+            list.innerHTML = '';
+            if (!trades.length) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
+            trades.forEach(t => {
+                const offerEmojis   = (t.offerBlooks   || []).map(id => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+                const requestEmojis = (t.requestBlooks || []).map(id => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
+                const offerNames    = (t.offerBlooks   || []).map(id => blookData[id]?.name).join(', ') || 'nothing';
+                const requestNames  = (t.requestBlooks || []).map(id => blookData[id]?.name).join(', ') || 'nothing';
+                const div = document.createElement('div');
+                div.className = 'incoming-trade-card';
+                div.innerHTML = `
+                    <b style="font-size:16px;">From: ${t.fromUsername}</b>
+                    <div class="trade-blooks-preview">${offerEmojis} ⇄ ${requestEmojis}</div>
+                    <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">They offer: <b>${offerNames}</b></div>
+                    <div style="font-size:13px;opacity:0.8;margin-bottom:12px;">They want: <b>${requestNames}</b></div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="trade-action-btn" style="background:#4CAF50;color:white;" onclick="acceptTrade('${t.id}')">✓ Accept</button>
+                        <button class="trade-action-btn" style="background:#e53935;color:white;" onclick="declineTrade('${t.id}')">✕ Decline</button>
+                    </div>`;
+                list.appendChild(div);
+            });
         } catch (e) {
-            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ Could not load trades. Please try again.</p>`;
-            console.error('loadIncomingTrades error:', e);
-            return;
+            list.innerHTML = `<p style="color:#ff6b6b;font-size:13px;">⚠️ ${e.message || 'Could not load trades.'}</p>`;
         }
-        const pending = snap.docs.filter(d => d.data().status === 'pending');
-        list.innerHTML = '';
-        if (!pending.length) { list.innerHTML = '<p style="opacity:0.6;">No pending trades.</p>'; return; }
-        pending.forEach(doc => {
-            const t = doc.data();
-            const offerEmojis  = t.offerBlooks.map(id  => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
-            const requestEmojis = t.requestBlooks.map(id => isImg(blookData[id]?.emoji) ? '🖼️' : (blookData[id]?.emoji || '?')).join(' ') || '(nothing)';
-            const offerNames   = t.offerBlooks.map(id  => blookData[id]?.name).join(', ')  || 'nothing';
-            const requestNames = t.requestBlooks.map(id => blookData[id]?.name).join(', ') || 'nothing';
-            const div = document.createElement('div');
-            div.className = 'incoming-trade-card';
-            div.innerHTML = `
-                <b style="font-size:16px;">From: ${t.fromUsername}</b>
-                <div class="trade-blooks-preview">${offerEmojis} ⇄ ${requestEmojis}</div>
-                <div style="font-size:13px;opacity:0.8;margin-bottom:4px;">They offer: <b>${offerNames}</b></div>
-                <div style="font-size:13px;opacity:0.8;margin-bottom:12px;">They want: <b>${requestNames}</b></div>
-                <div style="display:flex;gap:10px;">
-                    <button class="trade-action-btn" style="background:#4CAF50;color:white;" onclick="acceptTrade('${doc.id}')">✓ Accept</button>
-                    <button class="trade-action-btn" style="background:#e53935;color:white;" onclick="declineTrade('${doc.id}')">✕ Decline</button>
-                </div>`;
-            list.appendChild(div);
-        });
     }
 
     async function acceptTrade(tradeId) {
-        const tradeRef = db.collection('trades').doc(tradeId);
         try {
-            await db.runTransaction(async tx => {
-                const tradeDoc = await tx.get(tradeRef);
-                if (!tradeDoc.exists || tradeDoc.data().status !== 'pending') throw new Error('Trade is no longer valid.');
-                const trade = tradeDoc.data();
-                const myRef    = db.collection('users').doc(currentUid);
-                const theirRef = db.collection('users').doc(trade.fromUid);
-                const [myDoc, theirDoc] = await Promise.all([tx.get(myRef), tx.get(theirRef)]);
-                const myCol    = { ...(myDoc.data().collection    || {}) };
-                const theirCol = { ...(theirDoc.data().collection || {}) };
-                for (const id of trade.requestBlooks) {
-                    if ((myCol[id] || 0) < 1) throw new Error(`You no longer have ${blookData[id]?.name}.`);
-                }
-                for (const id of trade.offerBlooks) {
-                    if ((theirCol[id] || 0) < 1) throw new Error(`${trade.fromUsername} no longer has ${blookData[id]?.name}.`);
-                }
-                for (const id of trade.requestBlooks) { myCol[id] = (myCol[id] || 0) - 1; theirCol[id] = (theirCol[id] || 0) + 1; }
-                for (const id of trade.offerBlooks)   { theirCol[id] = (theirCol[id] || 0) - 1; myCol[id] = (myCol[id] || 0) + 1; }
-                tx.update(myRef,    { collection: myCol });
-                tx.update(theirRef, { collection: theirCol });
-                tx.update(tradeRef, { status: 'accepted' });
-            });
-            alert('Trade accepted! Your collection has been updated.');
+            await apiCall('/api/trade/accept', { tradeId });
+            showToast('Trade accepted! Collection updated.', 'rgba(30,140,70,0.95)');
             loadPlayerData(currentUid);
             loadIncomingTrades();
         } catch (e) {
-            alert('Trade failed: ' + e.message);
+            showToast('❌ Trade failed: ' + (e.message || 'Unknown error'), 'rgba(180,40,40,0.95)');
         }
     }
 
     async function declineTrade(tradeId) {
         try {
-            await db.collection('trades').doc(tradeId).update({ status: 'declined' });
+            await apiCall('/api/trade/decline', { tradeId });
             loadIncomingTrades();
         } catch (e) {
-            showToast('Could not decline — Firestore rules need updating.', 'rgba(180,40,40,0.95)');
+            showToast('❌ ' + (e.message || 'Could not decline trade.'), 'rgba(180,40,40,0.95)');
         }
     }
 
