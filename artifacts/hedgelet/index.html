@@ -36,6 +36,19 @@
         .pack-card:nth-child(2) { animation-delay: 0.4s; }
         .pack-card:nth-child(3) { animation-delay: 0.8s; }
         .pack-card:nth-child(4) { animation-delay: 1.2s; }
+        .pack-card:nth-child(5) { animation-delay: 1.6s; }
+        .pack-btns { display:flex; gap:6px; margin-top:10px; justify-content:center; }
+        .pack-btn { padding:5px 10px; border:none; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; flex:1; transition:opacity 0.2s; background:rgba(255,255,255,0.22); color:white; }
+        .pack-btn:hover { opacity:0.75; }
+        .lts-timer { font-size:22px; font-weight:bold; font-family:monospace; margin:8px 0; }
+        #auto-open-modal, #auto-summary-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:4000; align-items:center; justify-content:center; }
+        #auto-summary-modal { z-index:4001; }
+        #auto-open-box, #auto-summary-box { background:#2a1a3a; border-radius:18px; padding:28px; min-width:300px; color:white; text-align:center; }
+        #auto-summary-box { max-width:500px; width:90%; max-height:80vh; overflow-y:auto; }
+        .qty-btn { padding:10px 18px; border:2px solid rgba(255,255,255,0.3); background:transparent; color:white; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; transition:all 0.2s; }
+        .qty-btn.selected { background:#8e44ad; border-color:#8e44ad; }
+        .summary-grid { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:16px 0; }
+        .summary-blook { width:64px; text-align:center; font-size:10px; color:rgba(255,255,255,0.85); }
         @keyframes pack-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .pack-card:hover { animation: none; transform: translateY(-14px) scale(1.07); box-shadow: 0 22px 44px rgba(0,0,0,0.35); border-color: rgba(255,255,255,0.45); }
         .pack-card::after { content:''; position:absolute; top:-50%; left:-70%; width:40%; height:200%; background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.35) 50%,transparent 60%); transform:skewX(-15deg); transition:left 0.55s ease; }
@@ -408,22 +421,59 @@
             <div class="pack-card" onclick="startOpening()">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f994.svg" style="width:70px;height:70px;">
                 <b>Hedgehog Pack</b><br>25 Tokens
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(startOpening)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Hedgehog Pack',rollHedgehogPack,25)">🔄 Auto</button>
+                </div>
             </div>
             <div class="pack-card" onclick="openFastFoodPack()" style="background: #D35400; color: white;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f354.svg" style="width:70px;height:70px;">
                 <b>Fast Food Pack</b><br>20 Tokens
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openFastFoodPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Fast Food Pack',rollFastFoodPack,20)">🔄 Auto</button>
+                </div>
             </div>
             <div class="pack-card" onclick="openBreakfastPack()" style="background: #E8A838; color: white;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f95e.svg" style="width:70px;height:70px;">
                 <b>Breakfast Pack</b><br>22 Tokens
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openBreakfastPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Breakfast Pack',rollBreakfastPack,22)">🔄 Auto</button>
+                </div>
             </div>
             <div class="pack-card" onclick="openFruitPack()" style="background: #27AE60; color: white;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f34c.svg" style="width:70px;height:70px;">
                 <b>Fruit Pack</b><br>18 Tokens
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openFruitPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Fruit Pack',rollFruitPack,18)">🔄 Auto</button>
+                </div>
             </div>
             <div class="pack-card" onclick="openEmojiPack()" style="background: #F7DC6F; color: #333;">
                 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f604.svg" style="width:70px;height:70px;">
                 <b>Emoji Pack</b><br>20 Tokens
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" style="color:#333;" onclick="instantOpen(openEmojiPack)">⚡ Instant</button>
+                    <button class="pack-btn" style="color:#333;" onclick="showAutoOpen('Emoji Pack',rollEmojiPack,20)">🔄 Auto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limited Time Shop -->
+        <div style="margin-top:24px;">
+            <div class="section-label" style="margin-bottom:10px;">⏳ Limited Time Shop</div>
+            <div id="lts-open" style="display:none;background:linear-gradient(135deg,#4a0080,#8e44ad);border:2px solid gold;border-radius:14px;padding:20px;text-align:center;color:white;">
+                <div style="font-size:48px;margin-bottom:6px;">🦔</div>
+                <b style="font-size:16px;">Day 1 Hedgehog</b>
+                <div style="font-size:12px;color:#ddd;margin-bottom:8px;">Mythical · 750 🪙</div>
+                <div style="font-size:13px;margin-bottom:12px;">Closes in: <span id="lts-countdown" class="lts-timer">0:00</span></div>
+                <button onclick="buyDay1Blook()" style="padding:10px 26px;background:gold;color:#333;border:none;border-radius:8px;font-weight:bold;font-size:14px;cursor:pointer;">Buy — 750 🪙</button>
+            </div>
+            <div id="lts-closed" style="background:rgba(255,255,255,0.07);border-radius:14px;padding:20px;text-align:center;color:rgba(255,255,255,0.7);">
+                <div style="font-size:13px;margin-bottom:4px;">Next window opens in</div>
+                <div id="lts-next" class="lts-timer">–:––</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px;">Day 1 Hedgehog · Available 5 min every hour</div>
             </div>
         </div>
 
@@ -619,6 +669,38 @@
 </div>
 
 <!-- REVEAL OVERLAY -->
+<!-- AUTO OPEN MODAL -->
+<div id="auto-open-modal">
+    <div id="auto-open-box">
+        <h3 id="auto-open-title" style="margin:0 0 14px;">Auto Open</h3>
+        <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:12px;">How many packs?</div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="qty-btn" onclick="selectQty(5)">5</button>
+            <button class="qty-btn" onclick="selectQty(10)">10</button>
+            <button class="qty-btn" onclick="selectQty(25)">25</button>
+            <button class="qty-btn" onclick="selectQty(50)">50</button>
+        </div>
+        <input id="auto-qty-input" type="number" min="1" max="999" placeholder="Custom amount..."
+            style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.12);color:white;text-align:center;margin-bottom:12px;outline:none;"
+            oninput="selectQty(parseInt(this.value)||1)">
+        <div id="auto-cost-label" style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:16px;"></div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button onclick="closeAutoOpen()" style="padding:10px 22px;border:none;border-radius:8px;background:rgba(255,255,255,0.15);color:white;font-weight:bold;cursor:pointer;">Cancel</button>
+            <button onclick="confirmAutoOpen()" style="padding:10px 22px;border:none;border-radius:8px;background:#8e44ad;color:white;font-weight:bold;cursor:pointer;">Open!</button>
+        </div>
+    </div>
+</div>
+
+<!-- AUTO OPEN SUMMARY MODAL -->
+<div id="auto-summary-modal">
+    <div id="auto-summary-box">
+        <h3 id="summary-title" style="margin:0 0 4px;"></h3>
+        <div id="summary-stats" style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:8px;"></div>
+        <div class="summary-grid" id="summary-grid"></div>
+        <button onclick="closeAutoSummary()" style="margin-top:4px;padding:10px 28px;border:none;border-radius:8px;background:#8e44ad;color:white;font-weight:bold;cursor:pointer;font-size:14px;">Done</button>
+    </div>
+</div>
+
 <div id="reveal-overlay">
     <div id="egg-stage" style="text-align:center;">
         <div style="font-size:100px; cursor:pointer;" onclick="hatchEgg()">🥚</div>
@@ -1289,96 +1371,166 @@
     }
 
     // ─── PACK OPENING ─────────────────────────────────────────────────────────
+    // ─── BLOOK ROLL FUNCTIONS ────────────────────────────────────────────────────
+    function rollHedgehogPack() { return Math.floor(Math.random() * 10) + 1; }
+    function rollFastFoodPack() {
+        const r = Math.random();
+        if (r < 0.20) return 30; if (r < 0.40) return 31; if (r < 0.58) return 32;
+        if (r < 0.75) return 33; if (r < 0.82) return 11; if (r < 0.89) return 12;
+        if (r < 0.95) return 34; if (r < 0.99) return 13; if (r < 0.998) return 14;
+        return 35;
+    }
+    function rollBreakfastPack() {
+        const r = Math.random();
+        if (r < 0.35) return 15; if (r < 0.65) return 16; if (r < 0.85) return 17;
+        if (r < 0.93) return 18; if (r < 0.98) return 19; if (r < 0.995) return 20;
+        return 21;
+    }
+    function rollFruitPack() {
+        const r = Math.random();
+        if (r < 0.30) return 22; if (r < 0.55) return 23; if (r < 0.75) return 24;
+        if (r < 0.88) return 25; if (r < 0.94) return 26; if (r < 0.98) return 27;
+        if (r < 0.995) return 28; return 29;
+    }
+    function rollEmojiPack() {
+        const r = Math.random();
+        if (r < 0.12) return 37; if (r < 0.24) return 38; if (r < 0.36) return 39;
+        if (r < 0.46) return 40; if (r < 0.55) return 46; if (r < 0.60) return 41;
+        if (r < 0.65) return 42; if (r < 0.70) return 44; if (r < 0.75) return 48;
+        if (r < 0.79) return 49; if (r < 0.825) return 51; if (r < 0.85) return 52;
+        if (r < 0.91) return 45; if (r < 0.95) return 50; if (r < 0.99) return 47;
+        return 43;
+    }
+
+    // ─── PACK OPEN FUNCTIONS ─────────────────────────────────────────────────────
+    let instantMode = false;
     function startOpening() {
         if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
-        tokens -= 25; opened++;
-        updateStats(); savePlayerData();
-        pendingBlook = Math.floor(Math.random() * 10) + 1;
-        showReveal();
+        tokens -= 25; opened++; updateStats(); savePlayerData();
+        pendingBlook = rollHedgehogPack(); showReveal();
     }
-
     function openFastFoodPack() {
         if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
-        tokens -= 20; opened++;
-        updateStats(); savePlayerData();
-        const rand = Math.random();
-        // Uncommon ~75%
-        if      (rand < 0.20)  pendingBlook = 30; // Hot Dog       20%
-        else if (rand < 0.40)  pendingBlook = 31; // Hamburger     20%
-        else if (rand < 0.58)  pendingBlook = 32; // Pizza         18%
-        else if (rand < 0.75)  pendingBlook = 33; // Taco          17%
-        // Rare ~20%
-        else if (rand < 0.82)  pendingBlook = 11; // Ketchup        7%
-        else if (rand < 0.89)  pendingBlook = 12; // Mustard        7%
-        else if (rand < 0.95)  pendingBlook = 34; // Soda           6%
-        // Epic ~4%
-        else if (rand < 0.99)  pendingBlook = 13; // French Fries   4%
-        // Legendary ~0.8%
-        else if (rand < 0.998) pendingBlook = 14; // Milkshake      0.8%
-        // Chroma ~0.2%
-        else                   pendingBlook = 35; // Golden Hot Dog 0.2%
-        showReveal();
+        tokens -= 20; opened++; updateStats(); savePlayerData();
+        pendingBlook = rollFastFoodPack(); showReveal();
     }
-
     function openBreakfastPack() {
         if (tokens < 22) { alert('Not enough tokens! You need 22 tokens.'); return; }
-        tokens -= 22; opened++;
-        updateStats(); savePlayerData();
-        const rand = Math.random();
-        if (rand < 0.35)      pendingBlook = 15; // Pancakes   35%
-        else if (rand < 0.65) pendingBlook = 16; // Bacon      30%
-        else if (rand < 0.85) pendingBlook = 17; // Eggs       20%
-        else if (rand < 0.93) pendingBlook = 18; // Coffee      8%  (uncommon)
-        else if (rand < 0.98) pendingBlook = 19; // Waffle      5%  (uncommon)
-        else if (rand < 0.995)pendingBlook = 20; // Toast       1.5%(rare)
-        else                  pendingBlook = 21; // Donut       0.5%(legendary)
-        showReveal();
+        tokens -= 22; opened++; updateStats(); savePlayerData();
+        pendingBlook = rollBreakfastPack(); showReveal();
     }
-
     function openFruitPack() {
         if (tokens < 18) { alert('Not enough tokens! You need 18 tokens.'); return; }
-        tokens -= 18; opened++;
-        updateStats(); savePlayerData();
-        const rand = Math.random();
-        if (rand < 0.30)      pendingBlook = 22; // Apple       30%
-        else if (rand < 0.55) pendingBlook = 23; // Grapes      25%
-        else if (rand < 0.75) pendingBlook = 24; // Strawberry  20%
-        else if (rand < 0.88) pendingBlook = 25; // Banana      13%
-        else if (rand < 0.94) pendingBlook = 26; // Watermelon   6% (uncommon)
-        else if (rand < 0.98) pendingBlook = 27; // Orange       4% (uncommon)
-        else if (rand < 0.995)pendingBlook = 28; // Cherry       1.5%(rare)
-        else                  pendingBlook = 29; // Peach        0.5%(legendary)
-        showReveal();
+        tokens -= 18; opened++; updateStats(); savePlayerData();
+        pendingBlook = rollFruitPack(); showReveal();
     }
-
     function openEmojiPack() {
         if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
-        tokens -= 20; opened++;
-        updateStats(); savePlayerData();
-        const rand = Math.random();
-        // Common ~55%
-        if      (rand < 0.12) pendingBlook = 37; // Money Mouth    12%
-        else if (rand < 0.24) pendingBlook = 38; // Beaming        12%
-        else if (rand < 0.36) pendingBlook = 39; // Angry          12%
-        else if (rand < 0.46) pendingBlook = 40; // Nerd           10%
-        else if (rand < 0.55) pendingBlook = 46; // Expressionless  9%
-        // Uncommon ~30%
-        else if (rand < 0.60) pendingBlook = 41; // Cool            5%
-        else if (rand < 0.65) pendingBlook = 42; // Clown           5%
-        else if (rand < 0.70) pendingBlook = 44; // Heart Eyes      5%
-        else if (rand < 0.75) pendingBlook = 48; // Relieved        5%
-        else if (rand < 0.79) pendingBlook = 49; // Zany            4%
-        else if (rand < 0.825)pendingBlook = 51; // Sleeping        3.5%
-        else if (rand < 0.85) pendingBlook = 52; // Yum             2.5%
-        // Rare ~10%
-        else if (rand < 0.91) pendingBlook = 45; // Cold Face       6%
-        else if (rand < 0.95) pendingBlook = 50; // Shushing        4%
-        // Epic ~4%
-        else if (rand < 0.99) pendingBlook = 47; // Smirk           4%
-        // Chroma ~1%
-        else                  pendingBlook = 43; // Sob             1%
-        showReveal();
+        tokens -= 20; opened++; updateStats(); savePlayerData();
+        pendingBlook = rollEmojiPack(); showReveal();
     }
+
+    function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
+
+    // ─── AUTO OPEN ────────────────────────────────────────────────────────────────
+    let autoOpenRollFn = null, autoOpenCost = 0, autoOpenQty = 10;
+    function showAutoOpen(name, rollFn, cost) {
+        autoOpenRollFn = rollFn; autoOpenCost = cost; autoOpenQty = 10;
+        document.getElementById('auto-open-title').innerText = '🔄 Auto Open — ' + name;
+        document.getElementById('auto-qty-input').value = '';
+        updateAutoOpenCostLabel();
+        document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelectorAll('.qty-btn')[1].classList.add('selected');
+        document.getElementById('auto-open-modal').style.display = 'flex';
+    }
+    function selectQty(n) {
+        autoOpenQty = Math.max(1, Math.min(999, n || 1));
+        updateAutoOpenCostLabel();
+        document.querySelectorAll('.qty-btn').forEach(b => {
+            b.classList.toggle('selected', parseInt(b.innerText) === autoOpenQty);
+        });
+    }
+    function updateAutoOpenCostLabel() {
+        const affordable = Math.min(autoOpenQty, Math.floor(tokens / autoOpenCost));
+        document.getElementById('auto-cost-label').innerText =
+            `Cost: ${autoOpenCost} × ${affordable} = ${autoOpenCost * affordable} 🪙  (you have ${tokens})`;
+    }
+    function closeAutoOpen() { document.getElementById('auto-open-modal').style.display = 'none'; }
+    function confirmAutoOpen() {
+        const count = Math.min(autoOpenQty, Math.floor(tokens / autoOpenCost));
+        if (count === 0) { showToast('Not enough tokens!', '#e74c3c'); return; }
+        closeAutoOpen();
+        const results = [];
+        for (let i = 0; i < count; i++) {
+            tokens -= autoOpenCost; opened++;
+            const id = autoOpenRollFn();
+            collection[id] = (collection[id] || 0) + 1;
+            results.push(id);
+        }
+        updateStats(); savePlayerData();
+        showAutoSummary(results, autoOpenCost);
+    }
+    function showAutoSummary(results, cost) {
+        document.getElementById('summary-title').innerText = `Opened ${results.length} pack${results.length !== 1 ? 's' : ''}!`;
+        const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','chroma','mythical'];
+        const rarityCounts = {};
+        results.forEach(id => { const r = blookData[id].rarity || 'common'; rarityCounts[r] = (rarityCounts[r] || 0) + 1; });
+        const rarityStr = Object.entries(rarityCounts)
+            .sort((a,b) => RARITY_ORDER.indexOf(b[0]) - RARITY_ORDER.indexOf(a[0]))
+            .map(([r,n]) => `${n} ${r}`).join(' · ');
+        document.getElementById('summary-stats').innerText = `Spent ${results.length * cost} 🪙 · ${rarityStr}`;
+        const counts = {};
+        results.forEach(id => counts[id] = (counts[id] || 0) + 1);
+        document.getElementById('summary-grid').innerHTML = Object.entries(counts).map(([id, cnt]) => {
+            const d = blookData[id]; const icon = d.emoji;
+            const img = isImg(icon)
+                ? `<img src="${icon}" style="width:32px;height:32px;object-fit:contain;${icon.startsWith('/')?'mix-blend-mode:screen;':''}">`
+                : `<span style="font-size:30px;line-height:1;">${icon}</span>`;
+            return `<div class="summary-blook">${img}<span style="display:block;margin-top:2px;">${d.name}${cnt > 1 ? ` ×${cnt}` : ''}</span></div>`;
+        }).join('');
+        document.getElementById('auto-summary-modal').style.display = 'flex';
+    }
+    function closeAutoSummary() { document.getElementById('auto-summary-modal').style.display = 'none'; }
+
+    // ─── LIMITED TIME SHOP (Day 1 Hedgehog — 5 min every hour) ───────────────────
+    function getWindowId() {
+        const d = new Date();
+        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}`;
+    }
+    function getDay1WindowState() {
+        const now = new Date(); const m = now.getMinutes(); const s = now.getSeconds();
+        if (m < 5) return { open: true, remaining: (4 - m) * 60 + (60 - s) };
+        return { open: false, nextIn: (60 - m) * 60 - s };
+    }
+    function buyDay1Blook() {
+        const state = getDay1WindowState();
+        if (!state.open) { showToast('The shop is closed right now!', '#e74c3c'); return; }
+        const boughtKey = `day1_w_${getWindowId()}_${currentUid || 'guest'}`;
+        if (localStorage.getItem(boughtKey)) { showToast('Already bought this window!', '#e74c3c'); return; }
+        if (tokens < 750) { showToast('Not enough tokens! Need 750 🪙', '#e74c3c'); return; }
+        tokens -= 750; opened++;
+        collection[36] = (collection[36] || 0) + 1;
+        localStorage.setItem(boughtKey, '1');
+        updateStats(); savePlayerData(); updateHedges();
+        showToast('🦔 Day 1 Hedgehog unlocked!', '#8e44ad');
+    }
+    function updateDay1Timer() {
+        const state = getDay1WindowState();
+        const openDiv = document.getElementById('lts-open');
+        const closedDiv = document.getElementById('lts-closed');
+        if (!openDiv) return;
+        if (state.open) {
+            openDiv.style.display = 'block'; closedDiv.style.display = 'none';
+            const m = Math.floor(state.remaining / 60), s = state.remaining % 60;
+            document.getElementById('lts-countdown').innerText = `${m}:${String(s).padStart(2,'0')}`;
+        } else {
+            openDiv.style.display = 'none'; closedDiv.style.display = 'block';
+            const m = Math.floor(state.nextIn / 60), s = state.nextIn % 60;
+            document.getElementById('lts-next').innerText = `${m}:${String(s).padStart(2,'0')}`;
+        }
+    }
+    setInterval(updateDay1Timer, 1000);
+    updateDay1Timer();
 
     // ─── SOB FLOOD ANIMATION ──────────────────────────────────────────────────
     function triggerSobFlood() {
@@ -1408,8 +1560,9 @@
     function showReveal() {
         const overlay = document.getElementById('reveal-overlay');
         overlay.style.display = 'flex';
-        document.getElementById('egg-stage').style.display = 'block';
+        document.getElementById('egg-stage').style.display = instantMode ? 'none' : 'block';
         document.getElementById('reveal-stage').style.display = 'none';
+        if (instantMode) hatchEgg();
     }
 
     function hatchEgg() {
