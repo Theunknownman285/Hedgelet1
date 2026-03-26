@@ -830,14 +830,14 @@
         // ── Staff-Only ──
         36: { name: "Day 1 Hedgehog", emoji: "/day1-hedgehog.png", rarity: "mythical" },
         // ── Emoji Pack ──
-        37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
+        37: { name: "Money Mouth",    emoji: TW+'1f911.svg', rarity: "rare",      pack: "emoji" },
         38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
         39: { name: "Angry",          emoji: TW+'1f620.svg', pack: "emoji" },
         40: { name: "Nerd",           emoji: TW+'1f913.svg', pack: "emoji" },
-        41: { name: "Cool",           emoji: TW+'1f60e.svg', rarity: "uncommon", pack: "emoji" },
-        42: { name: "Clown",          emoji: TW+'1f921.svg', rarity: "uncommon", pack: "emoji" },
+        41: { name: "Cool",           emoji: TW+'1f60e.svg', rarity: "legendary", pack: "emoji" },
+        42: { name: "Clown",          emoji: TW+'1f921.svg', rarity: "rare",      pack: "emoji" },
         43: { name: "Sob",            emoji: TW+'1f62d.svg', rarity: "chroma",   pack: "emoji" },
-        44: { name: "Heart Eyes",     emoji: TW+'1f60d.svg', rarity: "uncommon", pack: "emoji" },
+        44: { name: "Heart Eyes",     emoji: TW+'1f60d.svg', rarity: "rare",     pack: "emoji" },
         45: { name: "Cold Face",      emoji: TW+'1f976.svg', rarity: "rare",     pack: "emoji" },
         46: { name: "Expressionless", emoji: TW+'1f611.svg', pack: "emoji" },
         47: { name: "Smirk",          emoji: TW+'1f60f.svg', rarity: "epic",     pack: "emoji" },
@@ -1502,12 +1502,16 @@
         if (r < 0.995) return 28; return 29;
     }
     function rollEmojiPack() {
+        // common (~56%): Beaming, Angry, Nerd, Expressionless
+        // uncommon (~30%): Relieved, Zany, Sleeping, Yum
+        // rare (~10%): Money Mouth, Clown, Heart Eyes, Cold Face, Shushing
+        // epic (3%): Smirk | legendary (0.7%): Cool | chroma (0.3%): Sob
         const r = Math.random();
-        if (r < 0.12) return 37; if (r < 0.24) return 38; if (r < 0.36) return 39;
-        if (r < 0.46) return 40; if (r < 0.55) return 46; if (r < 0.60) return 41;
-        if (r < 0.65) return 42; if (r < 0.70) return 44; if (r < 0.75) return 48;
-        if (r < 0.79) return 49; if (r < 0.825) return 51; if (r < 0.85) return 52;
-        if (r < 0.91) return 45; if (r < 0.95) return 50; if (r < 0.997) return 47;
+        if (r < 0.14) return 38; if (r < 0.28) return 39; if (r < 0.42) return 40;
+        if (r < 0.56) return 46; if (r < 0.635) return 48; if (r < 0.71) return 49;
+        if (r < 0.785) return 51; if (r < 0.86) return 52; if (r < 0.88) return 37;
+        if (r < 0.90) return 42; if (r < 0.92) return 44; if (r < 0.94) return 45;
+        if (r < 0.96) return 50; if (r < 0.99) return 47; if (r < 0.997) return 41;
         return 43;
     }
 
@@ -1768,7 +1772,7 @@
             { name: 'Fast Food Pack', ids: [30,31,32,33,11,12,34,13,14,35] },
             { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
             { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] },
-            { name: '😄 Emoji Pack',   ids: [37,38,39,40,46, 41,42,44,48,49,51,52, 45,50, 47, 43] },
+            { name: '😄 Emoji Pack',   ids: [38,39,40,46, 48,49,51,52, 37,42,44,45,50, 47, 41, 43] },
             { name: '✨ Special',      ids: [36] }
         ];
         packs.forEach(pack => {

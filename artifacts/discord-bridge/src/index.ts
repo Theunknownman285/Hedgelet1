@@ -319,14 +319,14 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   // Staff Exclusive
   36: { name: "Day 1 Hedgehog", rarity: "mythical",   emoji: "🦔🏆" },
   // ── Emoji Pack ──
-  37: { name: "Money Mouth",    rarity: "common",    emoji: "🤑" },
+  37: { name: "Money Mouth",    rarity: "rare",      emoji: "🤑" },
   38: { name: "Beaming",        rarity: "common",    emoji: "😄" },
   39: { name: "Angry",          rarity: "common",    emoji: "😠" },
   40: { name: "Nerd",           rarity: "common",    emoji: "🤓" },
-  41: { name: "Cool",           rarity: "uncommon",  emoji: "😎" },
-  42: { name: "Clown",          rarity: "uncommon",  emoji: "🤡" },
+  41: { name: "Cool",           rarity: "legendary", emoji: "😎" },
+  42: { name: "Clown",          rarity: "rare",      emoji: "🤡" },
   43: { name: "Sob",            rarity: "chroma",    emoji: "😭" },
-  44: { name: "Heart Eyes",     rarity: "uncommon",  emoji: "😍" },
+  44: { name: "Heart Eyes",     rarity: "rare",      emoji: "😍" },
   45: { name: "Cold Face",      rarity: "rare",      emoji: "🥶" },
   46: { name: "Expressionless", rarity: "common",    emoji: "😑" },
   47: { name: "Smirk",          rarity: "epic",      emoji: "😏" },
