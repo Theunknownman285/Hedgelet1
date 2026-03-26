@@ -2254,6 +2254,14 @@
         modListenerUnsub = db.collection('users').doc(uid).onSnapshot(doc => {
             if (!doc.exists) return;
             const data = doc.data();
+
+            // Keep tokens in sync with Firestore (handles /addtokens from Discord, etc.)
+            // Only update from server when no local write is pending, so optimistic updates aren't stomped.
+            if (typeof data.tokens === 'number' && !doc.metadata.hasPendingWrites && data.tokens !== tokens) {
+                tokens = data.tokens;
+                updateStats();
+            }
+
             const nowBanned = data.banned || false;
             if (nowBanned && !banned) {
                 banned = true;
