@@ -52,15 +52,25 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
+Express 5 API server with Firebase Admin SDK. Routes live in `src/routes/`. Used by Hedgelet for cross-user operations that bypass Firestore security rules.
 
-- Entry: `src/index.ts` — reads `PORT`, starts Express
+- Entry: `src/index.ts` — reads `PORT`, starts Express; spawns discord-bridge as child process in production
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+- `src/lib/firebase.ts` — Firebase Admin SDK init (uses `FIREBASE_SERVICE_ACCOUNT` secret)
+- `src/middlewares/auth.ts` — `requireAuth` middleware verifying Firebase ID tokens from `Authorization: Bearer` header
+- Routes:
+  - `GET /api/healthz` — health check
+  - `POST /api/friend-request` — send friend request to another user (writes to their doc)
+  - `POST /api/friend-accept` — accept incoming friend request (writes to both docs)
+  - `POST /api/friend-decline` — decline friend request
+  - `POST /api/friend-remove` — remove a friend from both sides
+  - `POST /api/trade/send` — create a pending trade document
+  - `GET /api/trade/incoming` — list pending trades for the caller
+  - `POST /api/trade/accept` — accept trade via Firestore transaction (swaps collections atomically)
+  - `POST /api/trade/decline` — decline a trade
+- Depends on: `@workspace/api-zod`, `firebase-admin`
+- `pnpm --filter @workspace/api-server run dev` — build + start dev server
+- Build: esbuild bundle; `firebase-admin` and `firebase-admin/*` are externalized
 
 ### `lib/db` (`@workspace/db`)
 
