@@ -1710,36 +1710,20 @@
 
     // ─── PACK OPEN FUNCTIONS ─────────────────────────────────────────────────────
     let instantMode = false;
-    function startOpening() {
-        if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
-        tokens -= 25; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollHedgehogPack); showReveal();
+    function _doPackOpen(cost, rollFn) {
+        if (tokens < cost) { alert(`Not enough tokens! You need ${cost} tokens.`); return; }
+        tokens -= cost; opened++;
+        pendingBlook = bestRoll(rollFn);
+        collection[pendingBlook] = (collection[pendingBlook] || 0) + 1;
+        updateStats(); savePlayerData(); // save tokens + blook together so nothing is lost
+        showReveal();
     }
-    function openFastFoodPack() {
-        if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
-        tokens -= 20; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollFastFoodPack); showReveal();
-    }
-    function openBreakfastPack() {
-        if (tokens < 22) { alert('Not enough tokens! You need 22 tokens.'); return; }
-        tokens -= 22; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollBreakfastPack); showReveal();
-    }
-    function openFruitPack() {
-        if (tokens < 18) { alert('Not enough tokens! You need 18 tokens.'); return; }
-        tokens -= 18; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollFruitPack); showReveal();
-    }
-    function openEmojiPack() {
-        if (tokens < 20) { alert('Not enough tokens! You need 20 tokens.'); return; }
-        tokens -= 20; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollEmojiPack); showReveal();
-    }
-    function openAnimalPack() {
-        if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
-        tokens -= 25; opened++; updateStats(); savePlayerData();
-        pendingBlook = bestRoll(rollAnimalPack); showReveal();
-    }
+    function startOpening()    { _doPackOpen(25, rollHedgehogPack); }
+    function openFastFoodPack(){ _doPackOpen(20, rollFastFoodPack); }
+    function openBreakfastPack(){ _doPackOpen(22, rollBreakfastPack); }
+    function openFruitPack()   { _doPackOpen(18, rollFruitPack); }
+    function openEmojiPack()   { _doPackOpen(20, rollEmojiPack); }
+    function openAnimalPack()  { _doPackOpen(25, rollAnimalPack); }
 
     function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
 
@@ -1951,6 +1935,11 @@
         stage.style.display = 'flex';
 
         const data = blookData[pendingBlook];
+        if (!data) {
+            console.error('[Hedgelet] Unknown blook ID in hatchEgg:', pendingBlook);
+            closeReveal();
+            return;
+        }
         const revIcon = document.getElementById('reveal-icon');
         const icon = data.emoji;
 
@@ -2002,9 +1991,7 @@
             }).catch(() => {}); // fire-and-forget, don't block the reveal
         }
 
-        collection[pendingBlook] = (collection[pendingBlook] || 0) + 1;
-        savePlayerData();
-        updateStats();
+        updateStats(); // refresh stat counters
     }
 
     function closeReveal() {
