@@ -359,6 +359,20 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   50: { name: "Shushing",       rarity: "rare",      emoji: "🤫" },
   51: { name: "Sleeping",       rarity: "uncommon",  emoji: "😴" },
   52: { name: "Yum",            rarity: "uncommon",  emoji: "😋" },
+  // Animal Pack
+  53: { name: "Dog",           rarity: "common",    emoji: "🐶" },
+  54: { name: "Cat",           rarity: "common",    emoji: "🐱" },
+  55: { name: "Bunny",         rarity: "common",    emoji: "🐰" },
+  56: { name: "Frog",          rarity: "common",    emoji: "🐸" },
+  57: { name: "Hamster",       rarity: "common",    emoji: "🐹" },
+  58: { name: "Fox",           rarity: "uncommon",  emoji: "🦊" },
+  59: { name: "Panda",         rarity: "uncommon",  emoji: "🐼" },
+  60: { name: "Lion",          rarity: "uncommon",  emoji: "🦁" },
+  61: { name: "Tiger",         rarity: "rare",      emoji: "🐯" },
+  62: { name: "Butterfly",     rarity: "rare",      emoji: "🦋" },
+  63: { name: "Unicorn",       rarity: "epic",      emoji: "🦄" },
+  64: { name: "Dragon",        rarity: "legendary", emoji: "🐉" },
+  65: { name: "Cool Hedgehog", rarity: "mythical",  emoji: "🦔" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
@@ -1203,7 +1217,8 @@ client.on("interactionCreate", async (interaction) => {
 
   // Reset the user document
   const blankCollection: Record<number, number> = {};
-  for (let i = 1; i <= 52; i++) blankCollection[i] = 0;
+  const TOTAL_BLOOKS = Object.keys(BLOOK_DATA).length;
+  for (let i = 1; i <= TOTAL_BLOOKS; i++) blankCollection[i] = 0;
   await userRef.update({
     tokens: 0,
     opened: 0,
@@ -1267,7 +1282,7 @@ client.on("interactionCreate", async (interaction) => {
   if (action === "approve") {
     // Create player doc in users collection
     const initCollection: Record<number, number> = {};
-    for (let i = 1; i <= 52; i++) initCollection[i] = 0;
+    for (let i = 1; i <= Object.keys(BLOOK_DATA).length; i++) initCollection[i] = 0;
     await firestore.collection("users").doc(uid).set({
       email: app.email, username: app.username, tokens: 500,
       opened: 0, collection: initCollection, messagesSent: 0,

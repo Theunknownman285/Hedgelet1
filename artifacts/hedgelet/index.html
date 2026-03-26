@@ -240,6 +240,24 @@
         }
         .sob-tear { position: absolute; top: -60px; animation: tear-fall linear forwards; pointer-events: none; user-select: none; }
 
+        /* ── COOL HEDGEHOG ANIMATION ── */
+        @keyframes road-scroll {
+            from { background-position: 0 0; }
+            to   { background-position: -160px 0; }
+        }
+        @keyframes speed-line {
+            0%   { transform: translateX(0);    opacity: 0.8; }
+            100% { transform: translateX(120%); opacity: 0; }
+        }
+        @keyframes puff-out {
+            0%   { transform: translate(0,0)     scale(0.5); opacity: 0.9; }
+            100% { transform: translate(-80px,-30px) scale(2); opacity: 0; }
+        }
+        @keyframes star-twinkle {
+            from { opacity: 0.2; }
+            to   { opacity: 1;   }
+        }
+
         /* ── CHROMA RARITY ── */
         .rarity-chroma { border: 4px solid #FFD700 !important; animation: chroma-glow 1.8s ease-in-out infinite alternate !important; }
         @keyframes chroma-glow {
@@ -446,7 +464,7 @@
             <div class="section-label">Stats</div>
             <div class="stats-bar">
                 <div class="stat-item"><div class="stat-icon">🪙</div><div class="stat-label">Tokens</div><div class="stat-value" id="stat-tokens">500</div></div>
-                <div class="stat-item"><div class="stat-icon">✨</div><div class="stat-label">Blooks Unlocked</div><div class="stat-value" id="stat-unlocked">0/52</div></div>
+                <div class="stat-item"><div class="stat-icon">✨</div><div class="stat-label">Blooks Unlocked</div><div class="stat-value" id="stat-unlocked">0/65</div></div>
                 <div class="stat-item"><div class="stat-icon">📦</div><div class="stat-label">Packs Opened</div><div class="stat-value" id="stat-opened">0</div></div>
                 <div class="stat-item"><div class="stat-icon">💬</div><div class="stat-label">Messages Sent</div><div class="stat-value" id="stat-messages">0</div></div>
             </div>
@@ -509,6 +527,15 @@
                 <div class="pack-btns" onclick="event.stopPropagation()">
                     <button class="pack-btn" style="color:#333;" onclick="instantOpen(openEmojiPack)">⚡ Instant</button>
                     <button class="pack-btn" style="color:#333;" onclick="showAutoOpen('Emoji Pack',rollEmojiPack,20)">🔄 Auto</button>
+                </div>
+            </div>
+            <div class="pack-card" onclick="openAnimalPack()" style="background: linear-gradient(135deg,#2E7D32,#1B5E20); color: white;">
+                <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f98a.svg" style="width:70px;height:70px;">
+                <b>Animal Pack</b><br>25 Tokens
+                <div style="font-size:10px;opacity:0.75;margin-top:3px;">Contains a <b style="color:#ff6e6e;">Mythical</b> 🦔</div>
+                <div class="pack-btns" onclick="event.stopPropagation()">
+                    <button class="pack-btn" onclick="instantOpen(openAnimalPack)">⚡ Instant</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Animal Pack',rollAnimalPack,25)">🔄 Auto</button>
                 </div>
             </div>
         </div>
@@ -889,6 +916,20 @@
         27: { name: "Orange",       emoji: TW+'1f34a.svg', rarity: "uncommon", pack: "fruit" },
         28: { name: "Cherry",       emoji: TW+'1f352.svg', rarity: "rare",     pack: "fruit" },
         29: { name: "Peach",        emoji: TW+'1f351.svg', rarity: "legendary",pack: "fruit" },
+        // ── Animal Pack ──
+        53: { name: "Dog",            emoji: TW+'1f436.svg', pack: "animal" },
+        54: { name: "Cat",            emoji: TW+'1f431.svg', pack: "animal" },
+        55: { name: "Bunny",          emoji: TW+'1f430.svg', pack: "animal" },
+        56: { name: "Frog",           emoji: TW+'1f438.svg', pack: "animal" },
+        57: { name: "Hamster",        emoji: TW+'1f439.svg', pack: "animal" },
+        58: { name: "Fox",            emoji: TW+'1f98a.svg', rarity: "uncommon", pack: "animal" },
+        59: { name: "Panda",          emoji: TW+'1f43c.svg', rarity: "uncommon", pack: "animal" },
+        60: { name: "Lion",           emoji: TW+'1f981.svg', rarity: "uncommon", pack: "animal" },
+        61: { name: "Tiger",          emoji: TW+'1f42f.svg', rarity: "rare",     pack: "animal" },
+        62: { name: "Butterfly",      emoji: TW+'1f98b.svg', rarity: "rare",     pack: "animal" },
+        63: { name: "Unicorn",        emoji: TW+'1f984.svg', rarity: "epic",     pack: "animal" },
+        64: { name: "Dragon",         emoji: TW+'1f409.svg', rarity: "legendary",pack: "animal" },
+        65: { name: "Cool Hedgehog",  emoji: TW+'1f994.svg', rarity: "mythical", pack: "animal" },
         // ── Staff-Only ──
         36: { name: "Day 1 Hedgehog", emoji: "/day1-hedgehog.png", rarity: "mythical" },
         // ── Emoji Pack ──
@@ -910,7 +951,7 @@
         52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" }
     };
 
-    const TOTAL_BLOOKS = 52;
+    const TOTAL_BLOOKS = 65;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
     const isImg = e => e && (e.startsWith('http') || e.startsWith('/'));
 
@@ -1590,6 +1631,18 @@
         if (r < 0.91) return 45; if (r < 0.95) return 50; if (r < 0.9995) return 47;
         return 43;
     }
+    function rollAnimalPack() {
+        // mythical (Cool Hedgehog 65): 0.1% | legendary (Dragon 64): 1.9%
+        // epic (Unicorn 63): 3% | rare (Tiger 61, Butterfly 62): 5% each
+        // uncommon (Fox 58, Panda 59, Lion 60): ~8.3% each | common: rest
+        const r = Math.random();
+        if (r < 0.12) return 53; if (r < 0.24) return 54; if (r < 0.36) return 55;
+        if (r < 0.48) return 56; if (r < 0.60) return 57;
+        if (r < 0.683) return 58; if (r < 0.766) return 59; if (r < 0.849) return 60;
+        if (r < 0.899) return 61; if (r < 0.949) return 62;
+        if (r < 0.979) return 63; if (r < 0.999) return 64;
+        return 65;
+    }
 
     // ─── PACK OPEN FUNCTIONS ─────────────────────────────────────────────────────
     let instantMode = false;
@@ -1618,7 +1671,11 @@
         tokens -= 20; opened++; updateStats(); savePlayerData();
         pendingBlook = bestRoll(rollEmojiPack); showReveal();
     }
-
+    function openAnimalPack() {
+        if (tokens < 25) { alert('Not enough tokens! You need 25 tokens.'); return; }
+        tokens -= 25; opened++; updateStats(); savePlayerData();
+        pendingBlook = bestRoll(rollAnimalPack); showReveal();
+    }
 
     function instantOpen(packFn) { instantMode = true; packFn(); instantMode = false; }
 
@@ -1707,6 +1764,115 @@
         }, 4800);
     }
 
+    // ─── COOL HEDGEHOG ANIMATION ─────────────────────────────────────────────
+    function triggerCoolHedgehogAnim() {
+        const overlay = document.createElement('div');
+        overlay.id = 'cool-hog-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:999998;pointer-events:none;overflow:hidden;background:rgba(0,0,0,0.0);';
+        document.body.appendChild(overlay);
+
+        // Sky gradient backdrop that fades in
+        const sky = document.createElement('div');
+        sky.style.cssText = 'position:absolute;inset:0;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);opacity:0;transition:opacity 0.5s;';
+        overlay.appendChild(sky);
+        setTimeout(() => sky.style.opacity = '0.92', 50);
+
+        // Road at the bottom
+        const road = document.createElement('div');
+        road.style.cssText = 'position:absolute;bottom:0;left:0;right:0;height:22%;background:linear-gradient(180deg,#2d2d2d,#1a1a1a);';
+        overlay.appendChild(road);
+        const roadLine = document.createElement('div');
+        roadLine.style.cssText = 'position:absolute;top:42%;left:0;right:0;height:6px;background:repeating-linear-gradient(90deg,#FFD700 0 80px,transparent 80px 160px);animation:road-scroll 0.4s linear infinite;';
+        road.appendChild(roadLine);
+
+        // Stars
+        for (let i = 0; i < 40; i++) {
+            const star = document.createElement('div');
+            const size = Math.random() * 3 + 1;
+            star.style.cssText = `position:absolute;width:${size}px;height:${size}px;border-radius:50%;background:white;top:${Math.random()*65}%;left:${Math.random()*100}%;opacity:${Math.random()*0.7+0.3};animation:star-twinkle ${1+Math.random()*2}s ease-in-out infinite alternate;`;
+            overlay.appendChild(star);
+        }
+
+        // Speed lines
+        const speedLines = document.createElement('div');
+        speedLines.style.cssText = 'position:absolute;inset:0;opacity:0;transition:opacity 0.4s;pointer-events:none;';
+        for (let i = 0; i < 18; i++) {
+            const line = document.createElement('div');
+            const y = 15 + Math.random() * 65;
+            const len = 80 + Math.random() * 200;
+            const delay = Math.random() * 0.3;
+            line.style.cssText = `position:absolute;top:${y}%;right:0;width:${len}px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6));border-radius:2px;animation:speed-line 0.35s ${delay}s linear infinite;`;
+            speedLines.appendChild(line);
+        }
+        overlay.appendChild(speedLines);
+
+        // Hedgehog character (center stage, large)
+        const hog = document.createElement('div');
+        hog.style.cssText = 'position:absolute;left:50%;bottom:22%;transform:translateX(-50%) translateY(200px);font-size:100px;line-height:1;transition:transform 1.0s cubic-bezier(0.34,1.56,0.64,1);filter:drop-shadow(0 0 20px rgba(255,150,0,0.8));';
+        hog.innerText = '🦔';
+        overlay.appendChild(hog);
+        setTimeout(() => hog.style.transform = 'translateX(-50%) translateY(0)', 200);
+
+        // Shades drop in from above
+        const shades = document.createElement('div');
+        shades.style.cssText = 'position:absolute;left:50%;bottom:calc(22% + 80px);transform:translateX(-50%) translateY(-300px);font-size:60px;line-height:1;transition:transform 0.7s cubic-bezier(0.34,1.56,0.64,1),opacity 0.7s;opacity:0;';
+        shades.innerText = '🕶️';
+        overlay.appendChild(shades);
+        setTimeout(() => {
+            shades.style.opacity = '1';
+            shades.style.transform = 'translateX(-50%) translateY(0)';
+        }, 1100);
+
+        // "COOL" text pop
+        const coolText = document.createElement('div');
+        coolText.style.cssText = 'position:absolute;left:50%;top:8%;transform:translateX(-50%) scale(0);font-size:72px;font-weight:900;font-family:Impact,sans-serif;color:#FFD700;text-shadow:0 0 30px #ff8800,0 4px 0 #000;letter-spacing:8px;transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;';
+        coolText.innerText = '😎 TOO COOL!';
+        overlay.appendChild(coolText);
+        setTimeout(() => coolText.style.transform = 'translateX(-50%) scale(1)', 1700);
+
+        // Car rolls in from the right
+        const car = document.createElement('div');
+        car.style.cssText = 'position:absolute;right:-200px;bottom:22%;font-size:110px;line-height:1;transition:right 1.0s cubic-bezier(0.25,0.46,0.45,0.94);filter:drop-shadow(0 8px 16px rgba(0,0,0,0.6));';
+        car.innerText = '🚗';
+        overlay.appendChild(car);
+        setTimeout(() => car.style.right = '30%', 1900);
+
+        // Hedgehog hops into car + drives off
+        setTimeout(() => {
+            // Hop up
+            hog.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+            shades.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s';
+            hog.style.transform = 'translateX(-50%) translateY(-60px)';
+            shades.style.transform = 'translateX(-50%) translateY(-60px)';
+        }, 3000);
+        setTimeout(() => {
+            // Land in car position + merge
+            hog.style.opacity = '0';
+            shades.style.opacity = '0';
+            // Show speed lines
+            speedLines.style.opacity = '1';
+            coolText.style.opacity = '0';
+            coolText.style.transition = 'opacity 0.3s';
+            // Drive off left
+            car.style.transition = 'right 0.8s cubic-bezier(0.55,0,1,0.45),bottom 0.8s';
+            car.style.right = '110%';
+            // Exhaust puffs
+            for (let i = 0; i < 6; i++) {
+                const puff = document.createElement('div');
+                puff.style.cssText = `position:absolute;right:28%;bottom:calc(22% + 10px);font-size:${20+i*8}px;animation:puff-out 0.6s ${i*0.1}s ease-out forwards;pointer-events:none;`;
+                puff.innerText = '💨';
+                overlay.appendChild(puff);
+            }
+        }, 3350);
+
+        // Fade out and clean up
+        setTimeout(() => {
+            overlay.style.transition = 'opacity 0.8s';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 900);
+        }, 4400);
+    }
+
     function showReveal() {
         const overlay = document.getElementById('reveal-overlay');
         overlay.style.display = 'flex';
@@ -1760,6 +1926,7 @@
         }
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
+        if (pendingBlook === 65) setTimeout(triggerCoolHedgehogAnim, 800); // Cool Hedgehog drives off!
         // Announce legendary / chroma pulls to Discord
         if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {
             const myName = document.getElementById('profile-username')?.innerText || 'Someone';
@@ -1848,6 +2015,7 @@
             { name: 'Breakfast Pack', ids: [15,16,17,18,19,20,21] },
             { name: 'Fruit Pack',     ids: [22,23,24,25,26,27,28,29] },
             { name: '😄 Emoji Pack',   ids: [37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52] },
+            { name: '🐾 Animal Pack',  ids: [53,54,55,56,57,58,59,60,61,62,63,64,65] },
             { name: '✨ Special',      ids: [36] }
         ];
         packs.forEach(pack => {
