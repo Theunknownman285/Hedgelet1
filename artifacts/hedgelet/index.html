@@ -2396,6 +2396,18 @@
         return `<img src="${src}" style="width:${size}px;height:${size}px;object-fit:contain;${blend}">`;
     }
 
+    // Dark-background blook card for the bazaar (screen blend-mode needs dark bg)
+    function bazaarBlookCard(id, size) {
+        const bd = blookData[id];
+        const rarity = bd?.rarity || 'common';
+        const BORDERS = { uncommon:'#4CAF50', rare:'#2196F3', epic:'#9C27B0', legendary:'#FF9800', chroma:'#FFD700', mythical:'#ff0055' };
+        const border  = BORDERS[rarity] ? `3px solid ${BORDERS[rarity]}` : '3px solid transparent';
+        const anim    = rarity === 'chroma'   ? 'animation:chroma-glow 1.8s ease-in-out infinite alternate;'
+                      : rarity === 'mythical' ? 'animation:mythical-glow 2.4s linear infinite;'
+                      : '';
+        return `<div style="width:${size}px;height:${size}px;background:#1e1e1e;border-radius:10px;border:${border};display:flex;align-items:center;justify-content:center;flex-shrink:0;${anim}">${blookIcon(id, size - 12)}</div>`;
+    }
+
     function showBazaarTab(tab) {
         const isBrowse = tab === 'browse';
         document.getElementById('bzr-browse-tab').style.display = isBrowse ? '' : 'none';
@@ -2441,7 +2453,7 @@
             const canBuy  = !mine && tokens >= l.price;
             const rarClass = `rarity-${rarity}`;
             return `<div class="bazaar-card">
-                <div class="blook-card ${rarClass}" style="width:70px;height:70px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0;">${blookIcon(l.blookId, 54)}</div>
+                ${bazaarBlookCard(l.blookId, 70)}
                 <div class="bazaar-blook-name">${name}</div>
                 <div class="bazaar-seller">by ${l.sellerUsername || 'Unknown'}${mine ? ' <span style="color:#FFD700;">(you)</span>' : ''}</div>
                 <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
@@ -2466,7 +2478,7 @@
                 const rarity = bd?.rarity || 'common';
                 const rarClass = `rarity-${rarity}`;
                 return `<div class="bazaar-card">
-                    <div class="blook-card ${rarClass}" style="width:70px;height:70px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0;">${blookIcon(l.blookId, 54)}</div>
+                    ${bazaarBlookCard(l.blookId, 70)}
                     <div class="bazaar-blook-name">${name}</div>
                     <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
                     <div class="bazaar-seller" style="font-size:11px;opacity:0.5;">Listed ${new Date(l.listedAt).toLocaleDateString()}</div>
@@ -2544,7 +2556,7 @@
             grid.innerHTML = owned.map(([id, cnt]) => {
                 const bd = blookData[id];
                 return `<div class="bazaar-select-card" id="bsc-${id}" onclick="selectListBlook(${id})">
-                    ${blookIcon(id, 36)}
+                    ${bazaarBlookCard(id, 42)}
                     <span style="font-size:10px;text-align:center;line-height:1.2;">${bd.name}</span>
                     <span class="sc-count">×${cnt}</span>
                 </div>`;
