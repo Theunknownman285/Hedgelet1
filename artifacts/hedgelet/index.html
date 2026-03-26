@@ -274,6 +274,40 @@
         .incoming-trade-card { background:rgba(255,255,255,0.12); border-radius:12px; padding:18px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.15); }
         .trade-blooks-preview { font-size:26px; letter-spacing:4px; margin:6px 0; }
         .trade-action-btn { padding:9px 22px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:14px; }
+
+        /* ── BAZAAR ── */
+        .bazaar-tabs { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+        .bazaar-tab-btn { padding:10px 24px; border:none; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px; background:rgba(255,255,255,0.15); color:black; }
+        .bazaar-tab-btn.active { background:#8B5A3E; color:white; }
+        .bazaar-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-top:10px; }
+        .bazaar-card { background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.18); border-radius:14px; padding:18px 16px; display:flex; flex-direction:column; align-items:center; gap:8px; transition:transform 0.15s,box-shadow 0.15s; }
+        .bazaar-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.25); }
+        .bazaar-blook-emoji { font-size:44px; line-height:1; }
+        .bazaar-blook-name { font-weight:bold; font-size:15px; text-align:center; }
+        .bazaar-seller { font-size:12px; color:rgba(255,255,255,0.55); }
+        .bazaar-price { font-size:18px; font-weight:bold; color:#FFD700; }
+        .bazaar-buy-btn { width:100%; padding:10px; border:none; border-radius:8px; font-weight:bold; font-size:14px; cursor:pointer; background:linear-gradient(135deg,#4CAF50,#2e7d32); color:white; transition:opacity 0.15s,transform 0.12s; margin-top:4px; }
+        .bazaar-buy-btn:hover:not(:disabled) { transform:scale(1.03); }
+        .bazaar-buy-btn:disabled { opacity:0.38; cursor:not-allowed; }
+        .bazaar-cancel-btn { width:100%; padding:9px; border:none; border-radius:8px; font-weight:bold; font-size:13px; cursor:pointer; background:rgba(200,50,50,0.8); color:white; transition:opacity 0.15s; margin-top:4px; }
+        .bazaar-cancel-btn:hover { background:rgba(220,60,60,0.95); }
+        .bazaar-empty { opacity:0.5; font-size:14px; padding:30px 0; text-align:center; }
+        /* Bazaar list modal */
+        #bazaar-list-modal { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; }
+        #bazaar-list-modal.open { display:flex; }
+        #bazaar-list-box { background:linear-gradient(135deg,#2d1b4e,#1a3a2e); border-radius:18px; padding:28px 24px; max-width:520px; width:95%; max-height:80vh; overflow-y:auto; position:relative; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+        #bazaar-list-box h3 { margin:0 0 16px; color:white; font-size:20px; }
+        .bazaar-list-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:10px; margin-bottom:18px; background:rgba(0,0,0,0.15); border-radius:10px; padding:12px; min-height:80px; }
+        .bazaar-select-card { background:rgba(255,255,255,0.1); border:2px solid transparent; border-radius:10px; padding:8px 4px; display:flex; flex-direction:column; align-items:center; cursor:pointer; transition:all 0.15s; font-size:11px; gap:3px; }
+        .bazaar-select-card:hover { background:rgba(255,255,255,0.2); border-color:rgba(255,215,0,0.5); }
+        .bazaar-select-card.selected { border-color:#FFD700; background:rgba(255,215,0,0.18); }
+        .bazaar-select-card .sc-emoji { font-size:30px; }
+        .bazaar-select-card .sc-count { font-size:10px; color:rgba(255,255,255,0.6); }
+        #bazaar-price-row { display:none; flex-direction:column; gap:10px; margin-bottom:16px; }
+        #bazaar-price-row label { font-size:14px; color:rgba(255,255,255,0.8); }
+        #bazaar-price-input { padding:10px 14px; border-radius:8px; border:none; font-size:16px; background:rgba(255,255,255,0.85); outline:none; width:100%; box-sizing:border-box; }
+        #bazaar-list-confirm { width:100%; padding:12px; border:none; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; background:linear-gradient(135deg,#4CAF50,#2e7d32); color:white; }
+        #bazaar-list-confirm:disabled { opacity:0.4; cursor:not-allowed; }
     </style>
 </head>
 <body>
@@ -387,6 +421,7 @@
     <div class="nav-item"           data-page="trade-page"    onclick="showPage('trade-page')">🔄 Trade</div>
     <div class="nav-item"           data-page="chat-page"     onclick="showPage('chat-page')">💬 Chat</div>
     <div class="nav-item"           data-page="leaderboard-page" onclick="showPage('leaderboard-page')">🏆 Leaderboard</div>
+    <div class="nav-item"           data-page="bazaar-page"    onclick="showPage('bazaar-page')">🛍️ Bazaar</div>
     <div class="nav-item"           data-page="credits-page"  onclick="showPage('credits-page')">⭐ Credits</div>
     <div class="nav-item" onclick="logoutUser()" style="margin-top:20px;font-size:14px;color:rgba(255,255,255,0.4);border-left-color:transparent;">↩ Logout</div>
 </div>
@@ -588,6 +623,41 @@
             <p style="opacity:0.5;">Loading...</p>
         </div>
         <div id="lb-my-rank" style="margin-top:18px;font-size:13px;color:rgba(255,255,255,0.5);text-align:center;min-height:20px;"></div>
+    </div>
+
+    <!-- BAZAAR PAGE -->
+    <div id="bazaar-page" class="page">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+            <h2 style="margin:0;">🛍️ Bazaar</h2>
+            <button onclick="openListModal()" style="padding:10px 20px;background:linear-gradient(135deg,#FFD700,#FFA000);color:#222;border:none;border-radius:10px;font-weight:bold;cursor:pointer;font-size:14px;">+ List a Blook</button>
+        </div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.45);margin:0 0 18px;">Buy and sell blooks with other players. Tokens go straight to the seller.</p>
+
+        <div class="bazaar-tabs">
+            <button id="bzr-tab-browse-btn" class="bazaar-tab-btn active" onclick="showBazaarTab('browse')">🔍 Browse</button>
+            <button id="bzr-tab-mine-btn"   class="bazaar-tab-btn"        onclick="showBazaarTab('mine')">📦 My Listings</button>
+        </div>
+
+        <!-- BROWSE TAB -->
+        <div id="bzr-browse-tab">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+                <input id="bzr-search" type="text" placeholder="Search blooks..." oninput="renderBazaarListings()"
+                    style="padding:9px 14px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.85);outline:none;flex:1;min-width:160px;">
+                <select id="bzr-sort" onchange="renderBazaarListings()" style="padding:9px 12px;border-radius:8px;border:none;font-size:14px;background:rgba(255,255,255,0.85);cursor:pointer;">
+                    <option value="newest">Newest first</option>
+                    <option value="cheap">Cheapest first</option>
+                    <option value="expensive">Most expensive</option>
+                </select>
+                <button onclick="loadBazaarListings()" style="padding:9px 16px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:white;font-size:13px;">↻</button>
+            </div>
+            <div id="bzr-browse-grid" class="bazaar-grid"></div>
+        </div>
+
+        <!-- MY LISTINGS TAB -->
+        <div id="bzr-mine-tab" style="display:none;">
+            <button onclick="loadMyBazaarListings()" style="padding:8px 18px;background:rgba(255,255,255,0.15);border:none;border-radius:8px;cursor:pointer;font-weight:bold;color:white;font-size:13px;margin-bottom:14px;">↻ Refresh</button>
+            <div id="bzr-mine-grid" class="bazaar-grid"></div>
+        </div>
     </div>
 
     <!-- TRADE PAGE -->
@@ -1154,6 +1224,7 @@
         if (pId === 'hedges-page') updateHedges();
         if (pId === 'trade-page') { showTradeTab('send'); loadIncomingTrades(); }
         if (pId === 'leaderboard-page') loadLeaderboard();
+        if (pId === 'bazaar-page') { showBazaarTab('browse'); loadBazaarListings(); }
         if (pId === 'chat-page') {
             const m = document.getElementById('chat-messages');
             setTimeout(() => { m.scrollTop = m.scrollHeight; }, 50);
@@ -2311,6 +2382,234 @@
         chatUsername = username || 'hedgehog';
         initChat();
     }
+
+    // ─── BAZAAR ──────────────────────────────────────────────────────────────
+    let bazaarListings = [];          // all fetched listings (browse tab)
+    let bazaarListingBlookId = null;  // selected blook id in list modal
+
+    function showBazaarTab(tab) {
+        const isBrowse = tab === 'browse';
+        document.getElementById('bzr-browse-tab').style.display = isBrowse ? '' : 'none';
+        document.getElementById('bzr-mine-tab').style.display   = isBrowse ? 'none' : '';
+        document.getElementById('bzr-tab-browse-btn').classList.toggle('active', isBrowse);
+        document.getElementById('bzr-tab-mine-btn').classList.toggle('active', !isBrowse);
+        if (!isBrowse) loadMyBazaarListings();
+    }
+
+    async function loadBazaarListings() {
+        const grid = document.getElementById('bzr-browse-grid');
+        grid.innerHTML = '<p class="bazaar-empty">Loading...</p>';
+        try {
+            const snap = await db.collection('bazaar').orderBy('listedAt', 'desc').limit(100).get();
+            bazaarListings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderBazaarListings();
+        } catch (e) {
+            grid.innerHTML = `<p class="bazaar-empty">Error: ${e.message}</p>`;
+        }
+    }
+
+    function renderBazaarListings() {
+        const grid   = document.getElementById('bzr-browse-grid');
+        const query  = (document.getElementById('bzr-search')?.value || '').toLowerCase();
+        const sortBy = document.getElementById('bzr-sort')?.value || 'newest';
+        let list = bazaarListings.filter(l => {
+            const bd = blookData[l.blookId];
+            if (!bd) return false;
+            if (query && !bd.name.toLowerCase().includes(query)) return false;
+            return true;
+        });
+        if (sortBy === 'cheap')     list.sort((a,b) => a.price - b.price);
+        else if (sortBy === 'expensive') list.sort((a,b) => b.price - a.price);
+        // else newest: already sorted by listedAt desc
+
+        if (!list.length) { grid.innerHTML = '<p class="bazaar-empty">No listings found. Be the first to list a blook!</p>'; return; }
+
+        grid.innerHTML = list.map(l => {
+            const bd      = blookData[l.blookId];
+            const emoji   = bd?.emoji || '❓';
+            const name    = bd?.name  || `Blook #${l.blookId}`;
+            const rarity  = bd?.rarity || 'common';
+            const mine    = l.sellerUid === currentUid;
+            const canBuy  = !mine && tokens >= l.price;
+            const rarClass = `rarity-${rarity}`;
+            return `<div class="bazaar-card">
+                <div class="bazaar-blook-emoji blook-card ${rarClass}" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:12px;">${emoji}</div>
+                <div class="bazaar-blook-name">${name}</div>
+                <div class="bazaar-seller">by ${l.sellerUsername || 'Unknown'}${mine ? ' <span style="color:#FFD700;">(you)</span>' : ''}</div>
+                <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
+                ${mine
+                    ? `<button class="bazaar-cancel-btn" onclick="cancelListing('${l.id}',${l.blookId})">Cancel Listing</button>`
+                    : `<button class="bazaar-buy-btn" ${canBuy ? '' : 'disabled'} onclick="buyListing('${l.id}',${l.blookId},${l.price})">${tokens < l.price ? 'Not enough 🪙' : 'Buy'}</button>`
+                }
+            </div>`;
+        }).join('');
+    }
+
+    async function loadMyBazaarListings() {
+        const grid = document.getElementById('bzr-mine-grid');
+        grid.innerHTML = '<p class="bazaar-empty">Loading...</p>';
+        try {
+            const snap = await db.collection('bazaar').where('sellerUid', '==', currentUid).get();
+            const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => b.listedAt - a.listedAt);
+            if (!list.length) { grid.innerHTML = '<p class="bazaar-empty">No active listings. List a blook to get started!</p>'; return; }
+            grid.innerHTML = list.map(l => {
+                const bd    = blookData[l.blookId];
+                const emoji = bd?.emoji || '❓';
+                const name  = bd?.name  || `Blook #${l.blookId}`;
+                const rarity = bd?.rarity || 'common';
+                const rarClass = `rarity-${rarity}`;
+                return `<div class="bazaar-card">
+                    <div class="bazaar-blook-emoji blook-card ${rarClass}" style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:12px;">${emoji}</div>
+                    <div class="bazaar-blook-name">${name}</div>
+                    <div class="bazaar-price">🪙 ${l.price.toLocaleString()}</div>
+                    <div class="bazaar-seller" style="font-size:11px;opacity:0.5;">Listed ${new Date(l.listedAt).toLocaleDateString()}</div>
+                    <button class="bazaar-cancel-btn" onclick="cancelListing('${l.id}',${l.blookId})">Cancel &amp; Retrieve</button>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            grid.innerHTML = `<p class="bazaar-empty">Error: ${e.message}</p>`;
+        }
+    }
+
+    async function buyListing(listingId, blookId, price) {
+        if (tokens < price) { showToast('Not enough tokens!'); return; }
+        // Optimistic update
+        tokens -= price;
+        collection[blookId] = (collection[blookId] || 0) + 1;
+        updateStats();
+        bazaarListings = bazaarListings.filter(l => l.id !== listingId);
+        renderBazaarListings();
+        try {
+            await apiCall('/api/bazaar/buy', { listingId });
+            savePlayerData();
+            showToast(`🎉 Purchased ${blookData[blookId]?.name || 'blook'}!`);
+        } catch (e) {
+            // Revert
+            tokens += price;
+            collection[blookId] = Math.max(0, (collection[blookId] || 0) - 1);
+            updateStats();
+            showToast('❌ ' + e.message);
+            loadBazaarListings();
+        }
+    }
+
+    async function cancelListing(listingId, blookId) {
+        // Optimistic update — blook returns to inventory
+        collection[blookId] = (collection[blookId] || 0) + 1;
+        updateHedges();
+        bazaarListings = bazaarListings.filter(l => l.id !== listingId);
+        renderBazaarListings();
+        try {
+            await apiCall('/api/bazaar/cancel', { listingId });
+            savePlayerData();
+            showToast('Listing cancelled — blook returned!');
+            loadMyBazaarListings();
+        } catch (e) {
+            // Revert
+            collection[blookId] = Math.max(0, (collection[blookId] || 0) - 1);
+            updateHedges();
+            showToast('❌ ' + e.message);
+            loadBazaarListings();
+            loadMyBazaarListings();
+        }
+    }
+
+    // ── List modal ─────────────────────────────────────────────────
+    function openListModal() {
+        bazaarListingBlookId = null;
+        document.getElementById('bazaar-price-row').style.display = 'none';
+        document.getElementById('bazaar-price-input').value = '';
+        document.getElementById('bazaar-list-confirm').disabled = true;
+
+        const grid = document.getElementById('bazaar-list-grid');
+        const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','chroma','mythical'];
+        const owned = Object.entries(collection)
+            .filter(([id, cnt]) => cnt > 0 && blookData[id])
+            .sort(([aId],[bId]) => {
+                const ar = RARITY_ORDER.indexOf(blookData[aId]?.rarity || 'common');
+                const br = RARITY_ORDER.indexOf(blookData[bId]?.rarity || 'common');
+                return br - ar;
+            });
+
+        if (!owned.length) {
+            grid.innerHTML = '<p style="opacity:0.5;font-size:13px;text-align:center;padding:20px;">No blooks to list.</p>';
+        } else {
+            grid.innerHTML = owned.map(([id, cnt]) => {
+                const bd = blookData[id];
+                return `<div class="bazaar-select-card" id="bsc-${id}" onclick="selectListBlook(${id})">
+                    <span class="sc-emoji">${bd.emoji}</span>
+                    <span style="font-size:10px;text-align:center;line-height:1.2;">${bd.name}</span>
+                    <span class="sc-count">×${cnt}</span>
+                </div>`;
+            }).join('');
+        }
+
+        document.getElementById('bazaar-list-modal').classList.add('open');
+    }
+
+    function closeListModal() {
+        document.getElementById('bazaar-list-modal').classList.remove('open');
+    }
+
+    function selectListBlook(id) {
+        bazaarListingBlookId = id;
+        document.querySelectorAll('.bazaar-select-card').forEach(el => el.classList.remove('selected'));
+        const card = document.getElementById(`bsc-${id}`);
+        if (card) card.classList.add('selected');
+
+        const priceRow   = document.getElementById('bazaar-price-row');
+        const priceInput = document.getElementById('bazaar-price-input');
+        const SELL_PRICES = { common:5, uncommon:8, rare:15, epic:35, legendary:75, chroma:200, mythical:0 };
+        const suggested  = (SELL_PRICES[blookData[id]?.rarity] || 5) * 3;
+        priceInput.value  = suggested;
+        priceInput.min    = 1;
+        priceRow.style.display = 'flex';
+        document.getElementById('bazaar-list-confirm').disabled = false;
+    }
+
+    async function submitListing() {
+        if (!bazaarListingBlookId) return;
+        const price = parseInt(document.getElementById('bazaar-price-input').value, 10);
+        if (isNaN(price) || price < 1) { showToast('Enter a valid price (min 1)'); return; }
+        if (price > 1_000_000) { showToast('Max price is 1,000,000 tokens'); return; }
+        if ((collection[bazaarListingBlookId] || 0) < 1) { showToast("You don't have that blook!"); return; }
+
+        const blookId = bazaarListingBlookId;
+
+        // Optimistic update
+        collection[blookId]--;
+        updateHedges();
+        closeListModal();
+
+        try {
+            await apiCall('/api/bazaar/list', { blookId, price });
+            savePlayerData();
+            showToast(`${blookData[blookId]?.emoji || '🦔'} Listed for 🪙 ${price.toLocaleString()}!`);
+            loadBazaarListings();
+        } catch (e) {
+            // Revert
+            collection[blookId]++;
+            updateHedges();
+            showToast('❌ ' + e.message);
+        }
+    }
 </script>
+
+<!-- BAZAAR LIST MODAL -->
+<div id="bazaar-list-modal" onclick="if(event.target===this)closeListModal()">
+    <div id="bazaar-list-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h3 style="margin:0;">List a Blook for Sale</h3>
+            <span onclick="closeListModal()" style="cursor:pointer;font-size:20px;opacity:0.6;">✕</span>
+        </div>
+        <p style="font-size:13px;color:rgba(255,255,255,0.55);margin:0 0 14px;">Select the blook you want to sell:</p>
+        <div id="bazaar-list-grid" class="bazaar-list-grid"></div>
+        <div id="bazaar-price-row">
+            <label for="bazaar-price-input">Set your price (🪙 tokens):</label>
+            <input id="bazaar-price-input" type="number" min="1" max="1000000" placeholder="e.g. 100">
+        </div>
+        <button id="bazaar-list-confirm" onclick="submitListing()" disabled>List It</button>
+    </div>
+</div>
 </body>
 </html>
