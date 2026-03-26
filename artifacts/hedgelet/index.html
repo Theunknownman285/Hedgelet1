@@ -948,11 +948,11 @@
         3:  { name: "hedgehog 3",   emoji: TW+'1f994.svg', pack: "hedgehog" },
         4:  { name: "hedgehog 4",   emoji: TW+'1f994.svg', pack: "hedgehog" },
         5:  { name: "hedgehog 5",   emoji: TW+'1f994.svg', pack: "hedgehog" },
-        6:  { name: "hedgehog 6",   emoji: TW+'1f994.svg', pack: "hedgehog" },
-        7:  { name: "hedgehog 7",   emoji: TW+'1f994.svg', pack: "hedgehog" },
-        8:  { name: "hedgehog 8",   emoji: TW+'1f994.svg', pack: "hedgehog" },
-        9:  { name: "hedgehog 9",   emoji: TW+'1f994.svg', pack: "hedgehog" },
-        10: { name: "hedgehog 10",  emoji: TW+'1f994.svg', pack: "hedgehog" },
+        6:  { name: "hedgehog 6",   emoji: TW+'1f994.svg', rarity: "uncommon",  pack: "hedgehog" },
+        7:  { name: "hedgehog 7",   emoji: TW+'1f994.svg', rarity: "uncommon",  pack: "hedgehog" },
+        8:  { name: "hedgehog 8",   emoji: TW+'1f994.svg', rarity: "rare",      pack: "hedgehog" },
+        9:  { name: "hedgehog 9",   emoji: TW+'1f994.svg', rarity: "epic",      pack: "hedgehog" },
+        10: { name: "hedgehog 10",  emoji: TW+'1f994.svg', rarity: "legendary", pack: "hedgehog" },
         11: { name: "Ketchup",        emoji: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png", rarity: "rare",      pack: "fastfood" },
         12: { name: "Mustard",        emoji: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png", rarity: "rare",      pack: "fastfood" },
         13: { name: "French Fries",   emoji: "https://i.postimg.cc/FRxzr0Gx/Screenshot-2026-03-21-3-58-26-PM-removebg-preview.png", rarity: "epic",      pack: "fastfood" },
@@ -1662,7 +1662,16 @@
     }
 
     // ─── BLOOK ROLL FUNCTIONS ────────────────────────────────────────────────────
-    function rollHedgehogPack() { return Math.floor(Math.random() * 10) + 1; }
+    function rollHedgehogPack() {
+        // 1-5 common (10% each = 50%), 6-7 uncommon (13% each = 26%), 8 rare (14%), 9 epic (8%), 10 legendary (2%)
+        const r = Math.random();
+        if (r < 0.10) return 1; if (r < 0.20) return 2; if (r < 0.30) return 3;
+        if (r < 0.40) return 4; if (r < 0.50) return 5;
+        if (r < 0.63) return 6; if (r < 0.76) return 7;
+        if (r < 0.90) return 8;
+        if (r < 0.98) return 9;
+        return 10;
+    }
     function rollFastFoodPack() {
         // legendary (Milkshake): 0.2%  |  chroma (Golden Hot Dog): 0.05%
         const r = Math.random();

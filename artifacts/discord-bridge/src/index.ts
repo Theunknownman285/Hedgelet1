@@ -324,17 +324,17 @@ const ROLE_LABELS: Record<string, string> = {
 // ── Blook lookup table (mirrors index.html blookData) ─────────────────────────
 interface BlookInfo { name: string; rarity: string; imageUrl?: string; emoji?: string; }
 const BLOOK_DATA: Record<number, BlookInfo> = {
-  // Hedgehog Pack (common)
+  // Hedgehog Pack
   1:  { name: "Hedgehog 1",    rarity: "common",    emoji: "🦔" },
   2:  { name: "Hedgehog 2",    rarity: "common",    emoji: "🦔" },
   3:  { name: "Hedgehog 3",    rarity: "common",    emoji: "🦔" },
   4:  { name: "Hedgehog 4",    rarity: "common",    emoji: "🦔" },
   5:  { name: "Hedgehog 5",    rarity: "common",    emoji: "🦔" },
-  6:  { name: "Hedgehog 6",    rarity: "common",    emoji: "🦔" },
-  7:  { name: "Hedgehog 7",    rarity: "common",    emoji: "🦔" },
-  8:  { name: "Hedgehog 8",    rarity: "common",    emoji: "🦔" },
-  9:  { name: "Hedgehog 9",    rarity: "common",    emoji: "🦔" },
-  10: { name: "Hedgehog 10",   rarity: "common",    emoji: "🦔" },
+  6:  { name: "Hedgehog 6",    rarity: "uncommon",  emoji: "🦔" },
+  7:  { name: "Hedgehog 7",    rarity: "uncommon",  emoji: "🦔" },
+  8:  { name: "Hedgehog 8",    rarity: "rare",      emoji: "🦔" },
+  9:  { name: "Hedgehog 9",    rarity: "epic",      emoji: "🦔" },
+  10: { name: "Hedgehog 10",   rarity: "legendary", emoji: "🦔" },
   // Fast Food Pack
   11: { name: "Ketchup",       rarity: "rare",      imageUrl: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png" },
   12: { name: "Mustard",       rarity: "rare",      imageUrl: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png" },
