@@ -4,7 +4,7 @@ import { firestore, FieldValue } from "../lib/firebase.js";
 
 const router = Router();
 
-router.post("/api/track", requireAuth, async (req, res) => {
+router.post("/track", requireAuth, async (req, res) => {
   const uid = (req as AuthRequest).uid;
   const ip =
     (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim() ||
