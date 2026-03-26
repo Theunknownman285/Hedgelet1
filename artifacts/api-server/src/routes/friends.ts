@@ -77,4 +77,26 @@ router.post("/friend-remove", requireAuth, async (req: Request, res: Response) =
   }
 });
 
+// Lookup public profile data for a list of UIDs (bypasses client Firestore rules)
+router.post("/users/lookup", requireAuth, async (req: Request, res: Response) => {
+  const { uids } = req.body as { uids?: string[] };
+  if (!Array.isArray(uids) || uids.length === 0) {
+    res.json({ users: {} });
+    return;
+  }
+  const limited = uids.slice(0, 100);
+  try {
+    const snaps = await Promise.all(limited.map(uid => firestore.collection("users").doc(uid).get()));
+    const users: Record<string, { username: string; equippedBlook: number | null }> = {};
+    snaps.forEach(snap => {
+      if (!snap.exists) return;
+      const d = snap.data()!;
+      users[snap.id] = { username: d.username || "Unknown", equippedBlook: d.equippedBlook ?? null };
+    });
+    res.json({ users });
+  } catch (e: unknown) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
 export default router;
