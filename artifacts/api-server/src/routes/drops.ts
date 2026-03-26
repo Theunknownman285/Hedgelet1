@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { requireAuth, type AuthRequest } from "../middlewares/auth.js";
+import { requireAuth } from "../middlewares/auth.js";
 
 const router = Router();
 
@@ -11,9 +11,11 @@ router.post("/drops/announce", requireAuth, async (req: Request, res: Response) 
     username?: string;
   };
 
-  const webhookUrl = process.env.DISCORD_DROPS_WEBHOOK_URL;
-  if (!webhookUrl) {
-    res.status(503).json({ error: "Drops webhook not configured" });
+  const botToken  = process.env.DISCORD_BOT_TOKEN;
+  const channelId = process.env.DISCORD_DROPS_CHANNEL_ID;
+
+  if (!botToken || !channelId) {
+    res.status(503).json({ error: "Drops channel not configured" });
     return;
   }
   if (!blookName || !rarity || !username) {
@@ -34,7 +36,7 @@ router.post("/drops/announce", requireAuth, async (req: Request, res: Response) 
 
   const color = rarityColors[rarity] ?? 0xFFD700;
   const label = rarityLabels[rarity] ?? rarity.toUpperCase();
-  const displayEmoji = blookEmoji && (blookEmoji.startsWith("http") || blookEmoji.startsWith("/")) ? "" : (blookEmoji || "");
+  const displayEmoji = blookEmoji && !blookEmoji.startsWith("http") && !blookEmoji.startsWith("/") ? blookEmoji : "";
   const blookDisplay = displayEmoji ? `${displayEmoji} **${blookName}**` : `**${blookName}**`;
 
   const payload = {
@@ -50,13 +52,17 @@ router.post("/drops/announce", requireAuth, async (req: Request, res: Response) 
   };
 
   try {
-    const r = await fetch(webhookUrl, {
+    const r = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bot ${botToken}`,
+      },
       body: JSON.stringify(payload),
     });
     if (!r.ok) {
-      res.status(502).json({ error: `Webhook returned ${r.status}` });
+      const text = await r.text();
+      res.status(502).json({ error: `Discord returned ${r.status}: ${text}` });
       return;
     }
     res.json({ ok: true });
