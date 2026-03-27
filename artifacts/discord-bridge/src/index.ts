@@ -1641,14 +1641,7 @@ client.once("clientReady", async () => {
     await registerCommands(guildId);
   }
 
-  // Log all text channels the bot can see so we can identify the right ID
-  console.log("[Bot] Accessible text channels:");
-  client.channels.cache.forEach(c => {
-    if (c.isTextBased()) console.log(`  #${(c as any).name ?? "?"} → ${c.id}`);
-  });
-
   // Set up chat channel — non-fatal if missing (application DMs still work)
-  console.log(`[Bot] Attempting to connect to chat channel: ${DISCORD_CHANNEL_ID}`);
   try {
     const ch = await client.channels.fetch(DISCORD_CHANNEL_ID!);
     if (ch && ch.isTextBased()) {
