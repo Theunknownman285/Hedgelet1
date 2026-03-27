@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spacelet</title>
+    <title>SpaceHedge</title>
     <style>
         /* ── BASE ── */
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #060614; background-size: 400% 400%; display: flex; color: black; overflow-x: hidden; }
@@ -477,7 +477,7 @@
     </div>
 
     <!-- TEXT -->
-    <h1 style="font-size:52px;margin:0 0 6px;letter-spacing:2px;text-shadow:0 0 30px rgba(120,180,255,0.8);animation:home-fade-in 1s ease both;">🚀 Spacelet</h1>
+    <h1 style="font-size:52px;margin:0 0 6px;letter-spacing:2px;text-shadow:0 0 30px rgba(120,180,255,0.8);animation:home-fade-in 1s ease both;">🚀 SpaceHedge</h1>
     <p style="margin:0 0 32px;font-size:16px;color:rgba(200,220,255,0.75);animation:home-fade-in 1s ease 0.2s both;">A Space Collectible Card Game</p>
     <button onclick="enterSignup()" style="
         padding:15px 40px;font-size:18px;border:none;border-radius:12px;
@@ -532,7 +532,7 @@
     <!-- LOGIN CARD -->
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(5,5,25,0.92);backdrop-filter:blur(14px);padding:38px 44px;border-radius:22px;width:300px;text-align:center;color:white;box-shadow:0 24px 64px rgba(0,0,0,0.7),0 0 40px rgba(100,150,255,0.15);border:1px solid rgba(100,150,255,0.2);z-index:100;">
         <div style="font-size:48px;margin-bottom:4px;">🚀</div>
-        <h1 style="margin:0 0 24px;font-size:26px;letter-spacing:1px;">Spacelet</h1>
+        <h1 style="margin:0 0 24px;font-size:26px;letter-spacing:1px;">SpaceHedge</h1>
 
         <!-- LOGIN FORM -->
         <div id="form-login">
@@ -550,7 +550,7 @@
             <input id="apply-username" type="text" placeholder="Desired In-Game Username" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;" maxlength="20">
             <input id="apply-email" type="email" placeholder="Email" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
             <input id="apply-password" type="password" placeholder="Password (6+ chars)" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:15px;box-sizing:border-box;outline:none;">
-            <textarea id="apply-reason" placeholder="Why do you want to play Spacelet?" maxlength="300" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:14px;box-sizing:border-box;outline:none;resize:none;height:80px;font-family:inherit;"></textarea>
+            <textarea id="apply-reason" placeholder="Why do you want to play SpaceHedge?" maxlength="300" style="width:100%;padding:11px;margin:5px 0;border-radius:8px;border:none;font-size:14px;box-sizing:border-box;outline:none;resize:none;height:80px;font-family:inherit;"></textarea>
             <button onclick="submitApplication()" style="width:100%;padding:13px;margin-top:10px;background:#1a3a7e;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:16px;transition:0.2s;" onmouseover="this.style.background='#2450a8'" onmouseout="this.style.background='#1a3a7e'">Submit Application 🚀</button>
             <p style="margin:14px 0 0;font-size:13px;opacity:0.75;cursor:pointer;" onclick="setAuthMode('login')">Already approved? <u>Login</u></p>
         </div>
@@ -570,7 +570,7 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
     <h1 style="font-size:36px;text-align:center;margin-bottom:6px;">🚀</h1>
-    <div style="text-align:center;font-size:13px;font-weight:bold;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:24px;">SPACELET</div>
+    <div style="text-align:center;font-size:13px;font-weight:bold;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:24px;">SPACEHEDGE</div>
     <div class="nav-item active-nav" data-page="stats-page"   onclick="showPage('stats-page')">📊 Stats</div>
     <div class="nav-item"           data-page="market-page"   onclick="showPage('market-page')">🛒 Market</div>
     <div class="nav-item"           data-page="hedges-page"   onclick="showPage('hedges-page')">🌌 Blooks</div>
@@ -998,8 +998,8 @@
         'tester':         { label: 'Tester',          badge: '🧪', color: '#9C27B0', bg: 'rgba(156,39,176,0.18)',     desc: 'Tests new features' },
         'artist':         { label: 'Artist',          badge: '🎨', color: '#E91E63', bg: 'rgba(233,30,99,0.18)',      desc: 'Creates game art' },
         'server-booster': { label: 'Server Booster',  badge: '💎', color: '#FF73FA', bg: 'rgba(255,115,250,0.18)',    desc: 'Boosting the Discord server' },
-        'og':             { label: 'OG',              img: '/badge-og.png',            color: '#CD6A1A', bg: 'rgba(180,90,20,0.18)',      desc: 'An original Spacelet player' },
-        "true-spacelet":  { label: 'True Space Explorer',   img: '/badge-true-spacelet.png', color: '#CD853F', bg: 'rgba(205,133,63,0.18)',    desc: 'A true Spacelet fan' },
+        'og':             { label: 'OG',              img: '/badge-og.png',            color: '#CD6A1A', bg: 'rgba(180,90,20,0.18)',      desc: 'An original SpaceHedge player' },
+        "true-spacehedge":  { label: 'True Space Explorer',   img: '/badge-true-spacehedge.png', color: '#CD853F', bg: 'rgba(205,133,63,0.18)',    desc: 'A true SpaceHedge fan' },
     };
 
     function buildRoleBadgeHtml(roles, forChat = false) {
@@ -1084,7 +1084,7 @@
         64: { name: "Dragon",         emoji: TW+'1f409.svg', rarity: "legendary",pack: "animal" },
         65: { name: "Cool Space Explorer",  emoji: TW+'1f994.svg', rarity: "mythical", pack: "animal" },
         // ── Staff-Only ──
-        36: { name: "Day 1 Space Explorer", emoji: "/day1-spacelet.png", rarity: "mythical" },
+        36: { name: "Day 1 Space Explorer", emoji: "/day1-spacehedge.png", rarity: "mythical" },
         // ── Emoji Pack ──
         37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
         38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
@@ -1306,7 +1306,7 @@
                     document.getElementById('home-screen').style.display = 'none';
                     setTimeout(() => {
                         const el = document.getElementById('login-status');
-                        if (el) { el.textContent = '🔨 You are banned from Spacelet.' + (bannedReason ? ' Reason: ' + bannedReason : ''); el.style.color = '#e74c3c'; }
+                        if (el) { el.textContent = '🔨 You are banned from SpaceHedge.' + (bannedReason ? ' Reason: ' + bannedReason : ''); el.style.color = '#e74c3c'; }
                     }, 100);
                     return;
                 }
@@ -2054,7 +2054,7 @@
 
         const data = blookData[pendingBlook];
         if (!data) {
-            console.error('[Spacelet] Unknown blook ID in hatchEgg:', pendingBlook);
+            console.error('[SpaceHedge] Unknown blook ID in hatchEgg:', pendingBlook);
             closeReveal();
             return;
         }
@@ -2687,7 +2687,7 @@
             if (nowBanned && !banned) {
                 banned = true;
                 bannedReason = data.bannedReason || '';
-                showToast('🔨 You have been banned from Spacelet.', 'rgba(180,0,0,0.95)');
+                showToast('🔨 You have been banned from SpaceHedge.', 'rgba(180,0,0,0.95)');
                 setTimeout(() => firebase.auth().signOut(), 3000);
             }
 

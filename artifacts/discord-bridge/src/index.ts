@@ -38,7 +38,7 @@ const firestore = getFirestore();
 const bucket    = getStorage().bucket();
 const chatRef   = rtdb.ref("globalChat");
 const BRIDGE_BOT_UID  = "DISCORD_BRIDGE";
-const BACKUP_SECRET   = process.env["BACKUP_SECRET"] ?? "spacelet-backup-secret-2024";
+const BACKUP_SECRET   = process.env["BACKUP_SECRET"] ?? "spacehedge-backup-secret-2024";
 const BACKUP_COLLECTIONS = ["users", "clans", "bazaar", "applications", "partnerCodes", "ipBans", "trades"];
 
 // ── Discord client ────────────────────────────────────────────────────────────
@@ -85,9 +85,9 @@ function hasModRole(interaction: ChatInputCommandInteraction): boolean {
 const commands = [
   new SlashCommandBuilder()
     .setName("mute")
-    .setDescription("Mute a player in Spacelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Mute a player in SpaceHedge (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addStringOption(o =>
       o.setName("duration").setDescription("How long: 10m · 1h · 6h · 1d · 7d · permanent (default)").setRequired(false))
     .addStringOption(o =>
@@ -95,35 +95,35 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName("unmute")
-    .setDescription("Unmute a player in Spacelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Unmute a player in SpaceHedge (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ban")
-    .setDescription("Ban a player from Spacelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Ban a player from SpaceHedge (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addStringOption(o =>
       o.setName("reason").setDescription("Reason for ban").setRequired(false)),
 
   new SlashCommandBuilder()
     .setName("unban")
-    .setDescription("Unban a player from Spacelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Unban a player from SpaceHedge (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("view")
-    .setDescription("View a Spacelet player's profile card")
+    .setDescription("View a SpaceHedge player's profile card")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("addrole")
     .setDescription("Add an in-game role to a player (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addStringOption(o =>
       o.setName("role").setDescription("Role to add").setRequired(true).addChoices(
         { name: "👑 Owner",          value: "owner"          },
@@ -135,14 +135,14 @@ const commands = [
         { name: "🎨 Artist",         value: "artist"         },
         { name: "💎 Server Booster", value: "server-booster" },
         { name: "⭐ OG",             value: "og"             },
-        { name: "🚀 True Space Explorer",  value: "true-spacelet"  },
+        { name: "🚀 True Space Explorer",  value: "true-spacehedge"  },
       )),
 
   new SlashCommandBuilder()
     .setName("removerole")
     .setDescription("Remove an in-game role from a player (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addStringOption(o =>
       o.setName("role").setDescription("Role to remove").setRequired(true).addChoices(
         { name: "👑 Owner",          value: "owner"          },
@@ -154,14 +154,14 @@ const commands = [
         { name: "🎨 Artist",         value: "artist"         },
         { name: "💎 Server Booster", value: "server-booster" },
         { name: "⭐ OG",             value: "og"             },
-        { name: "🚀 True Space Explorer",  value: "true-spacelet"  },
+        { name: "🚀 True Space Explorer",  value: "true-spacehedge"  },
       )),
 
   new SlashCommandBuilder()
     .setName("give")
     .setDescription("Give any Hedge to a player (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addStringOption(o =>
       o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true))
     .addIntegerOption(o =>
@@ -171,7 +171,7 @@ const commands = [
     .setName("addtokens")
     .setDescription("Add tokens to a player's account (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true))
     .addIntegerOption(o =>
       o.setName("amount").setDescription("Number of tokens to add").setRequired(true).setMinValue(1).setMaxValue(100000)),
 
@@ -179,7 +179,7 @@ const commands = [
     .setName("createpartnercode")
     .setDescription("Create a partner code for a content creator (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username to create the code for").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username to create the code for").setRequired(true))
     .addStringOption(o =>
       o.setName("code").setDescription("Custom code (auto-generated if blank)").setRequired(false)),
 
@@ -201,13 +201,13 @@ const commands = [
     .setName("alt")
     .setDescription("Check if a player has alt accounts linked by IP (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username to check").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username to check").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ipban")
     .setDescription("IP ban a player — blocks all their known IPs from logging in (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username to IP ban").setRequired(true))
+      o.setName("username").setDescription("SpaceHedge username to IP ban").setRequired(true))
     .addStringOption(o =>
       o.setName("reason").setDescription("Reason for the ban").setRequired(false)),
 
@@ -227,13 +227,13 @@ const commands = [
     .setName("forcelogout")
     .setDescription("Force a player to be logged out immediately (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("reset")
     .setDescription("Wipe a player's account — removes all blooks, tokens and progress (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Spacelet username").setRequired(true)),
+      o.setName("username").setDescription("SpaceHedge username").setRequired(true)),
   new SlashCommandBuilder()
     .setName("backup")
     .setDescription("Trigger an immediate Firestore backup to Cloud Storage (Owner only)"),
@@ -241,7 +241,7 @@ const commands = [
     .setName("restore")
     .setDescription("Restore Firestore data from a backup file (Owner only)")
     .addStringOption(o =>
-      o.setName("filename").setDescription("Backup filename from /backup list (e.g. backups/spacelet-backup-2024-...)").setRequired(true)),
+      o.setName("filename").setDescription("Backup filename from /backup list (e.g. backups/spacehedge-backup-2024-...)").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -340,7 +340,7 @@ const ROLE_LABELS: Record<string, string> = {
   "artist":         "🎨 Artist",
   "server-booster": "💎 Server Booster",
   "og":             "⭐ OG",
-  "true-spacelet":  "🚀 True Space Explorer",
+  "true-spacehedge":  "🚀 True Space Explorer",
 };
 
 // ── Blook lookup table (mirrors index.html blookData) ─────────────────────────
@@ -478,7 +478,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!user) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player not found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -532,7 +532,7 @@ client.on("interactionCreate", async (interaction) => {
         { name: "🏷️ Roles",            value: rolesStr,          inline: false },
         { name: "🔰 Status",           value: status,            inline: false },
       )
-      .setFooter({ text: "Spacelet" })
+      .setFooter({ text: "SpaceHedge" })
       .setTimestamp();
 
     // Thumbnail — use image URL if available, else skip (Discord can't render SVG emoji URLs)
@@ -552,7 +552,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!hasModRole(interaction)) {
     await interaction.reply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
-        .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use Spacelet mod commands.")],
+        .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use SpaceHedge mod commands.")],
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -564,7 +564,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!user) {
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ User not found")
-        .setDescription(`No Spacelet player with username **${username}** was found.`)],
+        .setDescription(`No SpaceHedge player with username **${username}** was found.`)],
     });
     return;
   }
@@ -593,7 +593,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} unmuted ${username}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("🔊 Player Unmuted")
-        .setDescription(`**${username}** can now chat in Spacelet again.`)],
+        .setDescription(`**${username}** can now chat in SpaceHedge again.`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Green)
@@ -605,7 +605,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} banned ${username}: ${reason}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("🔨 Player Banned")
-        .setDescription(`**${username}** has been banned from Spacelet.\n**Reason:** ${reason}`)],
+        .setDescription(`**${username}** has been banned from SpaceHedge.\n**Reason:** ${reason}`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Red)
@@ -617,7 +617,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} unbanned ${username}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("✅ Player Unbanned")
-        .setDescription(`**${username}** has been unbanned from Spacelet.`)],
+        .setDescription(`**${username}** has been unbanned from SpaceHedge.`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Green)
@@ -686,7 +686,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!target) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -775,7 +775,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!target) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -904,7 +904,7 @@ client.on("interactionCreate", async (interaction) => {
           inline: false,
         },
       )
-      .setFooter({ text: "Spacelet Blook Database" })
+      .setFooter({ text: "SpaceHedge Blook Database" })
       .setTimestamp();
 
     if (blookInfo.imageUrl) embed.setThumbnail(blookInfo.imageUrl);
@@ -953,7 +953,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -988,7 +988,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -1037,7 +1037,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -1081,7 +1081,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -1184,7 +1184,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Spacelet player named **${username}**.`)],
+          .setDescription(`No SpaceHedge player named **${username}**.`)],
       });
       return;
     }
@@ -1216,7 +1216,7 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename  = `backups/spacelet-backup-${timestamp}.json`;
+      const filename  = `backups/spacehedge-backup-${timestamp}.json`;
       const data: Record<string, Record<string, unknown>> = {};
 
       for (const col of BACKUP_COLLECTIONS) {
@@ -1352,7 +1352,7 @@ async function startApplicationListener() {
 
         const embed = new EmbedBuilder()
           .setColor(0x8b5a3e)
-          .setTitle("🚀 New Spacelet Application")
+          .setTitle("🚀 New SpaceHedge Application")
           .addFields(
             { name: "👤 Username",       value: app.username,          inline: true },
             { name: "🎂 Age",            value: String(app.age),       inline: true },
@@ -1517,7 +1517,7 @@ client.on("interactionCreate", async (interaction) => {
     // DM all reviewers that it was approved
     const approvedEmbed = new EmbedBuilder().setColor(Colors.Green)
       .setTitle("✅ Application Approved")
-      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to Spacelet.`);
+      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to SpaceHedge.`);
 
     for (const rid of REVIEWER_IDS) {
       try {
@@ -1601,7 +1601,7 @@ function startGameListener() {
         .setColor(0x8b5a3e)
         .setAuthor({ name: `${blook} ${msg.username}` })
         .setDescription(msg.text)
-        .setFooter({ text: "Spacelet" })
+        .setFooter({ text: "SpaceHedge" })
         .setTimestamp(msg.timestamp ? new Date(msg.timestamp) : new Date());
 
       if (msg.replyTo) {
@@ -1625,11 +1625,11 @@ function startGameListener() {
 
 // ── Bot ready ─────────────────────────────────────────────────────────────────
 client.once("clientReady", async () => {
-  // Rename bot to Spacelet Bridge if needed
+  // Rename bot to SpaceHedge Bridge if needed
   try {
-    if (client.user?.username !== "Spacelet Bridge") {
-      await client.user?.setUsername("Spacelet Bridge");
-      console.log("[Bot] Renamed to Spacelet Bridge");
+    if (client.user?.username !== "SpaceHedge Bridge") {
+      await client.user?.setUsername("SpaceHedge Bridge");
+      console.log("[Bot] Renamed to SpaceHedge Bridge");
     }
   } catch (e) {
     console.warn("[Bot] Could not rename bot (rate limited or no permission):", (e as Error).message);
@@ -1654,7 +1654,7 @@ client.once("clientReady", async () => {
         embeds: [
           new EmbedBuilder()
             .setColor(0xffd700)
-            .setTitle("🚀 Spacelet Chat Bridge Online")
+            .setTitle("🚀 SpaceHedge Chat Bridge Online")
             .setDescription(
               "Messages from the game appear here. Reply to chat with in-game players!\n\n" +
               "**Mod commands (Ban Members permission required):**\n" +
