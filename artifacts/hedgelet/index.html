@@ -1068,6 +1068,14 @@
 
     const prizes = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 
+    // Global error capture — logs the full stack so we can debug
+    window.addEventListener('unhandledrejection', e => {
+        console.error('[SpaceHedge] Unhandled promise rejection:', e.reason?.message || e.reason, e.reason?.stack);
+    });
+    window.addEventListener('error', e => {
+        console.error('[SpaceHedge] Uncaught error:', e.message, 'at', e.filename, e.lineno + ':' + e.colno, e.error?.stack);
+    });
+
     const TW = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/';
     const blookData = {
         1:  { name: "space explorer 1",   emoji: TW+'1f994.svg', pack: "space explorer" },
@@ -1365,6 +1373,8 @@
                 startModListener(uid);
                 onPlayerReady(data.username);
             }
+        }).catch(e => {
+            console.error('[SpaceHedge] loadPlayerData error:', e.message, e.stack);
         });
     }
 
@@ -1793,6 +1803,8 @@
         luckMultiplier = newMult;
         if (newMult > 1 && newMult !== prev) showLuckAnnouncement(newMult, data?.activatedBy || 'Staff');
         updateLuckBadge();
+    }, err => {
+        console.warn('[SpaceHedge] globalLuck RTDB unavailable:', err.message);
     });
 
     const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','chroma','mythical'];
@@ -2157,7 +2169,7 @@
 
     // ─── SELL SYSTEM ──────────────────────────────────────────────────────────
     const SELL_PRICES = { common: 5, uncommon: 8, rare: 15, epic: 35, legendary: 75, chroma: 200, mythical: 0 };
-    function getSellPrice(id) { return SELL_PRICES[blookData[id].rarity || 'common']; }
+    function getSellPrice(id) { return SELL_PRICES[(blookData[id]?.rarity) || 'common'] ?? 5; }
 
     function showToast(msg, color) {
         const t = document.createElement('div');
@@ -2237,6 +2249,7 @@
                 const count = collection[i] || 0;
                 const locked = count === 0;
                 const data = blookData[i];
+                if (!data) { grid.appendChild(card); return; }
                 card.className = `blook-card${locked ? ' locked' : ''}`;
 
                 if (!locked && data.rarity) {
@@ -2316,6 +2329,7 @@
             if ((col[i] || 0) === 0) continue;
             hasAny = true;
             const data = blookData[i];
+            if (!data) continue;
             const card = document.createElement('div');
             const selected = selectedIds.includes(i);
             card.className = 'blook-card' + (selected ? ' trade-selected' : '');

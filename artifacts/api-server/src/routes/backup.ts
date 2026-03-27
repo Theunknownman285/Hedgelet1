@@ -21,7 +21,7 @@ const COLLECTIONS = ["users", "clans", "bazaar", "applications", "partnerCodes",
 
 export async function runBackup(): Promise<string> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const filename  = `backups/hedgelet-backup-${timestamp}.json`;
+  const filename  = `backups/spacehedge-backup-${timestamp}.json`;
   const data: Record<string, Record<string, unknown>> = {};
 
   for (const col of COLLECTIONS) {
@@ -58,7 +58,7 @@ export async function runBackup(): Promise<string> {
     .join(", ");
 
   await notifyDiscord(
-    `🛡️ **Hedgelet Backup Complete**\n` +
+    `🛡️ **SpaceHedge Backup Complete**\n` +
     `📦 Collections: ${counts}\n` +
     `🔗 [Download backup](${url})\n` +
     `🕐 ${new Date().toUTCString()}`
@@ -142,7 +142,7 @@ router.post("/admin/restore", async (req, res) => {
 
     const authCount = Object.keys(data["_authUsers"] ?? {}).length;
     await notifyDiscord(
-      `✅ **Hedgelet Restore Complete**\n` +
+      `✅ **SpaceHedge Restore Complete**\n` +
       `📄 Docs restored: **${docsWritten}**\n` +
       `👤 Auth accounts in backup: **${authCount}** (Auth cannot be automatically restored — accounts will be recreated when players log in)\n` +
       `📦 Source: \`${filename}\``
