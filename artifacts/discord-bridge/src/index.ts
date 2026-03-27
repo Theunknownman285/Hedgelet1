@@ -38,7 +38,7 @@ const firestore = getFirestore();
 const bucket    = getStorage().bucket();
 const chatRef   = rtdb.ref("globalChat");
 const BRIDGE_BOT_UID  = "DISCORD_BRIDGE";
-const BACKUP_SECRET   = process.env["BACKUP_SECRET"] ?? "hedgelet-backup-secret-2024";
+const BACKUP_SECRET   = process.env["BACKUP_SECRET"] ?? "spacelet-backup-secret-2024";
 const BACKUP_COLLECTIONS = ["users", "clans", "bazaar", "applications", "partnerCodes", "ipBans", "trades"];
 
 // ── Discord client ────────────────────────────────────────────────────────────
@@ -85,9 +85,9 @@ function hasModRole(interaction: ChatInputCommandInteraction): boolean {
 const commands = [
   new SlashCommandBuilder()
     .setName("mute")
-    .setDescription("Mute a player in Hedgelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Mute a player in Spacelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addStringOption(o =>
       o.setName("duration").setDescription("How long: 10m · 1h · 6h · 1d · 7d · permanent (default)").setRequired(false))
     .addStringOption(o =>
@@ -95,35 +95,35 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName("unmute")
-    .setDescription("Unmute a player in Hedgelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Unmute a player in Spacelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ban")
-    .setDescription("Ban a player from Hedgelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Ban a player from Spacelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addStringOption(o =>
       o.setName("reason").setDescription("Reason for ban").setRequired(false)),
 
   new SlashCommandBuilder()
     .setName("unban")
-    .setDescription("Unban a player from Hedgelet (Owner / Co-Owner / Admin only)")
+    .setDescription("Unban a player from Spacelet (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("view")
-    .setDescription("View a Hedgelet player's profile card")
+    .setDescription("View a Spacelet player's profile card")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("addrole")
     .setDescription("Add an in-game role to a player (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addStringOption(o =>
       o.setName("role").setDescription("Role to add").setRequired(true).addChoices(
         { name: "👑 Owner",          value: "owner"          },
@@ -135,14 +135,14 @@ const commands = [
         { name: "🎨 Artist",         value: "artist"         },
         { name: "💎 Server Booster", value: "server-booster" },
         { name: "⭐ OG",             value: "og"             },
-        { name: "🦔 True Hedgehog",  value: "true-hedgehog"  },
+        { name: "🚀 True Space Explorer",  value: "true-spacelet"  },
       )),
 
   new SlashCommandBuilder()
     .setName("removerole")
     .setDescription("Remove an in-game role from a player (Owner / Co-Owner / Admin only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addStringOption(o =>
       o.setName("role").setDescription("Role to remove").setRequired(true).addChoices(
         { name: "👑 Owner",          value: "owner"          },
@@ -154,14 +154,14 @@ const commands = [
         { name: "🎨 Artist",         value: "artist"         },
         { name: "💎 Server Booster", value: "server-booster" },
         { name: "⭐ OG",             value: "og"             },
-        { name: "🦔 True Hedgehog",  value: "true-hedgehog"  },
+        { name: "🚀 True Space Explorer",  value: "true-spacelet"  },
       )),
 
   new SlashCommandBuilder()
     .setName("give")
     .setDescription("Give any Hedge to a player (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addStringOption(o =>
       o.setName("blook").setDescription("Type to search blooks…").setRequired(true).setAutocomplete(true))
     .addIntegerOption(o =>
@@ -171,7 +171,7 @@ const commands = [
     .setName("addtokens")
     .setDescription("Add tokens to a player's account (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true))
+      o.setName("username").setDescription("Spacelet username").setRequired(true))
     .addIntegerOption(o =>
       o.setName("amount").setDescription("Number of tokens to add").setRequired(true).setMinValue(1).setMaxValue(100000)),
 
@@ -179,7 +179,7 @@ const commands = [
     .setName("createpartnercode")
     .setDescription("Create a partner code for a content creator (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username to create the code for").setRequired(true))
+      o.setName("username").setDescription("Spacelet username to create the code for").setRequired(true))
     .addStringOption(o =>
       o.setName("code").setDescription("Custom code (auto-generated if blank)").setRequired(false)),
 
@@ -201,13 +201,13 @@ const commands = [
     .setName("alt")
     .setDescription("Check if a player has alt accounts linked by IP (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username to check").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username to check").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("ipban")
     .setDescription("IP ban a player — blocks all their known IPs from logging in (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username to IP ban").setRequired(true))
+      o.setName("username").setDescription("Spacelet username to IP ban").setRequired(true))
     .addStringOption(o =>
       o.setName("reason").setDescription("Reason for the ban").setRequired(false)),
 
@@ -227,13 +227,13 @@ const commands = [
     .setName("forcelogout")
     .setDescription("Force a player to be logged out immediately (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username").setRequired(true)),
 
   new SlashCommandBuilder()
     .setName("reset")
     .setDescription("Wipe a player's account — removes all blooks, tokens and progress (Staff only)")
     .addStringOption(o =>
-      o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+      o.setName("username").setDescription("Spacelet username").setRequired(true)),
   new SlashCommandBuilder()
     .setName("backup")
     .setDescription("Trigger an immediate Firestore backup to Cloud Storage (Owner only)"),
@@ -241,7 +241,7 @@ const commands = [
     .setName("restore")
     .setDescription("Restore Firestore data from a backup file (Owner only)")
     .addStringOption(o =>
-      o.setName("filename").setDescription("Backup filename from /backup list (e.g. backups/hedgelet-backup-2024-...)").setRequired(true)),
+      o.setName("filename").setDescription("Backup filename from /backup list (e.g. backups/spacelet-backup-2024-...)").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -340,23 +340,23 @@ const ROLE_LABELS: Record<string, string> = {
   "artist":         "🎨 Artist",
   "server-booster": "💎 Server Booster",
   "og":             "⭐ OG",
-  "true-hedgehog":  "🦔 True Hedgehog",
+  "true-spacelet":  "🚀 True Space Explorer",
 };
 
 // ── Blook lookup table (mirrors index.html blookData) ─────────────────────────
 interface BlookInfo { name: string; rarity: string; imageUrl?: string; emoji?: string; }
 const BLOOK_DATA: Record<number, BlookInfo> = {
-  // Hedgehog Pack
-  1:  { name: "Hedgehog 1",    rarity: "common",    emoji: "🦔" },
-  2:  { name: "Hedgehog 2",    rarity: "common",    emoji: "🦔" },
-  3:  { name: "Hedgehog 3",    rarity: "common",    emoji: "🦔" },
-  4:  { name: "Hedgehog 4",    rarity: "common",    emoji: "🦔" },
-  5:  { name: "Hedgehog 5",    rarity: "common",    emoji: "🦔" },
-  6:  { name: "Hedgehog 6",    rarity: "uncommon",  emoji: "🦔" },
-  7:  { name: "Hedgehog 7",    rarity: "uncommon",  emoji: "🦔" },
-  8:  { name: "Hedgehog 8",    rarity: "rare",      emoji: "🦔" },
-  9:  { name: "Hedgehog 9",    rarity: "epic",      emoji: "🦔" },
-  10: { name: "Hedgehog 10",   rarity: "legendary", emoji: "🦔" },
+  // Space Explorer Pack
+  1:  { name: "Space Explorer 1",    rarity: "common",    emoji: "🚀" },
+  2:  { name: "Space Explorer 2",    rarity: "common",    emoji: "🚀" },
+  3:  { name: "Space Explorer 3",    rarity: "common",    emoji: "🚀" },
+  4:  { name: "Space Explorer 4",    rarity: "common",    emoji: "🚀" },
+  5:  { name: "Space Explorer 5",    rarity: "common",    emoji: "🚀" },
+  6:  { name: "Space Explorer 6",    rarity: "uncommon",  emoji: "🚀" },
+  7:  { name: "Space Explorer 7",    rarity: "uncommon",  emoji: "🚀" },
+  8:  { name: "Space Explorer 8",    rarity: "rare",      emoji: "🚀" },
+  9:  { name: "Space Explorer 9",    rarity: "epic",      emoji: "🚀" },
+  10: { name: "Space Explorer 10",   rarity: "legendary", emoji: "🚀" },
   // Fast Food Pack
   11: { name: "Ketchup",       rarity: "rare",      imageUrl: "https://i.postimg.cc/7PN2fhgB/Screenshot-2026-03-21-10-45-36-AM-removebg-preview.png" },
   12: { name: "Mustard",       rarity: "rare",      imageUrl: "https://i.postimg.cc/5yj9qTqz/Screenshot-2026-03-21-11-16-16-AM-removebg-preview-(1).png" },
@@ -369,7 +369,7 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   34: { name: "Soda",          rarity: "rare",      emoji: "🥤" },
   35: { name: "Golden Hot Dog",rarity: "chroma",    emoji: "🌭" },
   // Staff Exclusive
-  36: { name: "Day 1 Hedgehog", rarity: "mythical",   emoji: "🦔🏆" },
+  36: { name: "Day 1 Space Explorer", rarity: "mythical",   emoji: "🚀🏆" },
   // ── Emoji Pack ──
   37: { name: "Money Mouth",    rarity: "common",    emoji: "🤑" },
   38: { name: "Beaming",        rarity: "common",    emoji: "😄" },
@@ -400,7 +400,7 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   62: { name: "Butterfly",     rarity: "rare",      emoji: "🦋" },
   63: { name: "Unicorn",       rarity: "epic",      emoji: "🦄" },
   64: { name: "Dragon",        rarity: "legendary", emoji: "🐉" },
-  65: { name: "Cool Hedgehog", rarity: "mythical",  emoji: "🦔" },
+  65: { name: "Cool Space Explorer", rarity: "mythical",  emoji: "🚀" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },
@@ -478,7 +478,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!user) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player not found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -495,7 +495,7 @@ client.on("interactionCreate", async (interaction) => {
     const blookInfo = blookId ? BLOOK_DATA[blookId] : null;
     const rarity    = blookInfo?.rarity ?? "common";
     const blookName = blookInfo?.name   ?? "None";
-    const titlePrefix = blookInfo?.emoji ? `${blookInfo.emoji} ` : "🦔 ";
+    const titlePrefix = blookInfo?.emoji ? `${blookInfo.emoji} ` : "🚀 ";
 
     // Get join date from Firebase Auth
     let joinedStr = "Unknown";
@@ -532,7 +532,7 @@ client.on("interactionCreate", async (interaction) => {
         { name: "🏷️ Roles",            value: rolesStr,          inline: false },
         { name: "🔰 Status",           value: status,            inline: false },
       )
-      .setFooter({ text: "Hedgelet" })
+      .setFooter({ text: "Spacelet" })
       .setTimestamp();
 
     // Thumbnail — use image URL if available, else skip (Discord can't render SVG emoji URLs)
@@ -552,7 +552,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!hasModRole(interaction)) {
     await interaction.reply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
-        .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use Hedgelet mod commands.")],
+        .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use Spacelet mod commands.")],
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -564,7 +564,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!user) {
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ User not found")
-        .setDescription(`No Hedgelet player with username **${username}** was found.`)],
+        .setDescription(`No Spacelet player with username **${username}** was found.`)],
     });
     return;
   }
@@ -593,7 +593,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} unmuted ${username}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("🔊 Player Unmuted")
-        .setDescription(`**${username}** can now chat in Hedgelet again.`)],
+        .setDescription(`**${username}** can now chat in Spacelet again.`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Green)
@@ -605,7 +605,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} banned ${username}: ${reason}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("🔨 Player Banned")
-        .setDescription(`**${username}** has been banned from Hedgelet.\n**Reason:** ${reason}`)],
+        .setDescription(`**${username}** has been banned from Spacelet.\n**Reason:** ${reason}`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Red)
@@ -617,7 +617,7 @@ client.on("interactionCreate", async (interaction) => {
     console.log(`[MOD] ${mod} unbanned ${username}`);
     await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Green).setTitle("✅ Player Unbanned")
-        .setDescription(`**${username}** has been unbanned from Hedgelet.`)],
+        .setDescription(`**${username}** has been unbanned from Spacelet.`)],
     });
     channelReady?.send({
       embeds: [new EmbedBuilder().setColor(Colors.Green)
@@ -686,7 +686,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!target) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -775,7 +775,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!target) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -904,7 +904,7 @@ client.on("interactionCreate", async (interaction) => {
           inline: false,
         },
       )
-      .setFooter({ text: "Hedgelet Blook Database" })
+      .setFooter({ text: "Spacelet Blook Database" })
       .setTimestamp();
 
     if (blookInfo.imageUrl) embed.setThumbnail(blookInfo.imageUrl);
@@ -953,7 +953,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -988,7 +988,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -1037,7 +1037,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -1081,7 +1081,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -1184,7 +1184,7 @@ client.on("interactionCreate", async (interaction) => {
     if (!found) {
       await interaction.editReply({
         embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Player Not Found")
-          .setDescription(`No Hedgelet player named **${username}**.`)],
+          .setDescription(`No Spacelet player named **${username}**.`)],
       });
       return;
     }
@@ -1216,7 +1216,7 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const filename  = `backups/hedgelet-backup-${timestamp}.json`;
+      const filename  = `backups/spacelet-backup-${timestamp}.json`;
       const data: Record<string, Record<string, unknown>> = {};
 
       for (const col of BACKUP_COLLECTIONS) {
@@ -1353,7 +1353,7 @@ async function startApplicationListener() {
 
         const embed = new EmbedBuilder()
           .setColor(0x8b5a3e)
-          .setTitle("🦔 New Hedgelet Application")
+          .setTitle("🚀 New Spacelet Application")
           .addFields(
             { name: "👤 Username",       value: app.username,          inline: true },
             { name: "🎂 Age",            value: String(app.age),       inline: true },
@@ -1518,7 +1518,7 @@ client.on("interactionCreate", async (interaction) => {
     // DM all reviewers that it was approved
     const approvedEmbed = new EmbedBuilder().setColor(Colors.Green)
       .setTitle("✅ Application Approved")
-      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to Hedgelet.`);
+      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to Spacelet.`);
 
     for (const rid of REVIEWER_IDS) {
       try {
@@ -1596,13 +1596,13 @@ function startGameListener() {
       if (!channelReady) return;
 
       const blook = msg.blookEmoji && !msg.blookEmoji.startsWith("http")
-        ? msg.blookEmoji : "🦔";
+        ? msg.blookEmoji : "🚀";
 
       const embed = new EmbedBuilder()
         .setColor(0x8b5a3e)
         .setAuthor({ name: `${blook} ${msg.username}` })
         .setDescription(msg.text)
-        .setFooter({ text: "Hedgelet" })
+        .setFooter({ text: "Spacelet" })
         .setTimestamp(msg.timestamp ? new Date(msg.timestamp) : new Date());
 
       if (msg.replyTo) {
@@ -1648,7 +1648,7 @@ client.once("clientReady", async () => {
       embeds: [
         new EmbedBuilder()
           .setColor(0xffd700)
-          .setTitle("🦔 Hedgelet Chat Bridge Online")
+          .setTitle("🚀 Spacelet Chat Bridge Online")
           .setDescription(
             "Messages from the game appear here. Reply to chat with in-game players!\n\n" +
             "**Mod commands (Ban Members permission required):**\n" +
