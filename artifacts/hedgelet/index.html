@@ -634,7 +634,7 @@
                 <b>Space Explorer Pack</b><br>25 Tokens
                 <div class="pack-btns" onclick="event.stopPropagation()">
                     <button class="pack-btn" onclick="instantOpen(startOpening)">⚡ Instant</button>
-                    <button class="pack-btn" onclick="showAutoOpen('Space Explorer Pack',rollSpace ExplorerPack,25)">🔄 Auto</button>
+                    <button class="pack-btn" onclick="showAutoOpen('Space Explorer Pack',rollSpaceExplorerPack,25)">🔄 Auto</button>
                 </div>
             </div>
             <div class="pack-card" onclick="openFastFoodPack()" style="background: #D35400; color: white;">
@@ -1111,7 +1111,7 @@
     // ─── HOME / LOGIN FLOW ────────────────────────────────────────────────────
     window.onload = () => {
         const phone = document.getElementById('phone');
-        const h2 = document.getElementById('space explorer2');
+        const h2 = document.getElementById('spaceExplorer2');
         setTimeout(() => { phone.style.opacity = '1'; }, 1000);
         setTimeout(() => { h2.style.opacity = '1'; h2.style.left = '150px'; }, 3000);
     };
@@ -1764,7 +1764,7 @@
     }
 
     // ─── BLOOK ROLL FUNCTIONS ────────────────────────────────────────────────────
-    function rollSpace ExplorerPack() {
+    function rollSpaceExplorerPack() {
         // 1-5 common (10% each = 50%), 6-7 uncommon (13% each = 26%), 8 rare (14%), 9 epic (8%), 10 legendary (2%)
         const r = Math.random();
         if (r < 0.10) return 1; if (r < 0.20) return 2; if (r < 0.30) return 3;
@@ -1829,7 +1829,7 @@
         updateStats(); savePlayerData(); // save tokens + blook together so nothing is lost
         showReveal();
     }
-    function startOpening()    { _doPackOpen(25, rollSpace ExplorerPack); }
+    function startOpening()    { _doPackOpen(25, rollSpaceExplorerPack); }
     function openFastFoodPack(){ _doPackOpen(20, rollFastFoodPack); }
     function openBreakfastPack(){ _doPackOpen(22, rollBreakfastPack); }
     function openFruitPack()   { _doPackOpen(18, rollFruitPack); }
@@ -1924,7 +1924,7 @@
     }
 
     // ─── COOL HEDGEHOG ANIMATION ─────────────────────────────────────────────
-    function triggerCoolSpace ExplorerAnim() {
+    function triggerCoolSpaceExplorerAnim() {
         const overlay = document.createElement('div');
         overlay.id = 'cool-hog-overlay';
         overlay.style.cssText = 'position:fixed;inset:0;z-index:999998;pointer-events:none;overflow:hidden;background:rgba(0,0,0,0.0);';
@@ -2090,7 +2090,7 @@
         }
 
         if (pendingBlook === 43) setTimeout(triggerSobFlood, 600); // Sob floods the screen!
-        if (pendingBlook === 65) setTimeout(triggerCoolSpace ExplorerAnim, 800); // Cool Space Explorer drives off!
+        if (pendingBlook === 65) setTimeout(triggerCoolSpaceExplorerAnim, 800); // Cool Space Explorer drives off!
         // Announce legendary / chroma / mythical pulls to Discord
         if (data.rarity === 'legendary' || data.rarity === 'chroma' || data.rarity === 'mythical') {
             const myName = document.getElementById('profile-username')?.innerText || 'Someone';
