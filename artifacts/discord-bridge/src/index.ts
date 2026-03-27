@@ -1326,9 +1326,8 @@ client.on("interactionCreate", async (interaction) => {
 
 // ── Reviewer Discord user IDs ─────────────────────────────────────────────────
 const REVIEWER_IDS = [
-  "1477329893766336663",
-  "1426942471299928297",
   "1271214946843099249",
+  "1291932470014644225",
 ];
 
 // ── Application listener — watch Firestore for new pending apps ───────────────
