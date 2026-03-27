@@ -39,6 +39,7 @@ const BRIDGE_BOT_UID = "DISCORD_BRIDGE";
 // ── Discord client ────────────────────────────────────────────────────────────
 const DISCORD_TOKEN      = process.env["DISCORD_BOT_TOKEN"];
 const DISCORD_CHANNEL_ID = process.env["DISCORD_CHANNEL_ID"];
+const DISCORD_GUILD_ID   = process.env["DISCORD_GUILD_ID"] ?? "1484543070035902618";
 
 if (!DISCORD_TOKEN || !DISCORD_CHANNEL_ID) {
   console.error("DISCORD_BOT_TOKEN or DISCORD_CHANNEL_ID missing");
@@ -1513,8 +1514,11 @@ function startGameListener() {
 client.once("clientReady", async () => {
   console.log(`Discord bridge ready as ${client.user?.tag}`);
 
-  // Register slash commands in all guilds
-  for (const [guildId] of client.guilds.cache) {
+  // Register slash commands — fall back to known guild ID if cache is empty
+  const guildIds = client.guilds.cache.size > 0
+    ? [...client.guilds.cache.keys()]
+    : [DISCORD_GUILD_ID];
+  for (const guildId of guildIds) {
     await registerCommands(guildId);
   }
 
