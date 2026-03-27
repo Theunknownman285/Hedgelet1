@@ -1625,6 +1625,16 @@ function startGameListener() {
 
 // ── Bot ready ─────────────────────────────────────────────────────────────────
 client.once("clientReady", async () => {
+  // Rename bot to Spacelet Bridge if needed
+  try {
+    if (client.user?.username !== "Spacelet Bridge") {
+      await client.user?.setUsername("Spacelet Bridge");
+      console.log("[Bot] Renamed to Spacelet Bridge");
+    }
+  } catch (e) {
+    console.warn("[Bot] Could not rename bot (rate limited or no permission):", (e as Error).message);
+  }
+
   console.log(`Discord bridge ready as ${client.user?.tag}`);
 
   // Register slash commands — fall back to known guild ID if cache is empty
@@ -1635,30 +1645,32 @@ client.once("clientReady", async () => {
     await registerCommands(guildId);
   }
 
-  const ch = await client.channels.fetch(DISCORD_CHANNEL_ID!);
-  if (!ch || !ch.isTextBased()) {
-    console.error("Channel not found or not a text channel");
-    process.exit(1);
-  }
-  channelReady = ch as TextChannel;
-
+  // Set up chat channel — non-fatal if missing (application DMs still work)
   try {
-    await channelReady.send({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(0xffd700)
-          .setTitle("🚀 Spacelet Chat Bridge Online")
-          .setDescription(
-            "Messages from the game appear here. Reply to chat with in-game players!\n\n" +
-            "**Mod commands (Ban Members permission required):**\n" +
-            "`/mute <username> [reason]` · `/unmute <username>`\n" +
-            "`/ban <username> [reason]` · `/unban <username>`"
-          ),
-      ],
-    });
-  } catch (_) {}
+    const ch = await client.channels.fetch(DISCORD_CHANNEL_ID!);
+    if (ch && ch.isTextBased()) {
+      channelReady = ch as TextChannel;
+      await channelReady.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0xffd700)
+            .setTitle("🚀 Spacelet Chat Bridge Online")
+            .setDescription(
+              "Messages from the game appear here. Reply to chat with in-game players!\n\n" +
+              "**Mod commands (Ban Members permission required):**\n" +
+              "`/mute <username> [reason]` · `/unmute <username>`\n" +
+              "`/ban <username> [reason]` · `/unban <username>`"
+            ),
+        ],
+      }).catch(() => {});
+      startGameListener();
+    } else {
+      console.warn("[Bot] Chat channel not found or not a text channel — chat bridge disabled, application DMs still active.");
+    }
+  } catch (e) {
+    console.warn("[Bot] Could not connect to chat channel — chat bridge disabled, application DMs still active:", (e as Error).message);
+  }
 
-  startGameListener();
   startApplicationListener();
 });
 
