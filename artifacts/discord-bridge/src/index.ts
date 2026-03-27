@@ -28,8 +28,8 @@ const serviceAccount = JSON.parse(serviceAccountRaw);
 if (!getApps().length) {
   initializeApp({
     credential: cert(serviceAccount),
-    databaseURL: "https://hedgelet-292a4-default-rtdb.firebaseio.com",
-    storageBucket: "hedgelet-292a4.firebasestorage.app",
+    databaseURL: "https://spacelet-18ec8-default-rtdb.firebaseio.com",
+    storageBucket: "spacelet-18ec8.firebasestorage.app",
   });
 }
 
