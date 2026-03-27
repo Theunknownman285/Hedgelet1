@@ -18,6 +18,7 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getDatabase } from "firebase-admin/database";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
+import { getStorage } from "firebase-admin/storage";
 
 // ── Firebase admin init ───────────────────────────────────────────────────────
 const serviceAccountRaw = process.env["FIREBASE_SERVICE_ACCOUNT"];
@@ -28,13 +29,17 @@ if (!getApps().length) {
   initializeApp({
     credential: cert(serviceAccount),
     databaseURL: "https://hedgelet-292a4-default-rtdb.firebaseio.com",
+    storageBucket: "hedgelet-292a4.firebasestorage.app",
   });
 }
 
 const rtdb      = getDatabase();
 const firestore = getFirestore();
+const bucket    = getStorage().bucket();
 const chatRef   = rtdb.ref("globalChat");
-const BRIDGE_BOT_UID = "DISCORD_BRIDGE";
+const BRIDGE_BOT_UID  = "DISCORD_BRIDGE";
+const BACKUP_SECRET   = process.env["BACKUP_SECRET"] ?? "hedgelet-backup-secret-2024";
+const BACKUP_COLLECTIONS = ["users", "clans", "bazaar", "applications", "partnerCodes", "ipBans", "trades"];
 
 // ── Discord client ────────────────────────────────────────────────────────────
 const DISCORD_TOKEN      = process.env["DISCORD_BOT_TOKEN"];
@@ -229,6 +234,14 @@ const commands = [
     .setDescription("Wipe a player's account — removes all blooks, tokens and progress (Staff only)")
     .addStringOption(o =>
       o.setName("username").setDescription("Hedgelet username").setRequired(true)),
+  new SlashCommandBuilder()
+    .setName("backup")
+    .setDescription("Trigger an immediate Firestore backup to Cloud Storage (Owner only)"),
+  new SlashCommandBuilder()
+    .setName("restore")
+    .setDescription("Restore Firestore data from a backup file (Owner only)")
+    .addStringOption(o =>
+      o.setName("filename").setDescription("Backup filename from /backup list (e.g. backups/hedgelet-backup-2024-...)").setRequired(true)),
 ].map(c => c.toJSON());
 
 // ── Register slash commands for the guild ─────────────────────────────────────
@@ -1193,6 +1206,107 @@ client.on("interactionCreate", async (interaction) => {
         .setDescription(`Gave **${qty}×** ${emoji} **${blookInfo.name}** (${rLabel}) to **${found.data.username}**.`)
         .setFooter({ text: `Given by ${mod}` })],
     });
+  }
+
+  // ── /backup ─────────────────────────────────────────────────────────────────
+  if (commandName === "backup") {
+    if (!hasModRole(interaction)) {
+      return interaction.reply({ content: "❌ Staff only.", flags: MessageFlags.Ephemeral });
+    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename  = `backups/hedgelet-backup-${timestamp}.json`;
+      const data: Record<string, Record<string, unknown>> = {};
+
+      for (const col of BACKUP_COLLECTIONS) {
+        data[col] = {};
+        const snap = await firestore.collection(col).get();
+        snap.forEach(doc => { data[col][doc.id] = doc.data(); });
+      }
+      // Include Auth user metadata
+      data["_authUsers"] = {};
+      let pageToken: string | undefined;
+      do {
+        const result = await getAuth().listUsers(1000, pageToken);
+        result.users.forEach(u => {
+          data["_authUsers"][u.uid] = {
+            uid: u.uid, email: u.email, displayName: u.displayName,
+            disabled: u.disabled, createdAt: u.metadata.creationTime,
+          };
+        });
+        pageToken = result.pageToken;
+      } while (pageToken);
+
+      const json = JSON.stringify(data, null, 2);
+      const file = bucket.file(filename);
+      await file.save(Buffer.from(json, "utf8"), { contentType: "application/json" });
+      await file.makePublic();
+      const url = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+
+      const counts = Object.entries(data)
+        .map(([k, v]) => `**${k}**: ${Object.keys(v).length}`)
+        .join("\n");
+
+      return interaction.editReply({
+        embeds: [new EmbedBuilder()
+          .setColor(Colors.Green)
+          .setTitle("🛡️ Backup Complete")
+          .setDescription(`**Collections backed up:**\n${counts}\n\n[📥 Download backup](${url})`)
+          .setFooter({ text: `Triggered by ${mod} · ${filename}` })],
+      });
+    } catch (e: any) {
+      return interaction.editReply({ content: `❌ Backup failed: ${e?.message ?? e}` });
+    }
+  }
+
+  // ── /restore ─────────────────────────────────────────────────────────────────
+  if (commandName === "restore") {
+    if (!hasModRole(interaction)) {
+      return interaction.reply({ content: "❌ Staff only.", flags: MessageFlags.Ephemeral });
+    }
+    const filename = interaction.options.getString("filename", true).trim();
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    try {
+      const file = bucket.file(filename);
+      const [exists] = await file.exists();
+      if (!exists) {
+        return interaction.editReply({ content: `❌ File not found in Storage: \`${filename}\`` });
+      }
+      const [contents] = await file.download();
+      const data: Record<string, Record<string, unknown>> = JSON.parse(contents.toString("utf8"));
+
+      let docsWritten = 0;
+      for (const [col, docs] of Object.entries(data)) {
+        if (col === "_authUsers") continue;
+        const colRef  = firestore.collection(col);
+        const entries = Object.entries(docs);
+        for (let i = 0; i < entries.length; i += 400) {
+          const batch = firestore.batch();
+          for (const [docId, docData] of entries.slice(i, i + 400)) {
+            batch.set(colRef.doc(docId), docData as Record<string, unknown>);
+          }
+          await batch.commit();
+          docsWritten += entries.slice(i, i + 400).length;
+        }
+      }
+
+      const authCount = Object.keys(data["_authUsers"] ?? {}).length;
+      return interaction.editReply({
+        embeds: [new EmbedBuilder()
+          .setColor(Colors.Green)
+          .setTitle("✅ Restore Complete")
+          .setDescription(
+            `**${docsWritten}** Firestore documents restored.\n\n` +
+            `**${authCount}** Auth accounts were in the backup — players will need to re-register ` +
+            `(their Firestore data is restored so progress will reappear when they log in).\n\n` +
+            `📦 Source: \`${filename}\``
+          )
+          .setFooter({ text: `Restored by ${mod}` })],
+      });
+    } catch (e: any) {
+      return interaction.editReply({ content: `❌ Restore failed: ${e?.message ?? e}` });
+    }
   }
 
   } catch (e: any) {
