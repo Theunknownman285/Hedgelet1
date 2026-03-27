@@ -44,7 +44,7 @@ const BACKUP_COLLECTIONS = ["users", "clans", "bazaar", "applications", "partner
 // ── Discord client ────────────────────────────────────────────────────────────
 const DISCORD_TOKEN      = process.env["DISCORD_BOT_TOKEN"];
 const DISCORD_CHANNEL_ID = process.env["DISCORD_CHANNEL_ID"];
-const DISCORD_GUILD_ID   = process.env["DISCORD_GUILD_ID"] ?? "1486419078867452106";
+const DISCORD_GUILD_ID   = process.env["DISCORD_GUILD_ID"] ?? "1484543070035902618";
 
 if (!DISCORD_TOKEN || !DISCORD_CHANNEL_ID) {
   console.error("DISCORD_BOT_TOKEN or DISCORD_CHANNEL_ID missing");
