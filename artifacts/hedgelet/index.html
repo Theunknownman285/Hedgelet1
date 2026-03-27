@@ -1112,8 +1112,8 @@
     window.onload = () => {
         const phone = document.getElementById('phone');
         const h2 = document.getElementById('spaceExplorer2');
-        setTimeout(() => { phone.style.opacity = '1'; }, 1000);
-        setTimeout(() => { h2.style.opacity = '1'; h2.style.left = '150px'; }, 3000);
+        if (phone) setTimeout(() => { phone.style.opacity = '1'; }, 1000);
+        if (h2) setTimeout(() => { h2.style.opacity = '1'; h2.style.left = '150px'; }, 3000);
     };
 
     function enterSignup() {
