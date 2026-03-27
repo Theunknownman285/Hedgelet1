@@ -1476,82 +1476,78 @@ client.on("interactionCreate", async (interaction) => {
   const { customId } = interaction;
   if (!customId.startsWith("approve_") && !customId.startsWith("deny_")) return;
 
-  // Acknowledge immediately — Discord only gives 3 seconds before showing
-  // "This interaction failed". All Firestore + DM work happens after this.
+  console.log(`[Button] Received: ${customId} from ${interaction.user.tag}`);
+
+  // Acknowledge immediately with an ephemeral reply — more reliable than
+  // deferUpdate() for DM button interactions. Discord gives 3 seconds.
   try {
-    await interaction.deferUpdate();
+    await interaction.deferReply({ ephemeral: true });
   } catch (e: any) {
-    // Interaction already expired (e.g. bot restarted after button was sent)
-    console.warn("[Button] deferUpdate failed — interaction expired:", e?.message ?? e);
+    console.warn("[Button] deferReply failed — interaction already expired:", e?.message ?? e);
     return;
   }
 
-  const sepIdx = customId.indexOf("_");
-  const action = customId.slice(0, sepIdx) as "approve" | "deny";
-  const uid    = customId.slice(sepIdx + 1);
-  const appRef = firestore.collection("applications").doc(uid);
-  const appSnap = await appRef.get();
-  if (!appSnap.exists) {
-    await interaction.editReply({ content: "⚠️ Application not found — it may have already been processed.", embeds: [], components: [] });
-    return;
-  }
-  const app = appSnap.data()!;
-  if (app.status !== "pending") {
-    await interaction.editReply({ content: `⚠️ This application was already **${app.status}**.`, embeds: [], components: [] });
-    return;
-  }
-
-  const reviewer = interaction.user.username;
-
-  if (action === "approve") {
-    // Create player doc in users collection
-    const initCollection: Record<number, number> = {};
-    for (let i = 1; i <= Object.keys(BLOOK_DATA).length; i++) initCollection[i] = 0;
-    await firestore.collection("users").doc(uid).set({
-      email: app.email, username: app.username, tokens: 500,
-      opened: 0, collection: initCollection, messagesSent: 0,
-      friends: [], friendRequests: [], roles: [],
-    });
-    await appRef.update({ status: "approved", reviewedBy: reviewer, reviewedAt: Date.now() });
-
-    // DM all reviewers that it was approved
-    const approvedEmbed = new EmbedBuilder().setColor(Colors.Green)
-      .setTitle("✅ Application Approved")
-      .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to SpaceHedge.`);
-
-    for (const rid of REVIEWER_IDS) {
-      try {
-        const u = await client.users.fetch(rid);
-        await u.send({ embeds: [approvedEmbed] });
-      } catch (_) {}
+  try {
+    const sepIdx = customId.indexOf("_");
+    const action = customId.slice(0, sepIdx) as "approve" | "deny";
+    const uid    = customId.slice(sepIdx + 1);
+    const appRef = firestore.collection("applications").doc(uid);
+    const appSnap = await appRef.get();
+    if (!appSnap.exists) {
+      await interaction.editReply("⚠️ Application not found — it may have already been processed.");
+      return;
+    }
+    const app = appSnap.data()!;
+    if (app.status !== "pending") {
+      await interaction.editReply(`⚠️ This application was already **${app.status}**.`);
+      return;
     }
 
-    await interaction.editReply({
-      content: `✅ Approved **${app.username}** — their account is now active.`,
-      embeds: [], components: [],
-    });
-    console.log(`[Apps] ${reviewer} approved application for ${app.username}`);
+    const reviewer = interaction.user.username;
 
-  } else {
-    await appRef.update({ status: "denied", reviewedBy: reviewer, reviewedAt: Date.now() });
+    // Remove the buttons from the original DM so it can't be double-clicked
+    try {
+      await interaction.message.edit({ components: [] });
+    } catch (_) {}
 
-    // DM all reviewers that it was denied
-    const deniedEmbed = new EmbedBuilder().setColor(Colors.Red)
-      .setTitle("❌ Application Denied")
-      .setDescription(`**${app.username}**'s application was denied by **${reviewer}**.`);
+    if (action === "approve") {
+      const initCollection: Record<number, number> = {};
+      for (let i = 1; i <= Object.keys(BLOOK_DATA).length; i++) initCollection[i] = 0;
+      await firestore.collection("users").doc(uid).set({
+        email: app.email, username: app.username, tokens: 500,
+        opened: 0, collection: initCollection, messagesSent: 0,
+        friends: [], friendRequests: [], roles: [],
+      });
+      await appRef.update({ status: "approved", reviewedBy: reviewer, reviewedAt: Date.now() });
 
-    for (const rid of REVIEWER_IDS) {
-      try {
-        const u = await client.users.fetch(rid);
-        await u.send({ embeds: [deniedEmbed] });
-      } catch (_) {}
+      const approvedEmbed = new EmbedBuilder().setColor(Colors.Green)
+        .setTitle("✅ Application Approved")
+        .setDescription(`**${app.username}**'s application was approved by **${reviewer}**.\nThey can now log in to SpaceHedge.`);
+
+      for (const rid of REVIEWER_IDS) {
+        try { await (await client.users.fetch(rid)).send({ embeds: [approvedEmbed] }); } catch (_) {}
+      }
+
+      await interaction.editReply(`✅ Approved **${app.username}** — their account is now active.`);
+      console.log(`[Apps] ${reviewer} approved application for ${app.username}`);
+
+    } else {
+      await appRef.update({ status: "denied", reviewedBy: reviewer, reviewedAt: Date.now() });
+
+      const deniedEmbed = new EmbedBuilder().setColor(Colors.Red)
+        .setTitle("❌ Application Denied")
+        .setDescription(`**${app.username}**'s application was denied by **${reviewer}**.`);
+
+      for (const rid of REVIEWER_IDS) {
+        try { await (await client.users.fetch(rid)).send({ embeds: [deniedEmbed] }); } catch (_) {}
+      }
+
+      await interaction.editReply(`❌ Denied **${app.username}**'s application.`);
+      console.log(`[Apps] ${reviewer} denied application for ${app.username}`);
     }
-
-    await interaction.editReply({
-      content: `❌ Denied **${app.username}**'s application.`,
-      embeds: [], components: [],
-    });
-    console.log(`[Apps] ${reviewer} denied application for ${app.username}`);
+  } catch (e: any) {
+    console.error("[Button] Handler error:", e?.message ?? e, e?.stack);
+    try { await interaction.editReply("❌ An error occurred while processing. Check the bridge logs."); } catch (_) {}
   }
 });
 
