@@ -570,7 +570,7 @@
 <!-- SIDEBAR -->
 <div class="sidebar">
     <h1 style="font-size:36px;text-align:center;margin-bottom:6px;">🚀</h1>
-    <div style="text-align:center;font-size:13px;font-weight:bold;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:24px;">HEDGELET</div>
+    <div style="text-align:center;font-size:13px;font-weight:bold;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-bottom:24px;">SPACELET</div>
     <div class="nav-item active-nav" data-page="stats-page"   onclick="showPage('stats-page')">📊 Stats</div>
     <div class="nav-item"           data-page="market-page"   onclick="showPage('market-page')">🛒 Market</div>
     <div class="nav-item"           data-page="hedges-page"   onclick="showPage('hedges-page')">🌌 Blooks</div>
@@ -1263,9 +1263,17 @@
             });
         } else {
             currentUid = null;
-            // Always restore login screen when signed out
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('home-screen').style.display = 'none';
+            // Only jump to login screen if the user was already inside the game (got signed out).
+            // On fresh page load the game layout is hidden, so we show the home screen instead.
+            const sidebar = document.querySelector('.sidebar');
+            const gameVisible = sidebar && sidebar.style.display !== 'none' && sidebar.style.display !== '';
+            if (gameVisible) {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('home-screen').style.display = 'none';
+            } else {
+                document.getElementById('home-screen').style.display = 'flex';
+                document.getElementById('login-screen').style.display = 'none';
+            }
         }
     });
 
@@ -1294,13 +1302,12 @@
                 bannedReason = data.bannedReason || '';
                 if (banned) {
                     firebase.auth().signOut();
-                    document.getElementById('login-page').style.display = 'flex';
-                    document.getElementById('game-layout').style.display = 'none';
-                    const loginError = document.getElementById('login-error') || document.createElement('div');
-                    loginError.id = 'login-error';
-                    loginError.style.cssText = 'color:#ff6b6b;font-weight:bold;margin-top:12px;text-align:center;';
-                    loginError.innerText = '🔨 You are banned from Spacelet.' + (bannedReason ? ' Reason: ' + bannedReason : '');
-                    document.querySelector('#login-page .auth-box')?.appendChild(loginError);
+                    document.getElementById('login-screen').style.display = 'flex';
+                    document.getElementById('home-screen').style.display = 'none';
+                    setTimeout(() => {
+                        const el = document.getElementById('login-status');
+                        if (el) { el.textContent = '🔨 You are banned from Spacelet.' + (bannedReason ? ' Reason: ' + bannedReason : ''); el.style.color = '#e74c3c'; }
+                    }, 100);
                     return;
                 }
                 // Clear forceLogout on login so the mod-listener won't kick them out immediately
