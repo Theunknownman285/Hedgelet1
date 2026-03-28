@@ -312,10 +312,12 @@ async function modReply(
   title: string,
   description: string
 ) {
-  await interaction.reply({
-    embeds: [new EmbedBuilder().setColor(color).setTitle(title).setDescription(description)],
-    flags: MessageFlags.Ephemeral,
-  });
+  const embed = new EmbedBuilder().setColor(color).setTitle(title).setDescription(description);
+  if (interaction.deferred || interaction.replied) {
+    await interaction.editReply({ embeds: [embed] });
+  } else {
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+  }
 }
 
 // ── Slash command handlers ────────────────────────────────────────────────────
@@ -470,11 +472,26 @@ client.on("interactionCreate", async (interaction) => {
   const { commandName } = interaction;
   const username = interaction.options.getString("username") ?? "";
 
+  console.log(`[Slash] /${commandName} from ${interaction.user.tag}`);
+
+  // Defer immediately — this must happen within 3 seconds or Discord shows
+  // "The application did not respond". Public for view/blook, ephemeral for all others.
+  const publicCommands = ["view", "blook"];
+  try {
+    if (publicCommands.includes(commandName)) {
+      await interaction.deferReply();
+    } else {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+  } catch (e: any) {
+    console.warn(`[Slash] deferReply failed for /${commandName}:`, e?.message ?? e);
+    return;
+  }
+
   try {
 
   // ── /view — public, no role gate ──────────────────────────────────────────
   if (commandName === "view") {
-    await interaction.deferReply();
     const user = await findUserByUsername(username);
     if (!user) {
       await interaction.editReply({
@@ -551,15 +568,12 @@ client.on("interactionCreate", async (interaction) => {
   const { ms: durationMs, label: durationLabel } = parseDuration(durationRaw);
 
   if (!hasModRole(interaction)) {
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [new EmbedBuilder().setColor(Colors.Red).setTitle("❌ Access Denied")
         .setDescription("Only members with the **Owner**, **Co-Owner**, or **Admin** role can use SpaceHedge mod commands.")],
-      flags: MessageFlags.Ephemeral,
     });
     return;
   }
-
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const user = await findUserByUsername(username);
   if (!user) {
@@ -681,7 +695,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can use the alt checker.");
       return;
     }
-    await interaction.deferReply();
 
     const target = await findUserByUsername(username);
     if (!target) {
@@ -770,7 +783,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can IP ban players.");
       return;
     }
-    await interaction.deferReply();
 
     const target = await findUserByUsername(username);
     if (!target) {
@@ -833,7 +845,6 @@ client.on("interactionCreate", async (interaction) => {
 
   // ── /blook ────────────────────────────────────────────────────────────────
   if (commandName === "blook") {
-    await interaction.deferReply();
 
     const blookIdStr = interaction.options.getString("blook", true);
     const blookId    = parseInt(blookIdStr, 10);
@@ -919,7 +930,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can send global announcements.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const message = interaction.options.getString("message", true);
     const sender  = interaction.user.username;
@@ -948,7 +958,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can force-logout players.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const found = await findUserByUsername(username);
     if (!found) {
@@ -983,7 +992,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can reset accounts.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const found = await findUserByUsername(username);
     if (!found) {
@@ -1032,7 +1040,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can add tokens.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const amount = interaction.options.getInteger("amount")!;
     const found  = await findUserByUsername(username);
     if (!found) {
@@ -1063,7 +1070,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can create partner codes.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const customCode = interaction.options.getString("code");
     const code = customCode
@@ -1140,7 +1146,7 @@ client.on("interactionCreate", async (interaction) => {
       activatedAt: Date.now(),
     });
     if (multiplier === 1) {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [new EmbedBuilder()
           .setColor(Colors.Grey)
           .setTitle("🎲 Luck Reset")
@@ -1149,7 +1155,7 @@ client.on("interactionCreate", async (interaction) => {
       });
       console.log(`[LUCK] ${mod} reset luck to 1x`);
     } else {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [new EmbedBuilder()
           .setColor(Colors.Green)
           .setTitle(`🍀 ${multiplier}x Luck Activated!`)
@@ -1166,7 +1172,6 @@ client.on("interactionCreate", async (interaction) => {
       await modReply(interaction, Colors.Red, "❌ No Permission", "Only staff can use `/give`.");
       return;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const blookIdStr = interaction.options.getString("blook", true);
     const qty        = interaction.options.getInteger("quantity") ?? 1;
@@ -1212,9 +1217,8 @@ client.on("interactionCreate", async (interaction) => {
   // ── /backup ─────────────────────────────────────────────────────────────────
   if (commandName === "backup") {
     if (!hasModRole(interaction)) {
-      return interaction.reply({ content: "❌ Staff only.", flags: MessageFlags.Ephemeral });
+      return interaction.editReply({ content: "❌ Staff only." });
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename  = `backups/spacehedge-backup-${timestamp}.json`;
@@ -1264,10 +1268,9 @@ client.on("interactionCreate", async (interaction) => {
   // ── /restore ─────────────────────────────────────────────────────────────────
   if (commandName === "restore") {
     if (!hasModRole(interaction)) {
-      return interaction.reply({ content: "❌ Staff only.", flags: MessageFlags.Ephemeral });
+      return interaction.editReply({ content: "❌ Staff only." });
     }
     const filename = interaction.options.getString("filename", true).trim();
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       const file = bucket.file(filename);
       const [exists] = await file.exists();
