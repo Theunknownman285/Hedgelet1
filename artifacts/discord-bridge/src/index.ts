@@ -401,6 +401,7 @@ const BLOOK_DATA: Record<number, BlookInfo> = {
   63: { name: "Unicorn",       rarity: "epic",      emoji: "🦄" },
   64: { name: "Dragon",        rarity: "legendary", emoji: "🐉" },
   65: { name: "Cool Space Explorer", rarity: "mythical",  emoji: "🚀" },
+  66: { name: "Sweaty",              rarity: "mythical",  emoji: "😅" },
   // Breakfast Pack
   15: { name: "Pancakes",      rarity: "common",    emoji: "🥞" },
   16: { name: "Bacon",         rarity: "common",    emoji: "🥓" },

@@ -642,7 +642,7 @@
             <div class="section-label">Stats</div>
             <div class="stats-bar">
                 <div class="stat-item"><div class="stat-icon">🪙</div><div class="stat-label">Tokens</div><div class="stat-value" id="stat-tokens">500</div></div>
-                <div class="stat-item"><div class="stat-icon">✨</div><div class="stat-label">Blooks Unlocked</div><div class="stat-value" id="stat-unlocked">0/65</div></div>
+                <div class="stat-item"><div class="stat-icon">✨</div><div class="stat-label">Blooks Unlocked</div><div class="stat-value" id="stat-unlocked">0/66</div></div>
                 <div class="stat-item"><div class="stat-icon">📦</div><div class="stat-label">Packs Opened</div><div class="stat-value" id="stat-opened">0</div></div>
                 <div class="stat-item"><div class="stat-icon">💬</div><div class="stat-label">Messages Sent</div><div class="stat-value" id="stat-messages">0</div></div>
             </div>
@@ -1091,6 +1091,7 @@
         65: { name: "Cool Space Explorer",  emoji: TW+'1f994.svg', rarity: "mythical", pack: "animal" },
         // ── Staff-Only ──
         36: { name: "Day 1 Space Explorer", emoji: "/day1-spacehedge.png", rarity: "mythical" },
+        66: { name: "Sweaty",               emoji: "/sweaty-emoji.png",    rarity: "mythical" },
         // ── Emoji Pack ──
         37: { name: "Money Mouth",    emoji: TW+'1f911.svg', pack: "emoji" },
         38: { name: "Beaming",        emoji: TW+'1f604.svg', pack: "emoji" },
@@ -1110,7 +1111,7 @@
         52: { name: "Yum",            emoji: TW+'1f60b.svg', rarity: "uncommon", pack: "emoji" }
     };
 
-    const TOTAL_BLOOKS = 65;
+    const TOTAL_BLOOKS = 66;
     for (let i = 1; i <= TOTAL_BLOOKS; i++) collection[i] = 0;
     const isImg = e => e && (e.startsWith('http') || e.startsWith('/'));
 
